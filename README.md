@@ -64,7 +64,6 @@ maratona-sbc/
 ├── COMPILER.md
 ├── EDITOR.md
 ├── MAKEFILE.md
-├── Makefile
 └── README.md
 ```
 
@@ -75,10 +74,11 @@ maratona-sbc/
 - **`COMPILER.md`**: Comandos e flags de compilação para GCC (Linux), Clang (FreeBSD) e execução em Python/PyPy.
 - **`EDITOR.md`**: Configurações mínimas de 30 segundos para Vim e Emacs em máquinas zeradas de Warmup.
 - **`MAKEFILE.md`**: Referência de automação POSIX para compilar com flags de prova e modo depuração com sanitizers.
-- **`Makefile`**: Arquivo de build universal para terminal (`make A`, `make A.debug`, `make clean`).
 - **`README.md`**: Visão geral da equipe, índice de ciclos de treino e protocolos de prova do trio.
 
 ---
+
+<h2 id="regras-do-trio">⚔️ Regras de Ouro do Trio</h2>
 
 ```text
 ┌───────────────────────────────────────────────────────────────────────────┐
