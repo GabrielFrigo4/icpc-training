@@ -1,37 +1,22 @@
-<div align="center">
-
 # 🎈 Treino para a Maratona SBC de Programação (ICPC)
 
-**Simulados em equipe, upsolving e preparação para as fases da Maratona SBC**
+> **Simulados em equipe, upsolving e preparação para as fases da Maratona SBC**
 
 [![Codeforces](https://img.shields.io/badge/Codeforces-Gerbunte-1F8ACB?style=for-the-badge&logo=codeforces&logoColor=white)](https://codeforces.com/profile/Gerbunte)
 [![GitHub](https://img.shields.io/badge/GitHub-GabrielFrigo4-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/GabrielFrigo4)
-
 [![Linux](https://img.shields.io/badge/Platform-Linux%20%2F%20GCC-FCC624?style=for-the-badge&logo=linux&logoColor=black)](COMPILER.md#c23-no-linux-gcc)
 [![FreeBSD](https://img.shields.io/badge/Platform-FreeBSD%20%2F%20Clang-AB2B28?style=for-the-badge&logo=freebsd&logoColor=white)](COMPILER.md#c23-no-freebsd-clang)
-
 [![Language](https://img.shields.io/badge/C%2B%2B-23-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)](COMPILER.md)
 [![Language](https://img.shields.io/badge/Python-3-3776AB?style=for-the-badge&logo=python&logoColor=white)](COMPILER.md#execução-em-python--pypy)
 [![Language](https://img.shields.io/badge/PyPy-3-FFD43B?style=for-the-badge&logo=pypy&logoColor=black)](COMPILER.md#execução-em-python--pypy)
-
 [![Editor](https://img.shields.io/badge/Editor-Vim-019733?style=for-the-badge&logo=vim&logoColor=white)](EDITOR.md#vim)
 [![Editor](https://img.shields.io/badge/Editor-GNU_Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white)](EDITOR.md#gnu-emacs)
 
-<p align="center">
-  <a href="#visao-geral">Visão Geral</a> •
-  <a href="#ciclos-de-treino">Ciclos de Treino</a> •
-  <a href="#arquitetura-do-repositorio">Estrutura</a> •
-  <a href="COMPILER.md">Compilação</a> •
-  <a href="EDITOR.md">Editores</a> •
-  <a href="MAKEFILE.md">Makefile</a> •
-  <a href="#regras-do-trio">Regras do Trio</a>
-</p>
+[Visão Geral](#-visão-geral) • [Ciclos de Treino](#-ciclos-de-treino) • [Estrutura](#-arquitetura-do-repositório) • [Compilação](COMPILER.md) • [Editores](EDITOR.md) • [Makefile](MAKEFILE.md) • [Regras do Trio](#-regras-de-ouro-do-trio)
 
 ---
 
-</div>
-
-<h2 id="visao-geral">📌 Visão Geral</h2>
+## 📌 Visão Geral
 
 Repositório central de treinos do trio para as etapas da **Maratona SBC de Programação (ICPC Latin America)**. O objetivo é registrar o histórico de simulados cronometrados em condições oficiais, armazenar as soluções aceitas em prova e acompanhar o ciclo contínuo de upsolving.
 
@@ -42,7 +27,7 @@ Repositório central de treinos do trio para as etapas da **Maratona SBC de Prog
 
 ---
 
-<h2 id="ciclos-de-treino">🎯 Ciclos de Treino</h2>
+## 🎯 Ciclos de Treino
 
 Cada diretório corresponde ao ciclo de preparação para um evento da temporada:
 
@@ -52,7 +37,7 @@ Cada diretório corresponde ao ciclo de preparação para um evento da temporada
 
 ---
 
-<h2 id="arquitetura-do-repositorio">📂 Arquitetura do Repositório</h2>
+## 📂 Arquitetura do Repositório
 
 ```text
 maratona-sbc/
@@ -78,7 +63,7 @@ maratona-sbc/
 
 ---
 
-<h2 id="regras-do-trio">⚔️ Regras de Ouro do Trio</h2>
+## ⚔️ Regras de Ouro do Trio
 
 ```text
 ┌───────────────────────────────────────────────────────────────────────────┐
