@@ -33,6 +33,18 @@ jobs:
 
             - name: Markdown Format Validation (Prettier)
               run: |
+                  cat << 'EOF' > ~/.prettierrc
+                  {
+                    "printWidth": 96,
+                    "tabWidth": 4,
+                    "useTabs": true,
+                    "semi": true,
+                    "singleQuote": false,
+                    "trailingComma": "all",
+                    "bracketSpacing": true,
+                    "arrowParens": "always"
+                  }
+                  EOF
                   npm install -g prettier
                   make lint
 
