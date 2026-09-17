@@ -1,0 +1,54 @@
+#!/usr/bin/env sh
+# ----------------------------------------------------------------
+# Hook: Git Pre-Commit Quality Gate Runner
+# License: MIT (c) 2026 GabrielFrigo
+# ----------------------------------------------------------------
+
+set -e
+
+_repo_root="$(git rev-parse --show-toplevel 2> "/dev/null" || pwd)"
+cd "${_repo_root}"
+
+echo "🔍 [pre-commit] Executando ICPC Training quality gates..."
+
+### --------------------------------
+### Whitespace & Formatting Check
+### --------------------------------
+echo "  ↳ Checking whitespace and formatting (git diff --check)..."
+if ! git diff --check --cached; then
+	echo "❌ [pre-commit] Whitespace or EOF formatting error detected!" >&2
+	echo "   Run 'git diff --check --cached' to inspect issues." >&2
+	exit 1
+fi
+
+### --------------------------------
+### Anti-Leak & Compiled Binaries
+### --------------------------------
+echo "  ↳ Verificando ausência de binários e temporários staged..."
+_leaked_bins=$(git diff --cached --name-only | grep -E '(\.(exe|out|app|bin|o|obj|a|so|dylib)|\b[A-Z]\b|\.debug)$' 2> "/dev/null" || true)
+if [ -n "${_leaked_bins}" ]; then
+	echo "❌ [pre-commit] Binário compilado ou arquivo temporário staged: ${_leaked_bins}" >&2
+	echo "   Execute 'make clean' e 'git reset HEAD <arquivo>'." >&2
+	exit 1
+fi
+
+### --------------------------------
+### Markdown Prettier Validation
+### --------------------------------
+if command -v prettier > "/dev/null" 2>&1; then
+	echo "  ↳ Validando arquivos Markdown staged com Prettier..."
+	_unformatted_md=""
+	for _md_file in $(git diff --cached --name-only --diff-filter=d | grep '\.md$' || true); do
+		if [ -f "${_md_file}" ] && ! prettier --check "${_md_file}" > "/dev/null" 2>&1; then
+			_unformatted_md="${_unformatted_md} ${_md_file}"
+		fi
+	done
+	if [ -n "${_unformatted_md}" ]; then
+		echo "❌ [pre-commit] Arquivos Markdown desformatados:${_unformatted_md}" >&2
+		echo "   Execute 'prettier --write <arquivo>' antes do commit." >&2
+		exit 1
+	fi
+fi
+
+echo "✅ [pre-commit] Todos os quality gates de ICPC Training passaram!"
+exit 0

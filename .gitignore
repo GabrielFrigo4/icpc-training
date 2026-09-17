@@ -1,3 +1,20 @@
+## Competitive Programming Executables & Intermediate Files:
+[A-Z]
+[A-Z].exe
+[A-Z].debug
+*.debug
+*.o
+*.obj
+*.out
+a.out
+in
+out
+diff.txt
+actual.txt
+output.txt
+__pycache__/
+*.pyc
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof

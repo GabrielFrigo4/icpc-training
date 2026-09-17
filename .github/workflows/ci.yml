@@ -1,0 +1,78 @@
+name: ICPC Training CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+    lint:
+        name: 🔍 Lint & Whitespace Validation
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Whitespace & Formatting Check (git diff --check)
+              run: |
+                  git diff --check HEAD~1..HEAD 2> "/dev/null" || git diff --check
+
+            - name: Verify Tracked Binaries (make check-binaries)
+              run: |
+                  make check-binaries
+
+            - name: Markdown Format Validation (Prettier)
+              run: |
+                  npm install -g prettier
+                  make lint
+
+    linux:
+        name: 🐧 Linux (Ubuntu / GCC C++23)
+        needs: lint
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v7
+
+            - name: Validate C++23 Toolchain & Sanitizers
+              run: |
+                  echo '#include <iostream>' > /tmp/test.cpp
+                  echo 'int main() { std::cout << "C++23 OK" << std::endl; return 0; }' >> /tmp/test.cpp
+                  g++ -std=c++23 -O3 -Wall -Wextra /tmp/test.cpp -o /tmp/test_bin
+                  /tmp/test_bin
+                  g++ -std=c++23 -fsanitize=address,undefined -g /tmp/test.cpp -o /tmp/test_dbg
+                  /tmp/test_dbg
+                  rm -f /tmp/test.cpp /tmp/test_bin /tmp/test_dbg
+
+    freebsd:
+        name: 😈 FreeBSD (15.x / Clang C++23)
+        needs: lint
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v7
+
+            - name: Test C++23 Compilers in FreeBSD VM
+              uses: vmactions/freebsd-vm@v1
+              with:
+                  release: "15"
+                  usesh: true
+                  envs: "CI GITHUB_ACTIONS"
+                  run: |
+                      uname -a
+                      c++ --version
+                      echo '#include <iostream>' > /tmp/test.cpp
+                      echo 'int main() { std::cout << "FreeBSD Clang C++23 OK" << std::endl; return 0; }' >> /tmp/test.cpp
+                      c++ -std=c++23 -O3 -Wall -Wextra /tmp/test.cpp -o /tmp/test_bin
+                      /tmp/test_bin
+                      rm -f /tmp/test.cpp /tmp/test_bin
