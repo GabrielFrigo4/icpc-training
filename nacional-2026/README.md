@@ -30,22 +30,22 @@ Cronograma semanal de simulados e estudos em equipe para a Final Brasileira da M
 - **3h00 às 5h00 (Foco de Aprendizado):** Entrega do "gabarito de temas" (tags dos problemas). Em vez de o time ficar travado sem saber por onde começar, a discussão vira: _"sabendo que isso é 2-SAT / Convex Hull Trick, como a gente modela a entrada para essa técnica?"_.
 
 - **Sexta a Domingo (Upsolving):** Análise pós-prova, discussão do que deu errado na implementação e finalização dos códigos até bater o `Accepted`.
-- **Segunda a Quarta (Estudo Temático & Notebook):** Treino deliberado no tema semanal do cronograma e inclusão de código testado no caderno do time.
+- **Segunda a Quarta (Estudo Temático & Notebook):** Treino deliberado nos tópicos teóricos da prova semanal ([`TEMAS.md`](2019/TEMAS.md)) e inclusão de código testado no caderno do time.
 
 ---
 
 ## 📅 Calendário de Simulados & Temas Semanais
 
-| Semana       | Data (Quinta) | Prova Oficial                                                | Tema de Foco (Seg - Qua)                                                            | Status | Upsolved |
-| ------------ | ------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------- | ------ | -------- |
-| **Semana 1** | 17/09         | [Gym 102428 (LatAm 2019)](https://codeforces.com/gym/102428) | **Base & Estratégia:** Ad-hoc, Guloso estruturado e Busca Binária                   | [ ]    | 0 / 13   |
-| **Semana 2** | 24/09         | [Gym 103185 (LatAm 2020)](https://codeforces.com/gym/103185) | **Data Structures 1:** SegTree (Lazy), Fenwick 2D e DSU                             | [ ]    | 0 / 14   |
-| **Semana 3** | 01/10         | [Gym 103640 (LatAm 2021)](https://codeforces.com/gym/103640) | **Grafos 1:** Pontes/Articulações, 2-SAT e Matching Bipartido (Kuhn)                | [ ]    | 0 / 13   |
-| **Semana 4** | 08/10         | [Gym 104252 (LatAm 2022)](https://codeforces.com/gym/104252) | **DP:** DP em Árvore, DP com Bitmask / SOS DP                                       | [ ]    | 0 / 13   |
-| **Semana 5** | 15/10         | [Gym 104736 (LatAm 2023)](https://codeforces.com/gym/104736) | **Strings & Hash:** Hashing duplo, KMP, Z-function e Aho-Corasick                   | [ ]    | 0 / 13   |
-| **Semana 6** | 22/10         | [Gym 105505 (LatAm 2024)](https://codeforces.com/gym/105505) | **Matemática & Teoria dos Números:** Crivos, Exponenciação de Matriz e Combinatória | [ ]    | 0 / 13   |
-| **Semana 7** | 29/10         | [Gym 106178 (LatAm 2025)](https://codeforces.com/gym/106178) | **Grafos 2 & Geometria:** Fluxo Máximo (Dinic), Min-Cut e Primitivas 2D             | [ ]    | 0 / 13   |
-| **Semana 8** | 05/11         | _Viagem / Warmup Oficial (UFU)_                              | **Descanso, alinhamento psicológico e impressão do Notebook**                       | —      | —        |
+|    Semana    | Data (Quinta) | Prova Oficial                                                |      Temas da Prova       |        Temas dos Exercícios         | Status | Upsolved |
+| :----------: | :-----------: | :----------------------------------------------------------- | :-----------------------: | :---------------------------------: | :----: | :------: |
+| **Semana 1** |     17/09     | [Gym 102428 (LatAm 2019)](https://codeforces.com/gym/102428) | [TEMAS.md](2019/TEMAS.md) | [EXERCICIOS.md](2019/EXERCICIOS.md) |  [x]   |  5 / 13  |
+| **Semana 2** |     24/09     | [Gym 103185 (LatAm 2020)](https://codeforces.com/gym/103185) | [TEMAS.md](2020/TEMAS.md) | [EXERCICIOS.md](2020/EXERCICIOS.md) |  [ ]   |  0 / 14  |
+| **Semana 3** |     01/10     | [Gym 103640 (LatAm 2021)](https://codeforces.com/gym/103640) | [TEMAS.md](2021/TEMAS.md) | [EXERCICIOS.md](2021/EXERCICIOS.md) |  [ ]   |  0 / 13  |
+| **Semana 4** |     08/10     | [Gym 104252 (LatAm 2022)](https://codeforces.com/gym/104252) | [TEMAS.md](2022/TEMAS.md) | [EXERCICIOS.md](2022/EXERCICIOS.md) |  [ ]   |  0 / 13  |
+| **Semana 5** |     15/10     | [Gym 104736 (LatAm 2023)](https://codeforces.com/gym/104736) | [TEMAS.md](2023/TEMAS.md) | [EXERCICIOS.md](2023/EXERCICIOS.md) |  [ ]   |  0 / 13  |
+| **Semana 6** |     22/10     | [Gym 105505 (LatAm 2024)](https://codeforces.com/gym/105505) | [TEMAS.md](2024/TEMAS.md) | [EXERCICIOS.md](2024/EXERCICIOS.md) |  [ ]   |  0 / 13  |
+| **Semana 7** |     29/10     | [Gym 106178 (LatAm 2025)](https://codeforces.com/gym/106178) | [TEMAS.md](2025/TEMAS.md) | [EXERCICIOS.md](2025/EXERCICIOS.md) |  [ ]   |  0 / 13  |
+| **Semana 8** |     05/11     | _Viagem / Warmup Oficial (UFU)_                              |             —             |                  —                  |   —    |    —     |
 
 ---
 
@@ -58,14 +58,17 @@ nacional-2026/
 ├── 2019/
 │   ├── A.cpp
 │   ├── B.py
-│   └── NOTES.md
+│   ├── TEMAS.md
+│   └── EXERCICIOS.md
 ├── 2020/
+│   ├── TEMAS.md
+│   └── EXERCICIOS.md
 └── README.md
 ```
 
-- **A.cpp**: Solução em C++23 aceita durante a prova ou resolvida no upsolving, com complexidade anotada no cabeçalho.
-- **B.py**: Solução alternativa ou script em Python 3 / PyPy 3, indicada para problemas de precisão arbitrária ou parsing extenso.
-- **NOTES.md**: Registro pós-simulado contendo placar final do time, cronologia dos balões, motivos de penalidades (WA/TLE) e a lista de questões para upsolving imediato.
+- **A.cpp / B.py**: Soluções em C++23 ou Python/PyPy aceitas em prova ou finalizadas no upsolving.
+- **TEMAS.md (Temas da Prova)**: Relação concisa dos tópicos algorítmicos abordados na prova com links de fontes canônicas (CP-Algorithms, USACO Guide) para revisão teórica de Segunda a Quarta. Livre de spoilers e sem citar as questões do simulado.
+- **EXERCICIOS.md (Temas dos Exercícios)**: Mapeamento direto de cada problema [A..M] com seu respectivo tema, técnica e complexidade esperada. Mantido em sigilo nas primeiras 3h de simulado e liberado às 3h00 ou no upsolving.
 
 ---
 

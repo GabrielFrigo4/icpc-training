@@ -54,7 +54,7 @@ maratona-sbc/
 
 - **`nacional-2026/`**: Diretório do ciclo ativo focado na Final Brasileira 2026, reunindo o cronograma semanal e as resoluções de prova.
 - **`README.md`**: Cronograma com links diretos do Codeforces Gym, divisão de prova (3h cegas + 2h com tópicos) e tracking de upsolving.
-- **`AAAA/`** (`2019/`, `2020/`, ...): Pasta de cada edição simulada com as soluções aceitas (`A.cpp`, `B.py`) e o log de erros pós-prova (`NOTES.md`).
+- **`AAAA/`** (`2019/`, `2020/`, ...): Pasta de cada edição simulada com as soluções aceitas (`A.cpp`, `B.py`), guia de estudo pré-prova sem spoiler (`TEMAS.md`) e gabarito de técnicas por problema (`EXERCICIOS.md`).
 
 - **`COMPILER.md`**: Comandos e flags de compilação para GCC (Linux), Clang (FreeBSD) e execução em Python/PyPy.
 - **`EDITOR.md`**: Configurações mínimas de 30 segundos para Vim e Emacs em máquinas zeradas de Warmup.
