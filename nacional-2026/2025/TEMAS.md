@@ -6,7 +6,7 @@
 
 ### 1. Álgebra Linear & Operações com XOR
 
-- **Eliminação Gaussiana em $\mathbb{F}_2$ / Base Linear de XOR:** Encontrar dependências lineares, geração de subespaços e cálculo de bases com restrição de tamanho.
+- **Eliminação Gaussiana em $\mathbb{F}\_2$ / Base Linear de XOR:** Encontrar dependências lineares, geração de subespaços e cálculo de bases com restrição de tamanho.
     - 🔗 [CP-Algorithms — Gauss-Jordan Elimination](https://cp-algorithms.com/linear_algebra/linear-system-gauss.html)
 
 ### 2. Teoria dos Grafos & Conectividade
