@@ -23,7 +23,7 @@ Marathon/
 ├── .githooks/                # Quality gates locais
 ├── .github/workflows/        # CI/CD de validação de compilação
 ├── Makefile                  # Orquestrador POSIX silencioso
-├── PRINCIPLES.md             # 18 Princípios de Engenharia adaptados a maratonas
+├── PRINCIPLES.md             # 22 Princípios de Engenharia adaptados a maratonas
 └── README.md                 # Visão geral do repositório
 ```
 
