@@ -1,4 +1,4 @@
-# 🎈 Treino para a Maratona SBC de Programação (ICPC)
+# Treino para a Maratona SBC de Programação (ICPC)
 
 > **Simulados em equipe, upsolving e preparação para as fases da Maratona SBC**
 
@@ -12,11 +12,11 @@
 [![Editor](https://img.shields.io/badge/Editor-Vim-019733?style=for-the-badge&logo=vim&logoColor=white)](EDITOR.md#vim)
 [![Editor](https://img.shields.io/badge/Editor-GNU_Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white)](EDITOR.md#gnu-emacs)
 
-[Visão Geral](#-visão-geral) • [Ciclos de Treino](#-ciclos-de-treino) • [Estrutura](#-arquitetura-do-repositório) • [Compilação](COMPILER.md) • [Editores](EDITOR.md) • [Makefile](MAKEFILE.md) • [Regras do Trio](#-regras-de-ouro-do-trio)
+[Visão Geral](#visao-geral) • [Ciclos de Treino](#ciclos-de-treino) • [Estrutura](#arquitetura-do-repositorio) • [Compilação](COMPILER.md) • [Editores](EDITOR.md) • [Makefile](MAKEFILE.md) • [Regras do Trio](#regras-de-ouro-do-trio)
 
 ---
 
-## 📌 Visão Geral
+## Visão Geral
 
 Repositório central de treinos do trio para as etapas da **Maratona SBC de Programação (ICPC Latin America)**. O objetivo é registrar o histórico de simulados cronometrados em condições oficiais, armazenar as soluções aceitas em prova e acompanhar o ciclo contínuo de upsolving.
 
@@ -27,7 +27,7 @@ Repositório central de treinos do trio para as etapas da **Maratona SBC de Prog
 
 ---
 
-## 🎯 Ciclos de Treino
+## Ciclos de Treino
 
 Cada diretório corresponde ao ciclo de preparação para um evento da temporada:
 
@@ -37,7 +37,7 @@ Cada diretório corresponde ao ciclo de preparação para um evento da temporada
 
 ---
 
-## 📂 Arquitetura do Repositório
+## Arquitetura do Repositório
 
 ```text
 maratona-sbc/

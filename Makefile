@@ -14,7 +14,7 @@ DBGFLAGS   ?= -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23
 .SUFFIXES:
 .SUFFIXES: .cpp .debug
 
-.PHONY: all help setup setup-hooks lint format clean check-binaries ci
+.PHONY: all help setup setup-hooks lint format prettier clang-format clean check-binaries ci
 
 all: help
 
@@ -22,9 +22,10 @@ all: help
 ### HELP & DOCUMENTATION
 ### ================================
 help:
-	cmd() { printf "    \033[36mmake %-22s\033[0m %s\n" "$$1" "$$2"; }; \
-	sec() { printf "\n  \033[1;33m%s\033[0m\n" "$$1"; }; \
-	printf "\n  \033[1;37mMaratona SBC de Programação (ICPC) — Treinos & Automação\033[0m\n"; \
+	_e=$$'\e'; \
+	cmd() { printf "    $${_e}[36mmake %-22s$${_e}[0m %s\n" "$$1" "$$2"; }; \
+	sec() { printf "\n  $${_e}[1;33m%s$${_e}[0m\n" "$$1"; }; \
+	printf "\n  $${_e}[1;37mMaratona SBC de Programação (ICPC) — Treinos & Automação$${_e}[0m\n"; \
 	printf "  ============================================================\n"; \
 	sec "Ambiente & Toolchain:"; \
 	cmd "setup"          "Configura hooks do Git e valida compiladores C++ e Python"; \
@@ -33,8 +34,10 @@ help:
 	cmd "make <Questão>" "Compila questão (ex: make A) em modo submissão (-O3)"; \
 	cmd "make <Q>.debug" "Compila questão com AddressSanitizer e UndefinedBehavior"; \
 	sec "Qualidade & Validação:"; \
+	cmd "format"         "Formata códigos C++ (clang-format) e documentação (prettier)"; \
+	cmd "clang-format"   "Formata arquivos C++ com clang-format"; \
+	cmd "prettier"       "Formata documentações Markdown com Prettier"; \
 	cmd "lint"           "Verifica formatação Markdown e ausência de binários rastreados"; \
-	cmd "format"         "Formata toda a documentação com Prettier"; \
 	cmd "ci"             "Executa bateria completa de quality gates locais"; \
 	sec "Limpeza:"; \
 	cmd "clean"          "Remove binários de questões gerados ([A-Z], *.debug)"; \
@@ -78,11 +81,20 @@ lint: check-binaries
 		echo "ℹ️ Prettier não encontrado no PATH, ignorando validação."; \
 	fi
 
-format:
+format: clang-format prettier
+	echo "✅ Formatação concluída!"
+
+clang-format:
+	echo "🎨 Formatando códigos C++ com clang-format..."
+	find . -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.h" \) -not -path "*/.*" -exec clang-format -i {} + 2> "/dev/null" || true
+
+prettier:
 	echo "🎨 Formatando documentação com Prettier..."
 	if command -v prettier > "/dev/null" 2>&1; then \
 		find . -name "*.md" -not -path "*/.git/*" -exec prettier --write {} +; \
 		echo "✅ Documentação formatada com sucesso!"; \
+	elif command -v npx > "/dev/null" 2>&1; then \
+		npx prettier --write "**/*.md" 2> "/dev/null" || true; \
 	fi
 
 check-binaries:
