@@ -73,10 +73,12 @@ setup-hooks:
 ### QUALITY & INTEGRITY GATES
 ### ================================
 lint: check-binaries
-	echo "🔍 Validando arquivos Markdown com Prettier..."
+	echo "🔍 Validando formatação com Prettier..."
 	if command -v prettier > "/dev/null" 2>&1; then \
-		find . -name "*.md" -not -path "*/.git/*" -exec prettier --check {} +; \
-		echo "✅ Formatação Markdown 100% íntegra!"; \
+		find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) \
+			-not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/node_modules/*" \
+			-exec prettier --check {} +; \
+		echo "✅ Formatação 100% íntegra!"; \
 	else \
 		echo "ℹ️ Prettier não encontrado no PATH, ignorando validação."; \
 	fi
@@ -89,12 +91,14 @@ clang-format:
 	find . -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.h" \) -not -path "*/.*" -exec clang-format -i {} + 2> "/dev/null" || true
 
 prettier:
-	echo "🎨 Formatando documentação com Prettier..."
+	echo "🎨 Formatando documentações e configurações com Prettier..."
 	if command -v prettier > "/dev/null" 2>&1; then \
-		find . -name "*.md" -not -path "*/.git/*" -exec prettier --write {} +; \
-		echo "✅ Documentação formatada com sucesso!"; \
+		find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) \
+			-not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/node_modules/*" \
+			-exec prettier --write {} +; \
+		echo "✅ Documentação e configurações formatadas com sucesso!"; \
 	elif command -v npx > "/dev/null" 2>&1; then \
-		npx prettier --write "**/*.md" 2> "/dev/null" || true; \
+		npx --yes prettier --write "**/*.{md,json,yml,yaml}" 2> "/dev/null" || true; \
 	fi
 
 check-binaries:
