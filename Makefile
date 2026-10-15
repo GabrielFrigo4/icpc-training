@@ -75,7 +75,7 @@ setup-hooks:
 lint: check-binaries
 	echo "🔍 Validando formatação com Prettier..."
 	if command -v prettier > "/dev/null" 2>&1; then \
-		find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) \
+		find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.jsonc" -o -name "*.yml" -o -name "*.yaml" -o -name "*.html" -o -name "*.css" \) \
 			-not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/node_modules/*" \
 			-exec prettier --check {} +; \
 		echo "✅ Formatação 100% íntegra!"; \
@@ -93,12 +93,12 @@ clang-format:
 prettier:
 	echo "🎨 Formatando documentações e configurações com Prettier..."
 	if command -v prettier > "/dev/null" 2>&1; then \
-		find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) \
+		find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.jsonc" -o -name "*.yml" -o -name "*.yaml" -o -name "*.html" -o -name "*.css" \) \
 			-not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/node_modules/*" \
 			-exec prettier --write {} +; \
 		echo "✅ Documentação e configurações formatadas com sucesso!"; \
 	elif command -v npx > "/dev/null" 2>&1; then \
-		npx --yes prettier --write "**/*.{md,json,yml,yaml}" 2> "/dev/null" || true; \
+		npx --yes prettier --write "**/*.{md,json,jsonc,yml,yaml,html,css}" 2> "/dev/null" || true; \
 	fi
 
 check-binaries:
