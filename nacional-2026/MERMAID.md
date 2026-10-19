@@ -23,7 +23,7 @@ Resumo visual das **77 questões** analisadas nas últimas 6 edições da Region
 ║ 7. Fluxo e Matching      ║ ██████████                   ║  7 ( 9.1%) ║
 ║ 8. Strings Avançadas*    ║ ███████                      ║  5 ( 6.5%) ║
 ╠══════════════════════════╩══════════════════════════════╩════════════╣
-║ *Strings Básicas/Warm-up somam mais 4 questões (Total = 77 + 5 duplas)║
+║ Strings Básicas/Warm-up somam mais 4 questões (Total = 77 + 5 duplas)║
 ╚══════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -62,7 +62,7 @@ Resumo visual das **77 questões** analisadas nas últimas 6 edições da Region
 
 ---
 
-## 2. Gráficos Mermaid Nativo (Obsidian / GitHub / Notion)
+## 2. Gráficos Mermaid Nativos (GitHub / Obsidian / VS Code / Notion)
 
 ### 🥧 Proporção de Tópicos (2019–2025)
 
@@ -95,34 +95,22 @@ xychart-beta
     bar [9, 6, 4, 3, 2, 0]
 ```
 
----
+### 🗺️ Mapa de Prioridade de Estudos da Equipe (Fluxograma Nativo)
 
-## 3. Gráficos Interativos Embarcados (HTML / Mermaid Live)
+```mermaid
+flowchart TD
+    A["🎯 Preparação ICPC LatAm"] --> B["🔥 Prioridade Máxima (Cai todo ano)"]
+    A --> C["⚡ Prioridade Alta (Diferencial de Medalha)"]
+    A --> D["🛡️ Manutenção / Base (Garantir Rápido)"]
 
-<script src="https://mermaid.live/embed.js" async></script>
+    B --> B1["🕸️ Grafos & Árvores\n(DFS Tree, Pontes, Rerooting,\nCentroid, Caminho Euleriano)"]
+    B --> B2["🌲 Estruturas de Dados\n(SegTree, Lazy, BIT,\nMonotonic Stack, CHT)"]
+    B --> B3["🧮 Programação Dinâmica\n(DAGs, Árvores, Otimizações,\nProbabilidade)"]
 
-### 🥧 Visualização Interativa — Distribuição Geral
+    C --> C1["🔢 Teoria dos Números\n(Crivo, Totiente, Ordem Mult.,\nPollard's Rho, Combinatória)"]
+    C --> C2["🌊 Fluxo & Matching\n(Dinic, Hopcroft-Karp, Dilworth,\nDual Planar, Grafo de Linha)"]
+    C --> C3["📐 Geometria + ED\n(Sweep Line, Rotação 45°,\nSemiplanos, Parábolas)"]
 
-<mermaid-embed src="https://mermaid.live/embed?theme=dark&look=classic&mode=dark&controls=0&grid=0" height="480">
-pie showData
-    title Distribuição de Tópicos — ICPC LatAm (2019–2025)
-    "Grafos e Árvores" : 14
-    "Programação Dinâmica (DP)" : 13
-    "Gulosos, Ad-Hoc e Construtivos" : 13
-    "Estruturas de Dados (SegTree/BIT)" : 12
-    "Geometria Computacional" : 10
-    "Matemática e Teoria dos Números" : 8
-    "Fluxo e Emparelhamento Bipartido" : 7
-    "Strings Avançadas" : 5
-</mermaid-embed>
-
-### 📊 Visualização Interativa — Passado (1ª Barra) vs. Recente (2ª Barra)
-
-<mermaid-embed src="https://mermaid.live/embed?theme=dark&look=classic&mode=dark&controls=0&grid=0" height="480">
-xychart-beta
-    title "Evolução de Questões: Passado (19-22) vs Recente (23-25)"
-    x-axis ["Grafos/Árvores", "Teo. Números/Mat", "Geometria", "Fluxo/Matching", "Strings Avançadas", "Interseção Matroide"]
-    y-axis "Quantidade de Questões" 0 --> 10
-    bar [5, 2, 6, 4, 3, 0]
-    bar [9, 6, 4, 3, 2, 0]
-</mermaid-embed>
+    D --> D1["🔤 Strings Essenciais\n(XOR/Poly Hashing, KMP, Z-Func)\n*Evitar focar em Suffix Automaton*"]
+    D --> D2["🧩 Intuição de Matroides\n(Provar Gulosos + Base de XOR)\n*Ignorar Interseção Geral*"]
+```
