@@ -40,7 +40,7 @@ Cronograma semanal de simulados e estudos em equipe para a Final Brasileira da M
 | :----------: | :-----------: | :----------------------------------------------------------- | :-----------------------: | :---------------------------------: | :----: | :------: |
 | **Semana 1** |     17/09     | [Gym 102428 (LatAm 2019)](https://codeforces.com/gym/102428) | [TEMAS.md](2019/TEMAS.md) | [EXERCICIOS.md](2019/EXERCICIOS.md) |  [x]   |  5 / 13  |
 | **Semana 2** |     24/09     | [Gym 103185 (LatAm 2020)](https://codeforces.com/gym/103185) | [TEMAS.md](2020/TEMAS.md) | [EXERCICIOS.md](2020/EXERCICIOS.md) |  [ ]   |  0 / 14  |
-| **Semana 3** |     01/10     | [Gym 103640 (LatAm 2021)](https://codeforces.com/gym/103640) | [TEMAS.md](2021/TEMAS.md) | [EXERCICIOS.md](2021/EXERCICIOS.md) |  [ ]   |  0 / 13  |
+| **Semana 3** |     01/10     | [Gym 103640 (LatAm 2021)](https://codeforces.com/gym/103640) | [TEMAS.md](2021/TEMAS.md) | [EXERCICIOS.md](2021/EXERCICIOS.md) |  [ ]   |  - / 13  |
 | **Semana 4** |     08/10     | [Gym 104252 (LatAm 2022)](https://codeforces.com/gym/104252) | [TEMAS.md](2022/TEMAS.md) | [EXERCICIOS.md](2022/EXERCICIOS.md) |  [ ]   |  0 / 13  |
 | **Semana 5** |     15/10     | [Gym 104736 (LatAm 2023)](https://codeforces.com/gym/104736) | [TEMAS.md](2023/TEMAS.md) | [EXERCICIOS.md](2023/EXERCICIOS.md) |  [ ]   |  0 / 13  |
 | **Semana 6** |     22/10     | [Gym 105505 (LatAm 2024)](https://codeforces.com/gym/105505) | [TEMAS.md](2024/TEMAS.md) | [EXERCICIOS.md](2024/EXERCICIOS.md) |  [ ]   |  0 / 13  |
@@ -56,13 +56,10 @@ Cada prova simulada possui seu diretório dedicado dentro de `nacional-2026/`:
 ```text
 nacional-2026/
 ├── 2019/
-│   ├── A.cpp
-│   ├── B.py
+│   ├── ENUNCIADO.pdf
 │   ├── TEMAS.md
 │   └── EXERCICIOS.md
-├── 2020/
-│   ├── TEMAS.md
-│   └── EXERCICIOS.md
+├── ...
 └── README.md
 ```
 
