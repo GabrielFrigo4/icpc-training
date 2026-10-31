@@ -59,7 +59,7 @@ setup-hooks:
 	echo "✅ core.hooksPath configurado para .githooks"
 
 ### ================================
-### SUFFIX RULES FOR COMPETITIVE PROGRAMMING
+### SUFFIX RULES FOR CP
 ### ================================
 .cpp:
 	echo "🔨 Compilando $@ (Modo Submissão -O3)..."
