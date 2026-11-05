@@ -520,8 +520,8 @@ string maximal_independent_path(int K, int N) {
   /* N in [2K, 3K]: particiona N em K blocos de tamanhos 2 ou 3 */
   int num3 = (N - 2 * K), num2 = K - num3;
   string res; res.reserve(N);
-  /* Se usarmos apenas blocos "-X-" (tam 3) e "-X" (tam 2), dois blocos "-X" seguidos
-   * geram "-X-X" (valido), e "-X-" seguido de "-X" gera "-X--X" (valido!). */
+  /* Usando blocos "-X-" (tam 3) seguidos de "X-" (tam 2), dois blocos "X-" seguidos
+   * geram "X-X-" (valido), e "-X-" seguido de "X-" gera "-X-X-" (valido!). */
   rep(i, 0, num3) res += "-X-";
   rep(i, 0, num2) res += "X-";
   return res;

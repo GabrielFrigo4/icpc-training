@@ -37,7 +37,7 @@ string can_lose_money(int n, const vi& X, const vi& Y) {
 
 /* 2. Contagem de caminhos (mod 1e9+7) e folhas unicas alcancaveis em DAG (0..L-1 listas) */
 pll dag_paths_and_unique_leaves(int N, int L, const vector<vi>& adj) {
-  constexpr ll MOD = 1'000'000'007;
+  constexpr ll MOD = 1(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)007;
   vll ways(N, -1);
   vector<bool> vis(N, false);
   ll unique_leaves = 0;
@@ -828,10 +828,6 @@ struct TreeVoronoiRace {
         if (dep[anc] >= dep[w_first] && up_best[anc].snd != S) cur = anc;
       }
       int w_last = (up_best[cur].snd == S) ? cur : up[0][cur];
-      for (int j = LOG - 1; j >= 0; --j) {
-        int anc = up[j][w_last];
-        if (dep[anc] >= dep[w_first] && dep[top_up[w_last]] > dep[w_first]) w_last = up[0][top_up[w_last]];
-      }
       ans += dep[w_last] - dep[w_first] + 1;
       if (w_last != T) return ans;
     }

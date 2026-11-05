@@ -104,7 +104,7 @@ vll palindromic_bases(ll N) {
   {Euclides / CRT: $\Ocomp{\log(\min(a,b))}$ $\mid$ Binomial: $\Ocomp{1}$ após pré-cálculo $\Ocomp{N}$}
 
 \begin{lstlisting}
-template <ll MOD = 1'000'000'007>
+template <ll MOD = 1(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)007>
 struct Mint {
   ll v;
   Mint(ll _v = 0) : v((_v % MOD + MOD) % MOD) {}
@@ -193,7 +193,7 @@ pair<int, vll> build_alien_polynomial(const string& S) {
 
 /* 2. Inversoes na string S repetida N vezes mod 1e9+7 */
 ll count_repeated_string_inversions(const string& S, ll N) {
-  constexpr ll MOD = 1'000'000'007, INV2 = (MOD + 1) / 2;
+  constexpr ll MOD = 1(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)007, INV2 = (MOD + 1) / 2;
   vll cnt(26, 0);
   ll inv_inside = 0;
   for (char ch : S) {

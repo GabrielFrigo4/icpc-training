@@ -62,7 +62,7 @@ void subset_sum_bitset(const vi& weights, int target_max) {
 \begin{lstlisting}
 /* 1. Conta sequencias de tamanho N compativeis com P[0..N-2] */
 ll count_keylogger_sequences(int K, ll L, const vector<vll>& T, const vll& P) {
-  constexpr ll MOD = 1'000'000'007;
+  constexpr ll MOD = 1(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)007;
   int N = sz(P) + 1;
   vll dp(K, 1), diff(K + 1, 0);
   rep(step, 0, N - 1) {
@@ -86,7 +86,7 @@ ll count_keylogger_sequences(int K, ll L, const vector<vll>& T, const vll& P) {
 
 /* 2. Particoes Unimodais em O(S * B) */
 ll count_unimodal_sculptures(int S, int B) {
-  constexpr ll MOD = 1'000'000'007;
+  constexpr ll MOD = 1(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)007;
   int rem = B - S;
   if (rem == 0) return 1;
   vector<vi> pref1(S + 1, vi(B + 1, 0)), pref2(S + 1, vi(B + 1, 0));
@@ -230,7 +230,7 @@ ll count_balanced_balloons(ll N, int K) {
 
 \begin{lstlisting}
 vi kth_permutation_by_inversions(int N, ll K) {
-  static constexpr ll INF_K = 4'000'000'000'000'000'007LL;
+  static constexpr ll INF_K = 4(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)007LL;
   auto add_sat = [](ll a, ll b) { return (a >= INF_K - b) ? INF_K : a + b; };
 
   /* I_MAX = 210 pois para N <= 20, max_inv = 190; e para N >= 21, sum_{inv<=210} dp[N][inv] >= 21! > 4e18 */
@@ -492,7 +492,7 @@ ll knuth_interval_dp(int n, CostFunc C) {
 \begin{lstlisting}
 /* Valor esperado exato em O(N) via Hipergeometrica */
 ll expected_bus_happiness(int N, int G, int I, int E) {
-  constexpr ll MOD = 1'000'000'007;
+  constexpr ll MOD = 1(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)007;
   auto modpow = [&](ll b, ll e) {
     ll r = 1;
     for (; e > 0; e >>= 1, b = b * b % MOD) if (e & 1) r = r * b % MOD;

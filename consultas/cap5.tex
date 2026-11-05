@@ -270,13 +270,6 @@ vector<vi> solve_board_game_pbs(const vector<pll>& tokens, const vector<pll>& ca
   vi lo(T, 0), hi(T, P - 1), ans(T, P);
   vector<vi> buckets(P);
 
-  /* Stack para CHT estatico (inclinacao k crescente, consulta maxima) */
-  struct CLine { ll k, m; };
-  auto bad = [](const CLine& l1, const CLine& l2, const CLine& l3) {
-    /* Intersecao de l1 e l2 >= intersecao de l2 e l3 <=> (l2.m - l1.m)*(l3.k - l2.k) >= (l3.m - l2.m)*(l2.k - l1.k) */
-    return (i128)(l2.m - l1.m) * (l3.k - l2.k) >= (i128)(l3.m - l2.m) * (l2.k - l1.k);
-  };
-
   while (true) {
     bool any = false;
     rep(i, 0, P) buckets[i].clear();
@@ -337,7 +330,7 @@ vi solve_joining_marathon(const vector<pll>& runners,
   rep(i, 0, M) trash_u[i] = trash[i].u;
 
   vi ans(Q, M);
-  static constexpr ll MAX_COORD = 1'000'000'000LL;
+  static constexpr ll MAX_COORD = 1(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)000LL;
   rep(q, 0, Q) {
     ll t = queries[q].fst, s = queries[q].snd;
     /* Uma foto so pode ser salva por (t, s) se t <= U <= t + MAX_COORD / s */
@@ -464,7 +457,7 @@ ld max_perfect_house_perimeter(const vector<Pll>& plants) {
 
 \begin{lstlisting}
 ll count_impenetrable_walls(Pll H, Pll G, vector<Pll> towers) {
-  constexpr ll MOD = 1'000'000'007;
+  constexpr ll MOD = 1(*@\textquotesingle@*)000(*@\textquotesingle@*)000(*@\textquotesingle@*)007;
   G = G - H;
   vector<Pll> pts;
   for (auto p : towers) {
