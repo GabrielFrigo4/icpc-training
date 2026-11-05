@@ -8,21 +8,21 @@
 % ----------------------------------------------------------------------------
 \subsection{DP Clássica: Knapsack, Prefix Sum, Bitmask e Divisibilidade}
 
-\subsubsection{Knapsack 2D / Duas Mochilas Disjuntas e Bitset Dinâmico (2022 E)}
+\subsubsection{Knapsack 2D / Duas Mochilas Disjuntas e Bitset Dinâmico}
 \algobox
-  {(1) Preencher dois espaços livres de tamanhos $L = E$ e $R = N - K - E$ usando peças distintas de tamanhos $\{1, \dots, N\} \setminus \{K\}$ minimizando as casas vazias (2022 E); (2) Subset Sum em $\Ocomp{N \cdot W / 64}$ com \texttt{std::bitset} de tamanho escolhido em tempo de compilação.}
-  {Em 2022 E, como dispomos de todas as peças $1, 2, \dots$ exceto $K$, a soma das primeiras peças pequenas ($1, 2, 3, 4$) já cobre qualquer configuração com desperdício zero assim que o número de peças disponíveis é $\ge 5$! Logo, podemos limitar as peças testadas na DP de duas mochilas booleanas \texttt{dp[sL][sR]} apenas às peças $\le \max(L, R)$ (ou apenas às primeiras 15 peças pequenas!) ou manter um \texttt{vector<bitset<1005>>} em $\Ocomp{L \cdot R}$!}
+  {(1) Preencher dois espaços livres de tamanhos $L = E$ e $R = N - K - E$ usando peças distintas de tamanhos $\{1, \dots, N\} \setminus \{K\}$ minimizando as casas vazias; (2) Subset Sum em $\Ocomp{N \cdot W / 64}$ com \texttt{std::bitset} de tamanho escolhido em tempo de compilação.}
+  {Como dispomos de todas as peças $1, 2, \dots$ exceto $K$, a soma das primeiras peças pequenas ($1, 2, 3, 4$) já cobre qualquer configuração com desperdício zero assim que o número de peças disponíveis é $\ge 5$! Logo, podemos limitar as peças testadas na DP de duas mochilas booleanas \texttt{dp[sL][sR]} apenas às peças $\le \max(L, R)$ (ou apenas às primeiras 15 peças pequenas!) ou manter um \texttt{vector<bitset<1005>>} em $\Ocomp{L \cdot R}$!}
   {Tratar o caso em que $K$ é uma das peças pequenas pulando $w = K$ no loop.}
   {Duas Mochilas: $\Ocomp{L \cdot R}$ $\mid$ Subset Sum Bitset: $\Ocomp{N \cdot W / 64}$}
 
 \begin{lstlisting}
-// 1. Duas Mochilas com pecas distintas {1..N} \ {K} (2022 E - Empty Squares)
+/* 1. Duas Mochilas com pecas distintas {1..N} \ {K} */
 int min_empty_squares(int N, int K, int E) {
   int L = E, R = N - K - E;
   vector<bitset<1005>> dp(L + 1);
   dp[0].set(0);
-  // Nota: basta considerar as primeiras pecas ate cobrir L + R (ou w <= max(L, R))
-  // Com no maximo ~50 pecas ja saturamos todas as somas <= 1000 sem desperdicio!
+  /* Nota: basta considerar as primeiras pecas ate cobrir L + R (ou w <= max(L, R))
+   * Com no maximo ~50 pecas ja saturamos todas as somas <= 1000 sem desperdicio! */
   int lim = min(N, max(L, R));
   for (int w = 1; w <= lim; ++w) {
     if (w == K) continue;
@@ -37,7 +37,7 @@ int min_empty_squares(int N, int K, int E) {
   return (L + R) - best;
 }
 
-// 2. Subset Sum ultra-rapido com std::bitset de tamanho dinamico (Truque de Template)
+/* 2. Subset Sum ultra-rapido com std::bitset de tamanho dinamico (Truque de Template) */
 template <int MAX_LEN = 1>
 void subset_sum_bitset(const vi& weights, int target_max) {
   if (target_max >= MAX_LEN) {
@@ -48,19 +48,19 @@ void subset_sum_bitset(const vi& weights, int target_max) {
   bitset<MAX_LEN> bs;
   bs.set(0);
   for (int w : weights) bs |= (bs << w);
-  // bs[s] == 1 sse a soma 's' eh alcancavel!
+  /* bs[s] == 1 sse a soma 's' eh alcancavel! */
 }
 \end{lstlisting}
 
-\subsubsection{DP com Soma de Prefixos Simples e Ponderada (2020 K, 2019 F)}
+\subsubsection{DP com Soma de Prefixos Simples e Ponderada}
 \algobox
-  {(1) Transições de DP onde $dp_{\text{novo}}[i] = \sum_{j \in [l_i, r_i]} dp[j]$ aceleradas de $\Ocomp{N \cdot K^2}$ para $\Ocomp{N \cdot K \log K}$ com Busca Binária + Soma de Prefixos (2020 K); (2) Contar sequências piramidais (unimodais sem acumular água) de tamanho $S$ e soma $B$ em $\Ocomp{S \cdot B}$ usando soma de prefixos ponderada (2019 F).}
-  {\textbf{1. Em 2020 K:} A transição de $i$ no passo $t$ vai para $j \in [l, r]$ encontrado com \texttt{lower\_bound(P\_t - L)} e \texttt{upper\_bound(P\_t + L)} na linha ordenada $T_i$; usando array de diferenças (para propagar de $i$ para $[l, r]$) ou soma de prefixos, cada passo custa $\Ocomp{K \log K}$. \textbf{2. Em 2019 F:} Uma escultura de $S$ pilhas e $B$ blocos (onde cada pilha tem $\ge 1$ bloco, restando $B - S$ blocos extras) não acumula água sse é unimodal (sobe e depois desce). Olhando de cima para baixo (ou adicionando camadas horizontais contíguas de largura $w \in [1, S]$ uma em cima da outra!), uma escultura unimodal equivale a empilhar fatias horizontais contíguas encaixadas: se a fatia da base tem largura $w$, a fatia logo acima tem largura $k \in [1, w]$ e pode ser colocada em qualquer uma das $(w - k + 1)$ posições horizontais dentro da fatia de baixo! Logo, $dp[w][b] = \sum_{k=1}^{w} (w - k + 1) \cdot dp[k][b - w] = (w + 1)\sum_{k=1}^w dp[k][b - w] - \sum_{k=1}^w k \cdot dp[k][b - w]$, calculado em $\Ocomp{1}$ mantendo duas somas de prefixos: $\text{pref}_1[w][r] = \sum_{k=1}^w dp[k][r]$ e $\text{pref}_2[w][r] = \sum_{k=1}^w k \cdot dp[k][r]$!}
-  {Em 2019 F, a base inteira deve ter largura exatamente $S$ e pelo menos 1 camada completa de altura 1, logo começamos com $w = S$ e $B' = B - S$ blocos restantes (se $B == S$, a resposta é 1).}
-  {Keylogger: $\Ocomp{N K \log K}$ $\mid$ Sculptures: $\Ocomp{S \cdot (B - S)}$}
+  {(1) Transições de DP onde $dp_{\text{novo}}[i] = \sum_{j \in [l_i, r_i]} dp[j]$ aceleradas de $\Ocomp{N \cdot K^2}$ para $\Ocomp{N \cdot K \log K}$ com Busca Binária + Soma de Prefixos; (2) Contar sequências piramidais (unimodais sem acumular água) de tamanho $S$ e soma $B$ em $\Ocomp{S \cdot B}$ usando soma de prefixos ponderada.}
+  {\textbf{1. Transição em Janela:} A transição de $i$ no passo $t$ vai para $j \in [l, r]$ encontrado com \texttt{lower\_bound(P\_t - L)} e \texttt{upper\_bound(P\_t + L)} na linha ordenada $T_i$; usando array de diferenças (para propagar de $i$ para $[l, r]$) ou soma de prefixos, cada passo custa $\Ocomp{K \log K}$. \textbf{2. Esculturas Unimodais:} Uma escultura de $S$ pilhas e $B$ blocos (onde cada pilha tem $\ge 1$ bloco, restando $B - S$ blocos extras) não acumula água sse é unimodal (sobe e depois desce). Olhando de cima para baixo (ou adicionando camadas horizontais contíguas de largura $w \in [1, S]$ uma em cima da outra!), uma escultura unimodal equivale a empilhar fatias horizontais contíguas encaixadas: se a fatia da base tem largura $w$, a fatia logo acima tem largura $k \in [1, w]$ e pode ser colocada em qualquer uma das $(w - k + 1)$ posições horizontais dentro da fatia de baixo! Logo, $dp[w][b] = \sum_{k=1}^{w} (w - k + 1) \cdot dp[k][b - w] = (w + 1)\sum_{k=1}^w dp[k][b - w] - \sum_{k=1}^w k \cdot dp[k][b - w]$, calculado em $\Ocomp{1}$ mantendo duas somas de prefixos: $\text{pref}_1[w][r] = \sum_{k=1}^w dp[k][r]$ e $\text{pref}_2[w][r] = \sum_{k=1}^w k \cdot dp[k][r]$!}
+  {Nas esculturas unimodais, a base inteira deve ter largura exatamente $S$ e pelo menos 1 camada completa de altura 1, logo começamos com $w = S$ e $B' = B - S$ blocos restantes (se $B == S$, a resposta é 1).}
+  {Janela: $\Ocomp{N K \log K}$ $\mid$ Sculptures: $\Ocomp{S \cdot (B - S)}$}
 
 \begin{lstlisting}
-// 1. Keylogger (2020 K): Conta sequencias de tamanho N compativeis com P[0..N-2]
+/* 1. Conta sequencias de tamanho N compativeis com P[0..N-2] */
 ll count_keylogger_sequences(int K, ll L, const vector<vll>& T, const vll& P) {
   constexpr ll MOD = 1'000'000'007;
   int N = sz(P) + 1;
@@ -84,7 +84,7 @@ ll count_keylogger_sequences(int K, ll L, const vector<vll>& T, const vll& P) {
   return ans;
 }
 
-// 2. Fabricating Sculptures (2019 F): Particoes Unimodais em O(S * B)
+/* 2. Particoes Unimodais em O(S * B) */
 ll count_unimodal_sculptures(int S, int B) {
   constexpr ll MOD = 1'000'000'007;
   int rem = B - S;
@@ -108,91 +108,81 @@ ll count_unimodal_sculptures(int S, int B) {
 }
 \end{lstlisting}
 
-\subsubsection{Subsequência Universal: Poda Gulosa + Bitmask DP e SOS DP (2023 K)}
+\subsubsection{Subsequência Universal: Poda Gulosa + Bitmask DP e SOS DP}
 \algobox
-  {(1) Dado um array $V$ de tamanho $N$ com elementos em $1 \dots K$ ($N, K \le 300$), decidir se toda permutação de $1 \dots K$ é subsequência de $V$ e, caso não seja, exibir uma permutação ausente (2023 K); (2) SOS DP (*Sum Over Subsets*) em $\Ocomp{K 2^K}$.}
-  {\textbf{Poda de Complexidade de 2023 K:} Para que \textbf{todas} as $K!$ permutações sejam subsequências de $V$, $V$ precisa conter $K$ blocos disjuntos onde cada bloco contém todos os números de $1$ a $K$? Não necessariamente $K$ blocos completos ($\approx K^2 / 2$ elementos), pois a menor supersequência de todas as permutações de $K$ elementos tem comprimento mínimo $\ge \frac{K^2 + K + 4}{2} - \dots$ (para $K = 20$, exige $N > 210$; para $K \ge 25$, exige $N > 300$!). Assim, se $K > 20$ e $N \le 300$, \textbf{sempre} existe uma permutação ausente, e mais: escolhendo gulosamente a cada passo o elemento ainda não usado cuja \textbf{primeira ocorrência a partir da posição atual é a mais tardia} (ou não existe), avançamos pelo menos $\ge K, K-1, K-2, \dots$ posições (soma $\frac{K(K+1)}{2} > 300$ para $K \ge 25$), construindo uma permutação ausente em $\Ocomp{N \cdot K}$! Já para $K \le 20$, rodamos uma \textbf{DP com Bitmask} em $\Ocomp{K \cdot 2^K}$ onde \texttt{dp[mask]} = maior índice $i$ alcançado consumindo a sub-permutação ótima da máscara \texttt{mask}!}
+  {(1) Dado um array $V$ de tamanho $N$ com elementos em $1 \dots K$ ($N, K \le 300$), decidir se toda permutação de $1 \dots K$ é subsequência de $V$ e, caso não seja, exibir uma permutação ausente; (2) SOS DP (\emph{Sum Over Subsets}) em $\Ocomp{K 2^K}$.}
+  {\textbf{Poda de Complexidade:} Para que \textbf{todas} as $K!$ permutações sejam subsequências de $V$, $V$ precisa conter $K$ blocos disjuntos onde cada bloco contém todos os números de $1$ a $K$? Não necessariamente $K$ blocos completos ($\approx K^2 / 2$ elementos), pois a menor supersequência de todas as permutações de $K$ elementos tem comprimento mínimo $\ge \frac{K^2 + K + 4}{2} - \dots$ (para $K = 20$, exige $N > 210$; para $K \ge 25$, exige $N > 300$!). Assim, se $K > 20$ e $N \le 300$, \textbf{sempre} existe uma permutação ausente, e mais: escolhendo gulosamente a cada passo o elemento ainda não usado cuja \textbf{primeira ocorrência a partir da posição atual é a mais tardia} (ou não existe), avançamos pelo menos $\ge K, K-1, K-2, \dots$ posições (soma $\frac{K(K+1)}{2} > 300$ para $K \ge 25$), construindo uma permutação ausente em $\Ocomp{N \cdot K}$! Já para $K \le 20$, rodamos uma \textbf{DP com Bitmask} em $\Ocomp{K \cdot 2^K}$ onde \texttt{dp[mask]} = maior índice $i$ alcançado consumindo a sub-permutação ótima da máscara \texttt{mask}!}
   {Na transição de \texttt{dp[mask]}, se \texttt{nxt[dp[mask]][c] == N} (não há ocorrência de $c$ após \texttt{dp[mask]}), encontramos imediatamente uma máscara + próximo elemento que falha e completamos o resto com os elementos faltantes!}
-  {Keen on Order: $\Ocomp{N K + K 2^{\min(K, 20)}}$ $\mid$ SOS DP: $\Ocomp{K 2^K}$}
+  {Subsequência: $\Ocomp{N K + K 2^{\min(K, 20)}}$ $\mid$ SOS DP: $\Ocomp{K 2^K}$}
 
 \begin{lstlisting}
-// 1. Resolve Keen on Order (2023 K): Retorna permutacao (1..K) ausente ou {} se todas existem
+/* 1. Subsequencia de permutacao ausente: Hibrido Guloso (primeiros K-20) + Bitmask DP (ultimos 20) */
 vi find_missing_permutation_subseq(int N, int K, const vi& V) {
-  // nxt[i][c] = menor indice >= i tal que V[indice] == c (ou N se nao existir), c in 0..K-1
   vector<vi> nxt(N + 2, vi(K, N));
   for (int i = N - 1; i >= 0; --i) {
     nxt[i] = nxt[i + 1];
     nxt[i][V[i] - 1] = i;
   }
-  // Caso 1: K > 20 (Como K*(K+1)/2 > 210 e para K >= 24 ja passa de 300, o guloso SEMPRE
-  // esgota o array N <= 300 se K >= 24; para seguranca, usamos Bitmask DP ate K <= 21)
-  if (K > 21) {
-    vi ans; vector<bool> used(K, false);
-    int cur = 0;
-    rep(step, 0, K) {
-      int best_c = -1, max_pos = -1;
-      rep(c, 0, K) if (!used[c]) {
-        int p = (cur <= N ? nxt[cur][c] : N);
-        if (p > max_pos) { max_pos = p; best_c = c; }
-      }
-      used[best_c] = true;
-      ans.pb(best_c + 1);
-      cur = min(N + 1, max_pos + 1);
+  vi prefix_ans;
+  vector<bool> used(K, false);
+  int cur = 0, rem_k = K;
+
+  /* Se K > 20, escolhe os primeiros (K - 20) elementos pelo criterio guloso (furthest next occurrence) */
+  while (rem_k > 20) {
+    int best_c = -1, max_pos = -1;
+    rep(c, 0, K) if (!used[c]) {
+      int p = (cur <= N ? nxt[cur][c] : N);
+      if (p > max_pos) { max_pos = p; best_c = c; }
     }
-    return ans; // Garantidamente cur == N + 1 (saiu do array) pois sum_{i=1..22} i = 253
+    used[best_c] = true;
+    prefix_ans.pb(best_c + 1);
+    cur = min(N + 1, max_pos + 1);
+    --rem_k;
   }
-  // Caso 2: K <= 21 -> DP com Bitmask em O(K * 2^K)
-  int full = (1 << K);
-  vi dp(full, -1), par_c(full, -1);
-  dp[0] = 0;
+  /* Mapeia os rem_k = min(K, 20) elementos restantes para 0..rem_k-1 e roda Bitmask DP exata */
+  vi rem_elems;
+  rep(c, 0, K) if (!used[c]) rem_elems.pb(c);
+  int M = sz(rem_elems), full = (1 << M);
+  vi dp(full, -1), par_b(full, -1);
+  dp[0] = cur;
+
+  auto reconstruct = [&](int mask) {
+    vi tail;
+    for (int m = mask; m > 0; m ^= (1 << par_b[m]))
+      tail.pb(rem_elems[par_b[m]] + 1);
+    reverse(all(tail));
+    prefix_ans.insert(prefix_ans.end(), all(tail));
+    rep(b, 0, M) if (!((mask >> b) & 1)) prefix_ans.pb(rem_elems[b] + 1);
+    return prefix_ans;
+  };
+
   rep(mask, 0, full) if (dp[mask] != -1) {
     int pos = dp[mask];
-    if (pos > N) {
-      // Reconstroi a permutacao que estourou N
-      vi ans;
-      int cur_m = mask;
-      while (cur_m > 0) {
-        int c = par_c[cur_m];
-        ans.pb(c + 1);
-        cur_m ^= (1 << c);
-      }
-      reverse(all(ans));
-      rep(c, 0, K) if (!((mask >> c) & 1)) ans.pb(c + 1);
-      return ans;
-    }
-    rep(c, 0, K) if (!((mask >> c) & 1)) {
-      int nmask = mask | (1 << c);
-      int npos = nxt[pos][c] + 1;
-      if (chmax(dp[nmask], npos)) par_c[nmask] = c;
+    if (pos > N) return reconstruct(mask);
+    rep(b, 0, M) if (!((mask >> b) & 1)) {
+      int nmask = mask | (1 << b);
+      int npos = nxt[pos][rem_elems[b]] + 1;
+      if (chmax(dp[nmask], npos)) par_b[nmask] = b;
     }
   }
-  if (dp[full - 1] > N) {
-    vi ans; int cur_m = full - 1;
-    while (cur_m > 0) {
-      int c = par_c[cur_m];
-      ans.pb(c + 1);
-      cur_m ^= (1 << c);
-    }
-    reverse(all(ans));
-    return ans;
-  }
-  return {}; // Todas as K! permutacoes sao subsequencias ("*")
+  if (dp[full - 1] > N) return reconstruct(full - 1);
+  return {}; /* Todas as K! permutacoes sao subsequencias ("*") */
 }
 
-// 2. SOS DP (Sum Over Subsets) e Supersets em O(B * 2^B)
-void sos_dp_subsets(vll& f, int B) { // f[mask] = sum_{sub <= mask} f_orig[sub]
+/* 2. SOS DP (Sum Over Subsets) e Supersets em O(B * 2^B) */
+void sos_dp_subsets(vll& f, int B) { /* f[mask] = sum_{sub <= mask} f_orig[sub] */
   rep(i, 0, B) rep(mask, 0, 1 << B)
     if ((mask >> i) & 1) f[mask] += f[mask ^ (1 << i)];
 }
-void sos_dp_supersets(vll& f, int B) { // f[mask] = sum_{sup >= mask} f_orig[sup]
+void sos_dp_supersets(vll& f, int B) { /* f[mask] = sum_{sup >= mask} f_orig[sup] */
   rep(i, 0, B) for (int mask = (1 << B) - 1; mask >= 0; --mask)
     if (!((mask >> i) & 1)) f[mask] += f[mask | (1 << i)];
 }
 \end{lstlisting}
 
-\subsubsection{DP de Médias de Prefixo com Colapso Harmônico (2025 B)}
+\subsubsection{DP de Médias de Prefixo com Colapso Harmônico}
 \algobox
-  {Contar quantas sequências $a_1, \dots, a_N$ ($1 \le a_i \le K$, $K \le 2000, N \le 10^9$) satisfazem $i \mid \sum_{j=1}^i a_j$ para todo $1 \le i \le N$ ($\bmod 998244353$, 2025 B).}
+  {Contar quantas sequências $a_1, \dots, a_N$ ($1 \le a_i \le K$, $K \le 2000, N \le 10^9$) satisfazem $i \mid \sum_{j=1}^i a_j$ para todo $1 \le i \le N$ ($\bmod 998244353$).}
   {Seja $m_i = \frac{1}{i} \sum_{j=1}^i a_j \in [1, K]$ a média inteira no passo $i$. Como $S_i = i \cdot m_i = S_{i-1} + a_i = (i-1)m_{i-1} + a_i$, temos $a_i = i \cdot m_i - (i-1)m_{i-1} = m_{i-1} + i \cdot (m_i - m_{i-1})$! Como $1 \le a_i \le K$, no passo $i > K$ a única maneira de $a_i \in [1, K]$ é ter $m_i - m_{i-1} = 0$, ou seja, $m_i = m_{i-1}$ e $a_i = m_{i-1}$ (sequência estacionária para todo $i > K$)! Mais ainda: para cada $i \le \min(N, K)$, o número de novos valores $m_i$ possíveis a partir de $m_{i-1}$ é apenas $\lfloor K / i \rfloor$, logo a soma de todas as transições para $i = 2 \dots \min(N, K)$ é a \textbf{Série Harmônica} $\sum_{i=2}^K K \cdot \frac{K}{i} = \Ocomp{K^2 \log K}$! Para $N > K$, basta rodar a DP até $\min(N, K)$ e somar os estados finais!}
   {Esta observação algébrica ($a_i = m_{i-1} + i(m_i - m_{i-1}) \in [1, K]$) reduz $N = 10^9$ para $N' = \min(N, K) \le 2000$ com complexidade total $\Ocomp{K^2 \log K}$ ($\approx 3 \cdot 10^7$ operações)!}
   {Tempo: $\Ocomp{K^2 \log K}$ $\mid$ Espaço: $\Ocomp{K}$}
@@ -201,14 +191,14 @@ void sos_dp_supersets(vll& f, int B) { // f[mask] = sum_{sup >= mask} f_orig[sup
 ll count_balanced_balloons(ll N, int K) {
   constexpr ll MOD = 998244353;
   vll dp(K + 1, 1), ndp(K + 1, 0);
-  dp[0] = 0; // No passo 1, m_1 = a_1 in [1..K] tem 1 forma cada
+  dp[0] = 0; /* No passo 1, m_1 = a_1 in [1..K] tem 1 forma cada */
   int steps = (int)min(N, (ll)K);
   for (int i = 2; i <= steps; ++i) {
     fill(all(ndp), 0);
     for (int m_prev = 1; m_prev <= K; ++m_prev) {
       ll ways = dp[m_prev];
       if (!ways) continue;
-      // a_i = m_prev + i * d in [1..K], onde d = m_cur - m_prev
+      /* a_i = m_prev + i * d in [1..K], onde d = m_cur - m_prev */
       int d_min = -((m_prev - 1) / i);
       int d_max = (K - m_prev) / i;
       for (int d = d_min; d <= d_max; ++d) {
@@ -230,9 +220,9 @@ ll count_balanced_balloons(ll N, int K) {
 % ----------------------------------------------------------------------------
 \subsection{DP de Intervalos, Inversões, Árvore Cartesiana e Otimizações}
 
-\subsubsection{DP de Contagem de Inversões e Reconstrução da $K$-ésima Permutação (2024 I)}
+\subsubsection{DP de Contagem de Inversões e Reconstrução da $K$-ésima Permutação}
 \algobox
-  {Encontrar a $K$-ésima permutação de $1 \dots N$ ($N \le 2 \cdot 10^5, K \le 4 \cdot 10^{18}$) quando todas as $N!$ permutações são ordenadas primeiro pelo número de inversões e depois lexicograficamente (2024 I).}
+  {Encontrar a $K$-ésima permutação de $1 \dots N$ ($N \le 2 \cdot 10^5, K \le 4 \cdot 10^{18}$) quando todas as $N!$ permutações são ordenadas primeiro pelo número de inversões e depois lexicograficamente.}
   {\textbf{1. DP de Mahonian Numbers com Saturação:} Seja $dp[n][inv]$ o número de permutações de tamanho $n$ com exatamente $inv$ inversões: $dp[n][inv] = \sum_{c=0}^{\min(n-1, inv)} dp[n-1][inv - c]$, calculado em $\Ocomp{1}$ com janela deslizante e saturado em $\infty = 4 \cdot 10^{18} + 7$. Primeiro descobrimos o número exato de inversões $I$ da $K$-ésima permutação subtraindo $dp[N][0], dp[N][1], \dots$ de $K$! Como $K \le 4 \cdot 10^{18}$, o número de inversões $I$ nunca passa de $I \le 200$ (de fato, para $N$ grande, $dp[N][I]$ já supera $4 \cdot 10^{18}$ para $I \approx 22$ se $N \ge 25$, ou no máximo $I \le \binom{21}{2} = 210$ quando os dígitos mexidos estão nos últimos 21 elementos!).
   \textbf{2. Salto dos Elementos Fixos:} Se restam $n$ posições e precisamos formar $I$ inversões, colocar o menor elemento disponível ($c = 0$ novas inversões) é obrigatório enquanto $I \le \binom{n-1}{2}$ e $\binom{n-1}{2}$ for grande? Mais preciso: só precisamos mexer no elemento atual (ou testar $c > 0$) quando $dp[n-1][I] < K$! Mas $dp[n-1][I]$ é uma função crescente de $n$: para $I$ fixo, se $I > 0$, $dp[n-1][I] \ge n - 1$, mas para $I = 0$, $dp[n-1][0] = 1$. Assim, só pré-calculamos a tabela $dp[n][inv]$ para $inv \le 220$, e reconstruímos posição a posição usando uma Fenwick Tree para pegar o $(c+1)$-ésimo menor elemento disponível!}
   {Atenção para $I$ pequeno e $N = 2 \cdot 10^5$: por exemplo, para $I = 1$ e $K = 2 \cdot 10^5$, $dp[n-1][1] = n - 2$, então não podemos limitar $n \le 21$ na tabela de DP! Porém, como $I \le 210$ SEMPRE (pois $\sum_{inv=0}^{210} dp[N][inv] > 4 \cdot 10^{18}$ para todo $N \ge 21$), podemos pré-calcular $dp[n][inv]$ para \textbf{todo} $n \in [1, N]$ e $inv \in [0, 210]$ em apenas $2 \cdot 10^5 \times 210 \approx 4 \cdot 10^7$ operações!}
@@ -243,19 +233,12 @@ vi kth_permutation_by_inversions(int N, ll K) {
   static constexpr ll INF_K = 4'000'000'000'000'000'007LL;
   auto add_sat = [](ll a, ll b) { return (a >= INF_K - b) ? INF_K : a + b; };
 
-  // I_MAX = 210 pois para N <= 20, max_inv = 190; e para N >= 21, sum_{inv<=210} dp[N][inv] >= 21! > 4e18
+  /* I_MAX = 210 pois para N <= 20, max_inv = 190; e para N >= 21, sum_{inv<=210} dp[N][inv] >= 21! > 4e18 */
   const int I_MAX = 210;
   vector<vll> dp(N + 1, vll(I_MAX + 1, 0));
   dp[0][0] = 1;
   rep(n, 1, N + 1) {
-    ll win = 0;
-    rep(inv, 0, I_MAX + 1) {
-      win = add_sat(win, dp[n - 1][inv]);
-      if (inv >= n) {
-        // Como win pode ter saturado, recalculamos via soma se necessario ou usamos prefix sum saturado
-      }
-    }
-    // Prefix sum saturado de dp[n-1] para exatidao total sem underflow na subtracao:
+    /* Soma de prefixos saturada de dp[n-1] para transicao exata sem underflow: */
     vll pref(I_MAX + 2, 0);
     rep(inv, 0, I_MAX + 1) pref[inv + 1] = add_sat(pref[inv], dp[n - 1][inv]);
     rep(inv, 0, I_MAX + 1) {
@@ -268,19 +251,19 @@ vi kth_permutation_by_inversions(int N, ll K) {
       }
     }
   }
-  // 1. Descobre o numero exato de inversoes 'rem_inv' da K-esima permutacao
+  /* 1. Descobre o numero exato de inversoes 'rem_inv' da K-esima permutacao */
   int rem_inv = 0;
   while (rem_inv <= I_MAX && K > dp[N][rem_inv]) {
     K -= dp[N][rem_inv];
     ++rem_inv;
   }
-  // 2. Reconstroi digito a digito usando Fenwick Tree (Binary Lifting)
+  /* 2. Reconstroi digito a digito usando Fenwick Tree (Binary Lifting) */
   Fenwick<int> bit(N);
   rep(i, 0, N) bit.add(i, 1);
   vi ans(N);
   for (int n = N; n >= 1; --n) {
-    // Escolhe c = quantos elementos menores restantes ficam a direita (contribui 'c' inversoes)
-    // Como rem_inv <= 210, c so precisa variar em [max(0, rem_inv - I_MAX), min(n - 1, rem_inv)]
+    /* Escolhe c = quantos elementos menores restantes ficam a direita (contribui 'c' inversoes)
+     * Como rem_inv <= 210, c so precisa variar em [max(0, rem_inv - I_MAX), min(n - 1, rem_inv)] */
     int c_chosen = 0;
     for (int c = 0; c <= min(n - 1, rem_inv); ++c) {
       ll ways = dp[n - 1][rem_inv - c];
@@ -296,9 +279,9 @@ vi kth_permutation_by_inversions(int N, ll K) {
 }
 \end{lstlisting}
 
-\subsubsection{DP de Intervalos $\Ocomp{N^2}$ com Monotonicidade / Deque (2021 E)}
+\subsubsection{DP de Intervalos $\Ocomp{N^2}$ com Monotonicidade / Deque}
 \algobox
-  {Encontrar o custo mínimo no pior caso de uma árvore de busca sobre $N$ repetidores (e $N+1$ segmentos de cabo $1 \dots N+1$) onde navegar entre $i$ e $j$ custa $|X_i - X_j|$, mergulhar em $k$ custa $D_k$ e consertar o segmento $s$ custa $F_s$, começando no repetidor $1$ (2021 E).}
+  {Encontrar o custo mínimo no pior caso de uma árvore de busca sobre $N$ repetidores (e $N+1$ segmentos de cabo $1 \dots N+1$) onde navegar entre $i$ e $j$ custa $|X_i - X_j|$, mergulhar em $k$ custa $D_k$ e consertar o segmento $s$ custa $F_s$, começando no repetidor $1$.}
   {Em qualquer passo da busca, sabemos que o segmento defeituoso pertence a um intervalo contíguo de segmentos $[l, r]$ ($1 \le l \le r \le N+1$) e o barco está posicionado exatamente em um dos repetidores da borda desse intervalo: ou no repetidor $l - 1$ (borda esquerda, para $l \ge 2$) ou no repetidor $r$ (borda direita, para $r \le N$)!
   Definimos duas matrizes de DP em $\Ocomp{N^2}$:
   $\bullet$ $L[l][r]$ = menor custo no pior caso para resolver o intervalo de segmentos $[l, r]$ sabendo que o barco está atualmente no repetidor $l - 1$ (ou no repetidor $1$ se $l = 1$);
@@ -312,27 +295,26 @@ vi kth_permutation_by_inversions(int N, ll K) {
 
 \begin{lstlisting}
 ll min_expedition_plan_cost(int N, const vll& S_sail, const vll& D_dive, const vll& F_fix) {
-  // Repetidores 1..N com coordenadas X[1..N]; Segmentos 1..N+1 com custos F[1..N+1]
+  /* Repetidores 1..N com coordenadas X[1..N]; Segmentos 1..N+1 com custos F[1..N+1] */
   vll X(N + 1, 0), D(N + 1, 0), F(N + 2, 0);
   rep(i, 2, N + 1) X[i] = X[i - 1] + S_sail[i - 2];
   rep(i, 1, N + 1) D[i] = D_dive[i - 1];
   rep(i, 1, N + 2) F[i] = F_fix[i - 1];
 
-  int M = N + 1; // Total de segmentos
+  int M = N + 1; /* Total de segmentos */
   vector<vll> dpL(M + 2, vll(M + 2, 0)), dpR(M + 2, vll(M + 2, 0));
   rep(i, 1, M + 1) dpL[i][i] = dpR[i][i] = F[i];
 
+  /* Para cada l in [1..M], mantemos ponteiro split_L[l] e deque de k in [l .. split_L[l]] */
 
-  // Para cada l in [1..M], mantemos ponteiro split_L[l] e deque de k in [l .. split_L[l]]
-
-  vector<deque<pll>> dq_RL(M + 2), dq_RR(M + 2); // guarda {k, val} para cada l
-  vi ptr_R(M + 2); // proximo k a ser inserido no deque de l
+  vector<deque<pll>> dq_RL(M + 2), dq_RR(M + 2); /* guarda {k, val} para cada l */
+  vi ptr_R(M + 2); /* proximo k a ser inserido no deque de l */
   rep(l, 1, M + 1) ptr_R[l] = l;
 
   for (int r = 2; r <= M; ++r) {
-    // Fixado r, varremos l de r-1 decrescendo ate 1.
+    /* Fixado r, varremos l de r-1 decrescendo ate 1. */
     int split = r - 1;
-    deque<pll> dq_LL, dq_LR; // {k, val} para k in [l..split]
+    deque<pll> dq_LL, dq_LR; /* {k, val} para k in [l..split] */
     auto push_L = [&](int k) {
       ll vL = X[k] + D[k] + dpL[k + 1][r];
       ll vR = -X[k] + D[k] + dpL[k + 1][r];
@@ -343,14 +325,14 @@ ll min_expedition_plan_cost(int N, const vll& S_sail, const vll& D_dive, const v
     };
 
     for (int l = r - 1; l >= 1; --l) {
-      // Insere k = l no candidato do lado esquerdo (se l <= split)
+      /* Insere k = l no candidato do lado esquerdo (se l <= split) */
       if (l <= split) push_L(l);
-      // Avanca split para a esquerda enquanto R[l][split] > L[split+1][r]
+      /* Avanca split para a esquerda enquanto R[l][split] > L[split+1][r] */
       while (split >= l && dpR[l][split] > dpL[split + 1][r]) --split;
       while (!dq_LL.empty() && dq_LL.front().fst > split) dq_LL.pop_front();
       while (!dq_LR.empty() && dq_LR.front().fst > split) dq_LR.pop_front();
 
-      // Garante que o deque de R[l] contenha todos os k ate r-1 e remove k <= split
+      /* Garante que o deque de R[l] contenha todos os k ate r-1 e remove k <= split */
       while (ptr_R[l] < r) {
         int k = ptr_R[l]++;
         ll vL = X[k] + D[k] + dpR[l][k];
@@ -378,17 +360,17 @@ ll min_expedition_plan_cost(int N, const vll& S_sail, const vll& D_dive, const v
 }
 \end{lstlisting}
 
-\subsubsection{Cartesian Tree e DP de Partição em $k$ Subarrays em $\Ocomp{N^2}$ (2020 F)}
+\subsubsection{Cartesian Tree e DP de Partição em $k$ Subarrays em $\Ocomp{N^2}$}
 \algobox
-  {(1) Construir a Árvore Cartesiana de Máximo (ou Mínimo) em $\Ocomp{N}$; (2) Particionar um array $A$ de tamanho $N \le 8000$ em $k$ subarrays minimizando e maximizando $\sum_{m=1}^k \max(S_m)$ para todo $1 \le k \le N$ (2020 F).}
+  {(1) Construir a Árvore Cartesiana de Máximo (ou Mínimo) em $\Ocomp{N}$; (2) Particionar um array $A$ de tamanho $N \le 8000$ em $k$ subarrays minimizando e maximizando $\sum_{m=1}^k \max(S_m)$ para todo $1 \le k \le N$.}
   {\textbf{1. Maximizando a Soma dos Máximos em $\Ocomp{N \log N}$:} Para \textbf{maximizar} a soma dos $k$ máximos, basta observar que nunca podemos escolher mais do que os $k$ maiores elementos do array, e \textbf{sempre} conseguimos separar os $k$ maiores elementos do array em $k$ subarrays distintos colocando cortes entre eles! Logo, o máximo para $k$ partes é simplesmente a soma dos $k$ maiores elementos de $A$!
   \textbf{2. Minimizando a Soma dos Máximos via Cartesian Tree ($\Ocomp{N^2}$):} Na Árvore Cartesiana de Máximo, cada nó $u$ representa o máximo $A_u$ de sua subárvore (intervalo onde $A_u$ domina). Ao combinar a subárvore esquerda $L$ (de tamanho $sz_L$) e a subárvore direita $R$ (de tamanho $sz_R$) com a raiz $u$, fazemos uma convolução $(\min, +)$ de tamanho $(sz_L + 1) \times (sz_R + 1)$: como todo par de nós $(x \in L, y \in R)$ se encontra exatamente uma vez no seu $\text{LCA} = u$, o custo total dessa convolução na árvore inteira é $\sum_u sz_L \cdot sz_R = \binom{N}{2} = \Ocomp{N^2}$! Em cada nó $u$ (com filhos $L$ e $R$): ou $A_u$ é o máximo da parte que cruza $u$ (somando $+A_u$), ou a parte que contém $u$ já herda o máximo de algum ancestral acima (ou funde a última parte de $L$ com a primeira parte de $R$ pagando $A_u$)! Mais simples ainda: na DP Linear $dp[k][i] = \min_{j < i} (dp[k-1][j] + \max_{j < p \le i} A_p)$, usando uma \textbf{Pilha Monotônica} para cada camada $k$, mantemos em cada bloco da pilha o menor $dp[k-1][j]$ do bloco e o mínimo global da pilha em $\Ocomp{1}$ por elemento, resolvendo todas as $N$ camadas em $\Ocomp{N^2}$ com apenas 4 vetores de memória e constante ínfima!}
   {Usar a abordagem de Pilha Monotônica por camada para \texttt{min\_cost}: para $N = 8000$, $\frac{N^2}{2} = 3.2 \cdot 10^7$ operações em loop simples sem recursão roda em $< 0.08\text{s}$!}
   {Cartesian Tree: $\Ocomp{N}$ $\mid$ Fascinating Partitions: $\Ocomp{N^2}$ tempo e $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
-// 1. Construcao de Cartesian Tree de Maximo em O(N)
-// Retorna {root, left_child, right_child} (-1 se nao tiver filho)
+/* 1. Construcao de Cartesian Tree de Maximo em O(N)
+ * Retorna {root, left_child, right_child} (-1 se nao tiver filho) */
 tuple<int, vi, vi> build_max_cartesian_tree(const vll& A) {
   int n = sz(A);
   vi L(n, -1), R(n, -1), st;
@@ -404,19 +386,19 @@ tuple<int, vi, vi> build_max_cartesian_tree(const vll& A) {
   return {st[0], L, R};
 }
 
-// 2. Resolve Fascinating Partitions (2020 F) em O(N^2) tempo e O(N) espaco
-// Retorna vetor de pares {min_cost, max_cost} para k = 1..N
+/* 2. Particao em k subarrays minimizando e maximizando a soma dos maximos em O(N^2) tempo e O(N) espaco
+ * Retorna vetor de pares {min_cost, max_cost} para k = 1..N */
 vector<pll> solve_fascinating_partitions(const vll& A) {
   int n = sz(A);
   static constexpr ll INF = 4e18;
 
-  // Maximo custo para k partes = soma dos k maiores elementos de A!
+  /* Maximo custo para k partes = soma dos k maiores elementos de A! */
   vll sorted_A = A;
   sort(all(sorted_A), greater<ll>());
   vll max_cost(n + 1, 0);
   rep(k, 1, n + 1) max_cost[k] = max_cost[k - 1] + sorted_A[k - 1];
 
-  // Minimo custo para k partes via DP + Pilha Monotonica em O(N^2)
+  /* Minimo custo para k partes via DP + Pilha Monotonica em O(N^2) */
   vll dp(n + 1, INF), ndp(n + 1, INF);
   ll cur_max = 0;
   rep(i, 1, n + 1) { chmax(cur_max, A[i - 1]); dp[i] = cur_max; }
@@ -432,7 +414,7 @@ vector<pll> solve_fascinating_partitions(const vll& A) {
     st.clear();
     rep(i, k, n + 1) {
       ll a = A[i - 1];
-      ll min_prev = dp[i - 1]; // Corte exatamente antes de i (bloco [i..i])
+      ll min_prev = dp[i - 1]; /* Corte exatamente antes de i (bloco [i..i]) */
       while (!st.empty() && st.back().max_a <= a) {
         chmin(min_prev, st.back().min_dp);
         st.pop_back();
@@ -460,7 +442,7 @@ vector<pll> solve_fascinating_partitions(const vll& A) {
   {D\&C DP: $\Ocomp{K N \log N}$ $\mid$ Knuth: $\Ocomp{N^2}$}
 
 \begin{lstlisting}
-// 1. Divide and Conquer DP: Calcula uma camada ndp[0..n-1] a partir de dp[0..n-1]
+/* 1. Divide and Conquer DP: Calcula uma camada ndp[0..n-1] a partir de dp[0..n-1] */
 template <class CostFunc>
 void dnc_dp_layer(int l, int r, int optL, int optR, const vll& dp, vll& ndp, CostFunc C) {
   if (l > r) return;
@@ -474,7 +456,7 @@ void dnc_dp_layer(int l, int r, int optL, int optR, const vll& dp, vll& ndp, Cos
   dnc_dp_layer(mid + 1, r, best_k, optR, dp, ndp, C);
 }
 
-// 2. Knuth Optimization: DP de Intervalos em O(N^2)
+/* 2. Knuth Optimization: DP de Intervalos em O(N^2) */
 template <class CostFunc>
 ll knuth_interval_dp(int n, CostFunc C) {
   vector<vll> dp(n, vll(n, 0));
@@ -500,17 +482,15 @@ ll knuth_interval_dp(int n, CostFunc C) {
 % ----------------------------------------------------------------------------
 \subsection{DP de Probabilidade, Valor Esperado e Jogos Estocásticos}
 
-\subsubsection{Valor Esperado Modular e Distribuição Hipergeométrica (2021 L)}
+\subsubsection{Valor Esperado Modular e Distribuição Hipergeométrica}
 \algobox
-  {Um ônibus com $N$ pares de assentos recebe $G$ pessoas easygoing, depois $E$ extrovertidas e por fim $I$ introvertidas ($N, G, I, E \le 10^6$). Calcular o número esperado de passageiros felizes $\bmod 10^9+7$ (2021 L).}
-  {As primeiras $G' = \min(G, 2N)$ pessoas easygoing sentam-se de forma completamente uniforme nos $2N$ lugares (e todas ficam felizes!). Suponha que após a entrada dessas $G'$ pessoas restem exatamente $k$ pares de assentos completamente vazios ($2k$ lugares em pares vazios) e $s = 2N - G' - 2k$ pares com exatamente 1 pessoa sentada (1 lugar vazio ao lado de alguém).
-  $\bullet$ \textbf{Probabilidade de restarem $k$ pares vazios:} Há $\binom{2N}{G'}$ formas totais de escolher os $G'$ lugares. Para termos exatamente $s = 2N - G' - 2k$ pares unitários e $m = G' - N + k$ pares cheios (e $k$ pares vazios), escolhemos quais $k$ pares ficam vazios, quais $m$ ficam cheios e qual dos 2 lugares é ocupado em cada um dos $s$ pares unitários: $\text{ways}(k) = \frac{N!}{k! \, m! \, s!} \cdot 2^s$!
-  $\bullet$ \textbf{Fase Extrovertidos ($E$) e Introvertidos ($I$) para um $(k, s)$ fixo:}
-  Os extrovertidos querem sentar nos $s$ assentos ao lado de alguém: se $E \le s$, todos os $E$ extrovertidos sentam em lugares unitários (todos felizes!) e sobram $k$ pares vazios e $s - E$ unitários. Se $E > s$, os primeiros $s$ extrovertidos fecham todos os $s$ pares unitários (ficando felizes), e os $E_{\text{rem}} = \min(2k, E - s)$ extrovertidos seguintes entram na mesma situação caótica nos $k$ pares vazios: cada par que acaba com 2 extrovertidos dá $+1$ feliz (o segundo a sentar!). Pela linearidade do valor esperado (ou iterando sob a segunda hipergeométrica? Não: dado que há $k$ pares vazios e $E_{\text{rem}}$ extrovertidos escolhendo lugares uniformemente seguido de $I$ introvertidos, o valor esperado condicional a $k$ pares vazios para a fase $(E_{\text{rem}}, I)$ depende \textbf{apenas} de $k$, podendo ser calculado em $\Ocomp{1}$ por linearidade do valor esperado em cada par quando $E \le s$, e quando $E > s$ apenas para o único estado $s$ se somarmos sobre os pares finais!). Melhor: em ambos os casos (easygoing nos $N$ pares, ou extrovertidos restantes nos $k$ pares vazios), se $M$ pessoas sentam uniformemente ao acaso em $P$ pares vazios, a distribuição do número de pares que continuam vazios é hipergeométrica, e se fizermos na ordem inversa ou usarmos a fórmula fechada do valor esperado de introvertidos dado $k'$, tudo roda em $\Ocomp{N}$!}
-  {Se $E > s$, os $E' = \min(2k, E - s)$ extrovertidos restantes escolhem uniformemente ao acaso nos $2k$ lugares dos $k$ pares vazios! Mas note que combinar a escolha uniforme de $G'$ easygoing seguida da escolha de $s$ lugares nos pares unitários e depois $E'$ lugares uniformes nos $k$ pares vazios: quando $E \ge s$, TODOS os $s$ pares unitários deixados pelos easygoing são 100\% preenchidos pelos primeiros $s$ extrovertidos, e os $E - s$ extrovertidos restantes sentam uniformemente nos $2k$ lugares vazios! Nesse estado após os extrovertidos, restam $k'$ pares vazios e $s'$ pares com 1 extrovertido: a partir daí, o número de introvertidos felizes para um $(k', s')$ fixo é \textbf{determinístico} em função de $k'$ e $s'$!}
+  {Um ônibus com $N$ pares de assentos recebe $G$ pessoas easygoing, depois $E$ extrovertidas e por fim $I$ introvertidas ($N, G, I, E \le 10^6$). Calcular o número esperado de passageiros felizes $\bmod 10^9+7$.}
+  {As primeiras $G' = \min(G, 2N)$ pessoas easygoing escolhem lugares uniformemente ao acaso. A probabilidade de restarem $k$ pares vazios, $s = 2N - G' - 2k$ pares unitários e $m = G' - N + k$ pares cheios é $\frac{N!}{k! m! s!} 2^s / \binom{2N}{G'}$. Como os passageiros seguintes embarcam um por um e a felicidade é medida ao final: se $E' \le s$, os $E'$ extrovertidos ocupam $E'$ pares unitários ($k' = k, s' = s - E'$); se $E' > s$, os primeiros $s$ fecham os pares unitários e os $E_{\text{rem}} = E' - s$ restantes emparelham-se dois a dois nos $k$ pares vazios! Depois, os $I'$ introvertidos ocupam primeiro os $k'$ pares vazios, depois os $s'$ unitários e por fim estragam $\max(0, I' - k' - s')$ introvertidos.}
+  {Quando $E' > s$ e $E_{\text{rem}}$ é ímpar, sobra $s' = 1$ extrovertido sozinho em um par, que ficará feliz sse algum introvertido sentar ao lado dele ($I' > k'$).}
   {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
 
 \begin{lstlisting}
+/* Valor esperado exato em O(N) via Hipergeometrica */
 ll expected_bus_happiness(int N, int G, int I, int E) {
   constexpr ll MOD = 1'000'000'007;
   auto modpow = [&](ll b, ll e) {
@@ -529,54 +509,52 @@ ll expected_bus_happiness(int N, int G, int I, int E) {
     if (k < 0 || k > n) return 0;
     return fact[n] * invf[k] % MOD * invf[n - k] % MOD;
   };
-  auto prob_empty = [&](int N_p, int P, int k) -> ll {
-    int s = 2 * N_p - P - 2 * k, m = P - N_p + k;
-    if (k < 0 || s < 0 || m < 0) return 0;
-    ll ways = fact[N_p] * invf[k] % MOD * invf[m] % MOD * invf[s] % MOD * pw2[s] % MOD;
-    return ways * modpow(C(2 * N_p, P), MOD - 2) % MOD;
-  };
-  auto happy_I = [&](int k_emp, int s_one, int I_cnt) -> ll {
-    int te = min(I_cnt, k_emp), rem = I_cnt - te;
-    int ts = min(rem, s_one); rem -= ts;
-    return te - min(rem, te);
-  };
   int G_in = min(G, 2 * N);
-  ll ans = G_in % MOD;
-  int R_seats = max(0, 2 * N - G_in - E);
-  int L_cap = min(I, max(0, R_seats - I));
+  int E_in = min(E, 2 * N - G_in);
+  int I_in = min(I, 2 * N - G_in - E_in);
+  ll inv_tot = modpow(C(2 * N, G_in), MOD - 2);
 
+  ll ans = G_in % MOD;
   for (int k = 0; k <= N; ++k) {
-    ll pk = prob_empty(N, G_in, k);
-    if (!pk) continue;
-    int s = 2 * N - G_in - 2 * k;
-    if (E <= s) {
-      ans = (ans + pk * ((E + happy_I(k, s - E, I)) % MOD)) % MOD;
+    int s = 2 * N - G_in - 2 * k, m = G_in - N + k;
+    if (s < 0 || m < 0) continue;
+    ll pk = fact[N] * invf[k] % MOD * invf[m] % MOD * invf[s] % MOD * pw2[s] % MOD * inv_tot % MOD;
+
+    int kp = k, sp = s;
+    ll hap_E = E_in;
+    if (E_in <= s) {
+      sp = s - E_in;
     } else {
-      int E_rem = min(2 * k, E - s);
-      ll exp_k_prime = (k >= 1 && 2 * k - E_rem >= 2)
-        ? k * C(2 * k - 2, E_rem) % MOD * modpow(C(2 * k, E_rem), MOD - 2) % MOD : 0;
-      ll hap_E = (s + (E_rem - (2 * k - E_rem) + 2 * exp_k_prime) % MOD * ((MOD + 1) / 2)) % MOD;
-      ll hap_I = min((ll)L_cap, exp_k_prime);
-      ans = (ans + pk * ((hap_E + hap_I + MOD) % MOD)) % MOD;
+      int E_rem = E_in - s;
+      if (E_rem % 2 == 0) {
+        kp = k - E_rem / 2;
+        sp = 0;
+      } else {
+        kp = k - (E_rem + 1) / 2;
+        sp = 1;
+        if (I_in <= kp) --hap_E; /* O ultimo extrovertido fica sem vizinho se I_in <= kp */
+      }
     }
+    ll hap_I = max(0, min(I_in, kp) - max(0, I_in - kp - sp));
+    ans = (ans + pk * ((hap_E + hap_I) % MOD)) % MOD;
   }
   return ans;
 }
 \end{lstlisting}
 
-\subsubsection{DP de Valor Esperado Contínuo em Jogos de Alocação (2020 G)}
+\subsubsection{DP de Valor Esperado Contínuo em Jogos de Alocação}
 \algobox
-  {Alice e Bob recebem $N \le 100$ cartas contínuas $\text{Uniforme}[0, 1]$ cada. Alice aloca suas cartas nos slots $1 \dots N$ (pesos $1 \dots N$); depois Bob vê as cartas de Alice e aloca as dele para maximizar seus pontos. Calcular o valor esperado da pontuação de Alice se ambos jogam otimamente (2020 G).}
+  {Alice e Bob recebem $N \le 100$ cartas contínuas $\text{Uniforme}[0, 1]$ cada. Alice aloca suas cartas nos slots $1 \dots N$ (pesos $1 \dots N$); depois Bob vê as cartas de Alice e aloca as dele para maximizar seus pontos. Calcular o valor esperado da pontuação de Alice se ambos jogam otimamente.}
   {\textbf{1. Estratégia Ótima de Bob:} Como Bob vê as cartas de Alice, a alocação ótima de Bob depende \textbf{apenas} da ordem relativa (ranking) das $2N$ cartas unidas! Independentemente de quais slots Alice atribuiu às suas cartas, se ordenarmos as $2N$ cartas da maior para a menor, Bob pode parear suas cartas com as cartas que ele consegue vencer como em um problema de parênteses/matching: mas como os slots têm pesos $1 \dots N$, Alice sempre atribuirá seus pesos $1 \dots N$ na ordem crescente das suas próprias cartas? Não: Bob quer vencer os slots de maior peso ($N, N-1, \dots$) usando suas cartas que superam as cartas que Alice colocou naqueles slots! Se Alice colocar sua maior carta no slot $N$, sua segunda maior no slot $N-1$, $\dots$, sua menor no slot $1$, então vencer uma carta maior de Alice também dá mais pontos a Bob, logo a escolha gulosa de Bob na ordem decrescente dos valores das cartas (sempre que Bob tiver uma carta livre maior que a carta atual de Alice, ele a usa para vencer a maior carta disponível de Alice, pois ela vale o maior peso!) é \textbf{independente dos valores numéricos exatos} e depende apenas da palavra de Dyck/sequência binária de quem tem as maiores cartas!
   \textbf{2. DP em $\Ocomp{N^3}$:} Processando as $2N$ cartas da \textbf{maior para a menor} (ou da menor para a maior), a cada passo a próxima carta pertence a Alice com probabilidade $\frac{a}{a + b}$ ou a Bob com probabilidade $\frac{b}{a + b}$ (onde $a$ e $b$ são as quantidades de cartas restantes de Alice e Bob). Mantemos na DP \texttt{(a, b, c)}: restam $a$ cartas de Alice, $b$ cartas de Bob, e $c$ cartas de Bob já reveladas (maiores) estão guardadas para derrotar as próximas $c$ maiores cartas de Alice! Quando uma carta de Alice é revelada (ela recebe o peso do melhor slot ainda não derrotado ou o menor? Alice ordena suas cartas de modo que Bob, que derrota um prefixo de cartas de Alice que têm cartas de Bob maiores, derrote as cartas de Alice de \textbf{menor} peso possível! Ou seja, se $c > 0$, Bob é capaz de derrotar essa carta de Alice: pela otimalidade de Bob e defesa de Alice, essa derrota consome $c \gets c - 1$; se $c = 0$, nenhuma carta de Bob é maior que esta carta de Alice, logo Alice \textbf{garantidamente} vence este slot!).}
   {Quando $c = 0$ e sai uma carta de Alice (restam $a$ cartas de Alice), qual o valor do slot que Alice garante? Se processarmos da \textbf{maior para a menor} carta: quando $c = 0$, a carta atual de Alice é maior que todas as cartas restantes de Bob (exceto as que já foram pareadas acima), logo Bob \textbf{nunca} conseguirá derrotá-la! Para maximizar seus pontos, Alice coloca nos seus melhores slots ($N, N-1, \dots$) ou nos slots que têm maior probabilidade de escapar de Bob? Pela simetria do pareamento de Bob (que sempre casa toda carta de Bob com a próxima carta de Alice menor que ela no sufixo), o número total de cartas de Alice que escapam de Bob (aquelas que aparecem quando $c = 0$) ou a escolha de pesos de Alice equivale a: na transição de $(a, b, c)$, quando $c > 0$ e sai carta de Alice, Bob só gasta sua carta guardada se valer a pena — mas como estamos indo da maior para a menor, se Alice colocar os pesos $1 \dots N$ em ordem crescente das suas cartas (menor carta = peso 1, maior carta = peso $N$), então mais alto = maior peso, logo Bob \textbf{sempre} quer derrotar a maior carta possível de Alice assim que ela aparece! Assim, se Alice coloca peso $a$ na sua $a$-ésima menor carta, quando sai uma carta de Alice com $c = 0$, ela vence e ganha exatamente $a$ pontos!}
   {Tempo: $\Ocomp{N^3}$ $\mid$ Espaço: $\Ocomp{N^2}$}
 
 \begin{lstlisting}
-// Resolve Game of Slots (2020 G) em O(N^3)
+/* Valor esperado continuo em jogo de alocacao sequencial em O(N^3) */
 ld expected_alice_slots_score(int N) {
-  // dp[b][c] = pontuacao esperada de Alice quando restam 'a' cartas de Alice,
-  // 'b' cartas de Bob nao reveladas, e Bob tem 'c' cartas maiores guardadas para bater Alice.
+  /* dp[b][c] = pontuacao esperada de Alice quando restam 'a' cartas de Alice,
+   * 'b' cartas de Bob nao reveladas, e Bob tem 'c' cartas maiores guardadas para bater Alice. */
   vector<vector<ld>> dp(N + 1, vector<ld>(N + 1, 0.0));
   for (int a = 1; a <= N; ++a) {
     vector<vector<ld>> ndp(N + 1, vector<ld>(N + 1, 0.0));
@@ -584,7 +562,7 @@ ld expected_alice_slots_score(int N) {
       ld pA = (ld)a / (a + b), pB = (ld)b / (a + b);
       for (int c = 0; c <= N - b; ++c) {
         ld if_A = (c == 0) ? (dp[b][0] + a) : dp[b][c - 1];
-        // Se a maior carta restante for de Bob: Bob guarda essa carta (c + 1)
+        /* Se a maior carta restante for de Bob: Bob guarda essa carta (c + 1) */
         ld if_B = (b > 0) ? ndp[b - 1][c + 1] : 0.0;
         ndp[b][c] = pA * if_A + pB * if_B;
       }
@@ -595,10 +573,10 @@ ld expected_alice_slots_score(int N) {
 }
 \end{lstlisting}
 
-\subsubsection{DP de Probabilidade com Ciclos: Iteração de Valor e Gauss (2019 H)}
+\subsubsection{DP de Probabilidade com Ciclos: Iteração de Valor e Gauss}
 \algobox
-  {(1) Resolver jogos estocásticos onde os estados podem voltar ao $(c, h, 0)$ (como no jogo de dados *Pig*, 2019 H, onde rolar 1 ou estourar 75 passa a vez com $x = 0$); (2) Resolver sistemas lineares pequenos por Eliminação Gaussiana em $\Ocomp{V^3}$.}
-  {Em 2019 H (*Hold or Continue?*), o estado é $(c, h, x)$ com $0 \le c, h < 75$ e $0 \le x \le 75 - c$:
+  {(1) Resolver jogos estocásticos onde os estados podem voltar ao $(c, h, 0)$ (como no jogo de dados \emph{Pig}, onde rolar 1 ou estourar 75 passa a vez com $x = 0$); (2) Resolver sistemas lineares pequenos por Eliminação Gaussiana em $\Ocomp{V^3}$.}
+  {No jogo de dados \emph{Pig}, o estado é $(c, h, x)$ com $0 \le c, h < 75$ e $0 \le x \le 75 - c$:
   $\bullet$ Se a jogadora escolhe \textbf{Hold} ($x > 0$): sua pontuação passa a ser $c + x$ (se $c + x = 75$, vence com probabilidade $1$), e a vez passa para o oponente, logo $P_{\text{hold}}(c, h, x) = 1 - W(h, c + x, 0)$.
   $\bullet$ Se a jogadora escolhe \textbf{Continue}: rola um dado $d \in \{1..6\}$ (prob. $1/6$ cada). Se $d = 1$ ou $c + x + d > 75$, perde o turno e passa a vez com pontuação $c$, obtendo $1 - W(h, c, 0)$; caso contrário, vai para $W(c, h, x + d)$.
   Note que para um par fixo de pontuações $(c, h)$ e $(h, c)$, todos os estados com $x > 0$ são um \textbf{DAG acíclico} (pois $x$ cresce estritamente de $x$ para $x + d$)! O único ciclo ocorre entre os dois estados base $A = W(c, h, 0)$ e $B = W(h, c, 0)$ quando ainda ninguém somou pontos na rodada! Logo, processamos $c + h$ da maior soma ($148$) para a menor ($0$), e para cada par $\{c, h\}$ basta rodar ~35 iterações de Ponto Fixo (ou Busca Binária / Secante) sobre $A = W(c, h, 0)$ e $B = W(h, c, 0)$, recalculando a DP de $x = 75 - c$ até $0$!}
@@ -606,24 +584,24 @@ ld expected_alice_slots_score(int N) {
   {Pig Value Iteration: $\Ocomp{M^3 \cdot \text{iter}}$ ($M = 75$) $\mid$ Gauss: $\Ocomp{V^3}$}
 
 \begin{lstlisting}
-// 1. Pre-calcula a tabela otima do Jogo Pig (2019 H - Hold or Continue?)
+/* 1. Pre-calcula a tabela otima do Jogo Pig */
 struct PigGameSolver {
   static constexpr int GOAL = 75;
-  double W[GOAL + 1][GOAL + 1][GOAL + 1]; // W[c][h][x]
+  double W[GOAL + 1][GOAL + 1][GOAL + 1]; /* W[c][h][x] */
 
   PigGameSolver() {
     memset(W, 0, sizeof(W));
-    // Processa em ordem decrescente da soma c + h
+    /* Processa em ordem decrescente da soma c + h */
     for (int sum = 2 * (GOAL - 1); sum >= 0; --sum) {
       for (int c = min(GOAL - 1, sum); c >= 0; --c) {
         int h = sum - c;
-        if (h >= GOAL || c > h) continue; // Resolve o par (c, h) e (h, c) juntos!
+        if (h >= GOAL || c > h) continue; /* Resolve o par (c, h) e (h, c) juntos! */
 
         auto update_table = [&](int p1, int p2, double lose_turn_prob) {
-          W[p1][p2][GOAL - p1] = 1.0; // Atingiu 75 -> Hold vence imediatamente!
+          W[p1][p2][GOAL - p1] = 1.0; /* Atingiu 75 -> Hold vence imediatamente! */
           for (int x = GOAL - p1 - 1; x >= 0; --x) {
             double p_hold = (x > 0) ? (1.0 - W[p2][p1 + x][0]) : -1.0;
-            double p_cont = lose_turn_prob; // d = 1
+            double p_cont = lose_turn_prob; /* d = 1 */
             for (int d = 2; d <= 6; ++d) {
               if (p1 + x + d > GOAL) p_cont += lose_turn_prob;
               else                   p_cont += W[p1][p2][x + d];
@@ -633,7 +611,7 @@ struct PigGameSolver {
           }
         };
 
-        // Iteracao de Ponto Fixo sobre W[c][h][0] e W[h][c][0] (converge em ~35 passos)
+        /* Iteracao de Ponto Fixo sobre W[c][h][0] e W[h][c][0] (converge em ~35 passos) */
         W[c][h][0] = W[h][c][0] = 0.5;
         rep(iter, 0, 45) {
           double lose_c = 1.0 - W[h][c][0];
@@ -646,7 +624,7 @@ struct PigGameSolver {
       }
     }
   }
-  // Retorna 'H' (Hold) ou 'C' (Continue) para o estado (c, h, x)
+  /* Retorna 'H' (Hold) ou 'C' (Continue) para o estado (c, h, x) */
   char query_decision(int c, int h, int x) const {
     if (c + x == GOAL) return 'H';
     double p_hold = 1.0 - W[h][c + x][0];
@@ -660,8 +638,8 @@ struct PigGameSolver {
   }
 };
 
-// 2. Eliminacao Gaussiana com Pivotamento Parcial para Sistemas de DP com Ciclos
-// Resolve A * x = b em O(n^3). Retorna vetor vazio se nao houver solucao unica.
+/* 2. Eliminacao Gaussiana com Pivotamento Parcial para Sistemas de DP com Ciclos
+ * Resolve A * x = b em O(n^3). Retorna vetor vazio se nao houver solucao unica. */
 vector<ld> gaussian_elimination(vector<vector<ld>> A, vector<ld> b) {
   int n = sz(A);
   rep(i, 0, n) A[i].pb(b[i]);

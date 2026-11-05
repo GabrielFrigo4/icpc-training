@@ -1,21 +1,42 @@
 \documentclass[8pt,a4paper,landscape]{extarticle}
 
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+\usepackage{iftex}
+\ifTUTeX
+  \usepackage{fontspec}
+  \IfFontExistsTF{Arial}{\setmainfont{Arial}\setsansfont{Arial}}{%
+    \IfFontExistsTF{Liberation Sans}{\setmainfont{Liberation Sans}\setsansfont{Liberation Sans}}{%
+      \IfFontExistsTF{DejaVu Sans}{\setmainfont{DejaVu Sans}\setsansfont{DejaVu Sans}}{%
+        \IfFontExistsTF{TeX Gyre Heros}{\setmainfont{TeX Gyre Heros}\setsansfont{TeX Gyre Heros}}{}}}}
+  \IfFontExistsTF{JetBrainsMono Nerd Font}{\setmonofont[Scale=0.82]{JetBrainsMono Nerd Font}}{%
+    \IfFontExistsTF{JetBrainsMono NF}{\setmonofont[Scale=0.82]{JetBrainsMono NF}}{%
+      \IfFontExistsTF{JetBrains Mono}{\setmonofont[Scale=0.82]{JetBrains Mono}}{%
+        \IfFontExistsTF{FiraCode Nerd Font}{\setmonofont[Scale=0.82]{FiraCode Nerd Font}}{%
+          \IfFontExistsTF{Fira Code}{\setmonofont[Scale=0.82]{Fira Code}}{%
+            \IfFontExistsTF{DejaVu Sans Mono}{\setmonofont[Scale=0.82]{DejaVu Sans Mono}}{%
+              \IfFontExistsTF{Liberation Mono}{\setmonofont[Scale=0.82]{Liberation Mono}}{}}}}}}}
+  \renewcommand{\familydefault}{\sfdefault}
+\else
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \IfFileExists{helvet.sty}{\usepackage[scaled=0.92]{helvet}\renewcommand{\familydefault}{\sfdefault}}{}
+  \IfFileExists{zi4.sty}{\usepackage[scaled=0.84]{zi4}}{%
+    \IfFileExists{FiraMono.sty}{\usepackage[scaled=0.80]{FiraMono}}{%
+      \usepackage[scaled=0.80]{beramono}}}
+\fi
+
 \usepackage[brazil,shorthands=off]{babel}
-\usepackage{lmodern}
-\usepackage[scaled=0.82]{beramono}
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 
 \usepackage[
   a4paper,
   landscape,
-  left=0.55cm,
-  right=0.55cm,
-  top=1.05cm,
-  bottom=0.55cm,
-  headheight=11pt,
-  headsep=0.22cm
+  left=0.45cm,
+  right=0.45cm,
+  top=0.88cm,
+  bottom=0.45cm,
+  headheight=10pt,
+  headsep=0.16cm
 ]{geometry}
 
 \usepackage{multicol}
@@ -30,19 +51,42 @@
 \usepackage{microtype}
 \usepackage[hidelinks,bookmarks=false,pdfencoding=auto]{hyperref}
 
-% Paleta de cores limpa estilo KACTL
+\hypersetup{
+  pdftitle={UFABC - Team Reference Document (TRD) - Versao ICPC Fase Nacional 2026},
+  pdfauthor={Gabriel Frigo - UFABC},
+  pdfsubject={ICPC South America / Brazil Finals 2026 - Competitive Programming Handbook (C++23 & Python 3)},
+  pdfkeywords={ICPC, Maratona SBC, Fase Nacional 2026, C++23, Algorithms, Data Structures, TRD, UFABC}
+}
+
 \definecolor{dkgreen}{rgb}{0.0,0.40,0.16}
 \definecolor{dkblue}{rgb}{0.04,0.18,0.62}
 \definecolor{dkred}{rgb}{0.58,0.06,0.06}
 \definecolor{dkpurple}{rgb}{0.42,0.06,0.48}
 \definecolor{codebg}{rgb}{0.985,0.988,0.992}
-\definecolor{boxbg}{rgb}{0.945,0.955,0.972}
 \definecolor{rulecolor}{rgb}{0.72,0.75,0.80}
 \definecolor{secblue}{rgb}{0.06,0.20,0.42}
 
+\lstdefinestyle{icpcplain}{
+  basicstyle=\ttfamily\fontsize{5.65pt}{6.35pt}\selectfont,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{rulecolor},
+  framesep=1.0pt,
+  xleftmargin=1.5pt,
+  xrightmargin=1.5pt,
+  aboveskip=1.2pt,
+  belowskip=1.2pt,
+  tabsize=4,
+  breaklines=true,
+  showstringspaces=false,
+  keepspaces=true,
+  columns=fixed,
+  basewidth=0.49em
+}
+
 \lstdefinestyle{icpccpp}{
   language=C++,
-  basicstyle=\ttfamily\fontsize{6.2pt}{7.0pt}\selectfont,
+  basicstyle=\ttfamily\fontsize{5.65pt}{6.35pt}\selectfont,
   keywordstyle=\color{dkblue}\bfseries,
   keywordstyle=[2]\color{dkpurple}\bfseries,
   commentstyle=\color{dkgreen}\itshape,
@@ -51,84 +95,58 @@
   backgroundcolor=\color{codebg},
   frame=single,
   rulecolor=\color{rulecolor},
-  framesep=1.5pt,
-  xleftmargin=2pt,
-  xrightmargin=2pt,
-  aboveskip=2pt,
-  belowskip=2pt,
+  framesep=1.0pt,
+  xleftmargin=1.5pt,
+  xrightmargin=1.5pt,
+  aboveskip=1.2pt,
+  belowskip=1.2pt,
   tabsize=2,
   breaklines=true,
   breakatwhitespace=false,
   showstringspaces=false,
   keepspaces=true,
   columns=fixed,
-  basewidth=0.50em,
-  morekeywords={
-    constexpr,decltype,noexcept,nullptr,static_assert,
-    concept,requires,__int128,__int128_t,__uint128_t,
-    ll,ull,i128,u128,ld,pii,pll,vi,vll
-  },
-  morekeywords=[2]{
-    rep,all,sz,pb,eb,fst,snd,chmin,chmax
-  },
-  literate=
-    {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
-    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
-    {à}{{\`a}}1 {ã}{{\~a}}1 {õ}{{\~o}}1 {ç}{{\c{c}}}1 {Ç}{{\c{C}}}1
-    {â}{{\^a}}1 {ê}{{\^e}}1 {ô}{{\^o}}1
-}
-
-\lstdefinestyle{icpcplain}{
-  basicstyle=\ttfamily\fontsize{6.2pt}{7.0pt}\selectfont,
-  backgroundcolor=\color{codebg},
-  frame=single,
-  rulecolor=\color{rulecolor},
-  framesep=1.5pt,
-  xleftmargin=2pt,
-  xrightmargin=2pt,
-  aboveskip=2pt,
-  belowskip=2pt,
-  tabsize=4,
-  breaklines=true,
-  showstringspaces=false,
-  keepspaces=true,
-  columns=fixed,
-  basewidth=0.50em
+  basewidth=0.49em,
+  upquote=true,
+  morestring=[b]",
+  morestring=[b]',
+  alsoletter={'\$},
+  morekeywords={constexpr,decltype,noexcept,nullptr,static_assert,concept,requires,__int128,__int128_t,__uint128_t,ll,ull,i128,u128,ld,pii,pll,vi,vll},
+  morekeywords=[2]{rep,all,sz,pb,eb,fst,snd,chmin,chmax}
 }
 
 \lstset{style=icpccpp}
 
-\setlength{\columnsep}{0.42cm}
-\setlength{\columnseprule}{0.3pt}
+\setlength{\columnsep}{0.35cm}
+\setlength{\columnseprule}{0.25pt}
 \def\columnseprulecolor{\color{rulecolor}}
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{1.2pt}
+\setlength{\parskip}{0.6pt}
 
-\setlist[itemize]{leftmargin=9pt,itemsep=0.4pt,topsep=1pt,parsep=0pt}
-\setlist[enumerate]{leftmargin=11pt,itemsep=0.4pt,topsep=1pt,parsep=0pt}
+\setlist[itemize]{leftmargin=8pt,itemsep=0.2pt,topsep=0.5pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=10pt,itemsep=0.2pt,topsep=0.5pt,parsep=0pt}
 
 \titleformat{\section}
-  {\normalfont\fontsize{9.0pt}{10.5pt}\selectfont\bfseries\color{secblue}}
-  {\thesection.}{0.35em}{}[\vspace{-1pt}\titlerule]
-\titlespacing*{\section}{0pt}{3.5pt}{1.8pt}
+  {\normalfont\fontsize{8.2pt}{9.2pt}\selectfont\bfseries\color{secblue}}
+  {\thesection.}{0.3em}{}[\vspace{-1.5pt}\titlerule]
+\titlespacing*{\section}{0pt}{2.2pt}{1.0pt}
 
 \titleformat{\subsection}
-  {\normalfont\fontsize{7.8pt}{9.0pt}\selectfont\bfseries\color{black}}
-  {\thesubsection}{0.35em}{}
-\titlespacing*{\subsection}{0pt}{2.8pt}{1pt}
+  {\normalfont\fontsize{7.2pt}{8.0pt}\selectfont\bfseries\color{black}}
+  {\thesubsection}{0.3em}{}
+\titlespacing*{\subsection}{0pt}{1.6pt}{0.6pt}
 
 \titleformat{\subsubsection}
-  {\normalfont\fontsize{7.2pt}{8.2pt}\selectfont\bfseries\color{secblue!85!black}}
-  {\thesubsubsection}{0.3em}{}
-\titlespacing*{\subsubsection}{0pt}{2pt}{0.5pt}
+  {\normalfont\fontsize{6.6pt}{7.4pt}\selectfont\bfseries\color{secblue!85!black}}
+  {\thesubsubsection}{0.25em}{}
+\titlespacing*{\subsubsection}{0pt}{1.2pt}{0.3pt}
 
-% Cabecalho sem colisao: Esquerda = Titulo curto | Direita = Secao atual + Pagina
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\sectionmark}[1]{\markboth{\thesection.\ #1}{}}
-\fancyhead[L]{\footnotesize\textbf{UFABC — Team Reference Document (TRD)} $\mid$ \textit{ICPC 2026}}
-\fancyhead[R]{\footnotesize\textit{\nouppercase{\leftmark}} \quad \textbf{Pág.\ \thepage}}
-\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\scriptsize\textbf{UFABC — Team Reference Document (TRD)} $\mid$ \textit{Versão ICPC Nacional 2026}}
+\fancyhead[R]{\scriptsize\textit{\nouppercase{\leftmark}} \quad \textbf{Pág.\ \thepage}}
+\renewcommand{\headrulewidth}{0.35pt}
 \renewcommand{\footrulewidth}{0pt}
 
 \newcommand{\Ocomp}[1]{\mathcal{O}(#1)}
@@ -138,32 +156,30 @@
 \newcommand{\ZZ}{\mathbb{Z}}
 \newcommand{\RR}{\mathbb{R}}
 
-% Caixa teorica enxuta com \raggedright (elimina 100% dos Underfull \hbox)
 \newcommand{\algobox}[4]{%
-  \vspace{1pt}%
-  \noindent\colorbox{boxbg}{%
-    \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
-      \raggedright\fontsize{6.5pt}{7.6pt}\selectfont%
-      \textbf{\color{secblue}Uso:} #1 \par%
-      \textbf{\color{secblue}Ideia:} #2 \par%
-      \textbf{\color{dkred}Armadilhas:} #3 $\mid$ \textbf{\color{secblue}Complexidade:} #4%
-    }%
-  }%
-  \vspace{1pt}\par%
+  \par\vspace{0.5pt}%
+  {\color{secblue!40}\hrule height 0.35pt}%
+  \nopagebreak\vspace{0.8pt}%
+  {\raggedright\fontsize{5.85pt}{6.65pt}\selectfont%
+   \textbf{\color{secblue}Uso:} #1 \textbf{\color{secblue}Ideia:} #2\par%
+   \textbf{\color{dkred}Armadilhas:} #3 $\mid$ \textbf{\color{secblue}Complexidade:} #4\par}%
+  \nopagebreak\vspace{0.8pt}%
+  {\color{secblue!40}\hrule height 0.35pt}%
+  \vspace{0.8pt}\par%
 }
 
 \begin{document}
 \begin{multicols*}{3}
 
 \begin{center}
-  {\large\bfseries\color{secblue} UFABC — ICPC Team Reference Document}\\[1pt]
-  {\scriptsize\textbf{C++23 \& Python 3 Competitive Programming Handbook — Fase Nacional 2026}}
+  {\normalsize\bfseries\color{secblue} UFABC — ICPC Team Reference Document}\\[0.5pt]
+  {\fontsize{6.2pt}{7pt}\selectfont\textbf{Versão ICPC Fase Nacional 2026 $\mid$ C++23 \& Python 3 Handbook}}
 \end{center}
-\vspace{-3pt}
-{\scriptsize\tableofcontents}
-\vspace{2pt}
+\vspace{-4pt}
+\setcounter{tocdepth}{2}{\fontsize{5.8pt}{6.5pt}\selectfont\tableofcontents}
+\vspace{1pt}
 \hrule
-\vspace{2pt}
+\vspace{1.5pt}
 
 % ============================================================================
 % SECAO 0: AMBIENTE, TEMPLATES, MAKEFILE POSIX, COMPILACAO E EDITORES
@@ -174,7 +190,7 @@
 
 \subsection*{0.1 Templates Oficiais (C++23 \& Python 3)}
 
-\textbf{Template C++ (\texttt{\textasciitilde/.template.cpp}):}
+\textbf{Template C++ (\texttt{\string~/.template.cpp}):}
 \begin{lstlisting}
 #include <bits/stdc++.h>
 typedef long long ll;
@@ -189,7 +205,7 @@ int main() {
     std::cin.tie(NULL);
 
     ll t = 1;
-    // cin >> t;
+    /* cin >> t; */
     while (t--) {
         task();
     }
@@ -200,7 +216,7 @@ int main() {
 \textbf{Template Python (\texttt{solution.py}):}
 \begin{lstlisting}[style=icpcplain]
 import sys
-sys.setrecursionlimit(2**32)
+sys.setrecursionlimit(10**6)
 
 def main():
     pass
@@ -212,15 +228,15 @@ main()
 \algobox
   {Automação portável compatível com GNU Make (\texttt{gmake}), BSD Make (\texttt{bmake}), BusyBox Make e POSIX Make.}
   {\texttt{.POSIX:} força conformidade estrita via \texttt{/bin/sh}. \texttt{.SUFFIXES:} vazio limpa regras legadas e registra apenas \texttt{.cpp} e \texttt{.debug}. \texttt{[A-Z]} no \texttt{clean} apaga só os binários das questões.}
-  {Usar caractere \texttt{TAB} real na indentação das regras. \texttt{make A} gera binário rápido (\texttt{-O3}); \texttt{make A.debug} gera binário com Sanitizers.}
+  {Usar caractere \texttt{TAB} real na indentação. \texttt{-Wconversion} fica em \texttt{DBGFLAGS} para não poluir compilação rápida \texttt{make A}.}
   {Uso: \texttt{make A \&\& ./A < in}}
 
 \begin{lstlisting}[style=icpcplain]
 .POSIX:
 
 CXX      = c++
-CXXFLAGS = -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23
-DBGFLAGS = -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23
+CXXFLAGS = -O3 -Wall -Wextra -Wshadow -std=c++23
+DBGFLAGS = -fsanitize=address,undefined -g -Wall -Wextra -Wconversion -Wshadow -std=c++23
 
 .SUFFIXES:
 .SUFFIXES: .cpp .debug
@@ -237,46 +253,24 @@ clean:
 
 \subsection*{0.3 Guia de Compilação \& Execução}
 \begin{itemize}
-  \item \textbf{Flags Essenciais C++23:}
-    \texttt{-O3} (otimização máxima), \texttt{-Wall -Wextra} (avisos e UB), \texttt{-Wconversion} (alerta conversão implícita como \texttt{ll} $\to$ \texttt{int}), \texttt{-Wshadow} (variável local mascarando global), \texttt{-std=c++23}.
-  \item \textbf{Linux (GCC):}
-\begin{lstlisting}[style=icpcplain]
-g++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol
-c++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol
-\end{lstlisting}
-  \item \textbf{FreeBSD (Clang):}
-\begin{lstlisting}[style=icpcplain]
-clang++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol
-c++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol
-CC  -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol
-\end{lstlisting}
-  \item \textbf{Python 3 \& PyPy 3 (JIT — até 10x mais rápido contra TLE):}
-\begin{lstlisting}[style=icpcplain]
-python3 solution.py < in
-pypy3   solution.py < in
-\end{lstlisting}
-  \item \textbf{Depuração Local com Sanitizers (Out-of-bounds / UB / Leak):}
-\begin{lstlisting}[style=icpcplain]
-c++ -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23 sol.cpp -o debug
-./debug < in
-\end{lstlisting}
+  \item \textbf{Flags C++23:} \texttt{-O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23}
+  \item \textbf{Linux (GCC):} \texttt{g++} ou \texttt{c++ -O3 -Wall -Wextra -Wshadow -std=c++23 sol.cpp -o sol}
+  \item \textbf{FreeBSD (Clang):} \texttt{clang++}, \texttt{c++} ou \texttt{CC -O3 -Wall -Wextra -Wshadow -std=c++23 sol.cpp -o sol}
+  \item \textbf{Python 3 \& PyPy 3 (JIT — 10x mais rápido contra TLE):} \texttt{pypy3 solution.py < in}
+  \item \textbf{Sanitizers (Out-of-bounds / UB):} \texttt{c++ -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23 sol.cpp -o debug \&\& ./debug < in}
 \end{itemize}
 
 \subsection*{0.4 Configuração de Editores no Warmup}
 
-\textbf{Vim (\texttt{\textasciitilde/.vimrc} — 4 linhas):}
+\textbf{Vim (\texttt{\string~/.vimrc} — 4 linhas):}
 \begin{lstlisting}[style=icpcplain]
 syn on|se nu rnu cin noet ts=4 sw=4 sts=4 bs=2 is hls ww+=<,>,h,l,[,]
 let &t_SI="\<Esc>[5 q"|let &t_EI="\<Esc>[1 q"
 au BufNewFile *.cpp 0r ~/.template.cpp
 map <F5> :w<CR>:!c++ -O3 -std=c++23 % -o %:r && ./%:r < in<CR>
 \end{lstlisting}
-\begin{itemize}
-  \item \texttt{nu rnu}: linha absoluta na atual e relativa nas demais; \texttt{cin noet ts=4 sw=4 sts=4}: indentação C/C++ com tab de 4 colunas; \texttt{t\_SI/t\_EI}: cursor barra (\texttt{|}) no Insert e bloco no Normal.
-  \item \textbf{Compilação manual no Vim:} \texttt{:!c++ -O3 -std=c++23 \% -o \%:r \&\& ./\%:r < in}
-\end{itemize}
 
-\textbf{GNU Emacs (\texttt{\textasciitilde/.emacs} ou \texttt{*scratch*} com \texttt{M-x eval-buffer}):}
+\textbf{GNU Emacs (\texttt{\string~/.emacs} ou \texttt{*scratch*} com \texttt{M-x eval-buffer}):}
 \begin{lstlisting}[style=icpcplain]
 (global-display-line-numbers-mode 1)
 (setq-default indent-tabs-mode nil)
@@ -285,8 +279,7 @@ map <F5> :w<CR>:!c++ -O3 -std=c++23 % -o %:r && ./%:r < in<CR>
 (global-set-key (kbd "<f5>") 'compile)
 \end{lstlisting}
 \begin{itemize}
-  \item \textbf{Fluxo \texttt{<F5>} (\texttt{M-x compile}):} \texttt{c++ -O3 -Wall -Wextra -std=c++23 sol.cpp -o sol \&\& ./sol < in}
-  \item \textbf{Navegação de Erros:} \texttt{C-x `} ou \texttt{M-g n} (próximo erro), \texttt{M-g p} (erro anterior), \texttt{g} no buffer \texttt{*compilation*} (recompilar).
+  \item \textbf{Erros no Emacs:} \texttt{C-x `} ou \texttt{M-g n} (próximo erro), \texttt{M-g p} (anterior), \texttt{g} no \texttt{*compilation*} (recompilar).
 \end{itemize}
 
 \subsection*{0.5 Macros dos Capítulos, \texttt{\_\_int128}, Hash e Bits}
@@ -312,6 +305,27 @@ using vll = vector<ll>;
 template <class T> bool chmin(T &a, const T &b) { return b < a ? a = b, 1 : 0; }
 template <class T> bool chmax(T &a, const T &b) { return a < b ? a = b, 1 : 0; }
 inline i128 abs128(i128 x) { return x < 0 ? -x : x; }
+inline i128 gcd128(i128 a, i128 b) {
+  a = abs128(a); b = abs128(b);
+  while (b) { a %= b; swap(a, b); }
+  return a;
+}
+
+istream& operator>>(istream& is, i128& x) {
+  string s; is >> s; x = 0;
+  int i = (s[0] == '-' || s[0] == '+');
+  for (; i < sz(s); ++i) x = x * 10 + (s[i] - '0');
+  if (s[0] == '-') x = -x;
+  return is;
+}
+ostream& operator<<(ostream& os, i128 x) {
+  if (x == 0) return os << 0;
+  if (x < 0) os << '-', x = -x;
+  string s;
+  while (x > 0) s += (char)('0' + (x % 10)), x /= 10;
+  reverse(all(s));
+  return os << s;
+}
 
 ll floor_div(ll a, ll b) {
   if (b < 0) a = -a, b = -b;
@@ -320,6 +334,13 @@ ll floor_div(ll a, ll b) {
 ll ceil_div(ll a, ll b) {
   if (b < 0) a = -a, b = -b;
   return a / b + (a % b > 0);
+}
+
+/* Bits C++20 (<bit>): popcount(x), countr_zero(x), bit_width(x)-1, has_single_bit(x)
+ * Submascaras: for (int s = m; s > 0; s = (s - 1) & m) */
+ull next_bit_perm(ull v) {
+  ull t = v | (v - 1);
+  return (t + 1) | (((~t & -~t) - 1) >> (countr_zero(v) + 1));
 }
 
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());

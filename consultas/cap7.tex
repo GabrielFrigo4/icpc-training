@@ -8,7 +8,7 @@
 % ----------------------------------------------------------------------------
 \subsection{Manipulação de Bits, Recursão Binária e Divisores em $\Ocomp{\sqrt{N}}$}
 
-\subsubsection{Rastreamento Reverso de Bits em Dobras de Papel (2022 C — City Folding)}
+\subsubsection{Rastreamento Reverso de Bits em Dobras de Papel}
 \algobox
   {Dada uma tira de $2^N$ seções ($N \le 60$), encontrar a sequência de dobras (\texttt{'L'} ou \texttt{'R'}) que leva a seção inicial $P \in [1, 2^N]$ para a altura final $H \in [1, 2^N]$.}
   {Trabalhando em 0-based ($p = P - 1, h = H - 1 \in [0, 2^N - 1]$):
@@ -21,16 +21,16 @@
 \begin{lstlisting}
 string solve_city_folding(int N, ull P, ull H) {
   ull p = P - 1, h = H - 1;
-  // 1. Descobre de tras para frente (passo N ate 1) se na dobra k nossa camada foi invertida
+  /* 1. Descobre de tras para frente (passo N ate 1) se na dobra k nossa camada foi invertida */
   vector<bool> flip_step(N, false);
   for (int k = N - 1; k >= 0; --k) {
     ull half_h = 1ULL << k;
     if (h >= half_h) {
-      flip_step[N - 1 - k] = true; // Subiu para a metade superior (inverteu!)
+      flip_step[N - 1 - k] = true; /* Subiu para a metade superior (inverteu!) */
       h = (2 * half_h - 1) - h;
     }
   }
-  // 2. Simula do passo 0 ate N-1 acompanhando a posicao horizontal p
+  /* 2. Simula do passo 0 ate N-1 acompanhando a posicao horizontal p */
   string ans(N, ' ');
   rep(k, 0, N) {
     ull half_w = 1ULL << (N - 1 - k);
@@ -48,13 +48,13 @@ string solve_city_folding(int N, ull P, ull H) {
 }
 \end{lstlisting}
 
-\subsubsection{Bases Palindrômicas e Enumeração de Divisores em $\Ocomp{\sqrt{N}}$ (2023 F)}
+\subsubsection{Bases Palindrômicas e Enumeração de Divisores em $\Ocomp{\sqrt{N}}$}
 \algobox
-  {Dado $N \le 10^{12}$, encontrar todas as bases $b \in [2, N]$ nas quais a representação de $N$ na base $b$ é um palíndromo (2023 F — Forward and Backward).}
+  {Dado $N \le 10^{12}$, encontrar todas as bases $b \in [2, N]$ nas quais a representação de $N$ na base $b$ é um palíndromo.}
   {Dividimos a busca no limiar $\sqrt{N} \le 10^6$:
   $\bullet$ \textbf{Caso 1 ($2 \le b \le \sqrt{N}$):} Existem no máximo $10^6$ bases; para cada uma, extraímos os dígitos de $N$ na base $b$ em $\Ocomp{\log_b N}$ e testamos se o vetor de dígitos é palindrômico.
   $\bullet$ \textbf{Caso 2 ($b > \sqrt{N}$):} Como $b > \sqrt{N}$ e $b \le N$, o número $N$ escrito na base $b$ possui \textbf{exatamente 2 dígitos}: $N = (d_1 d_0)_b = d_1 \cdot b + d_0$, com $1 \le d_1 < b$ e $0 \le d_0 < b$. Para ser um palíndromo de 2 dígitos, devemos ter $d_1 = d_0 = d$, ou seja:
-  $$N = d \cdot b + d = d(b + 1) \implies (b + 1) = \frac{N}{d} \implies b = \frac{N}{d} - 1$$
+  $\displaystyle N = d \cdot b + d = d(b + 1) \implies (b + 1) = \frac{N}{d} \implies b = \frac{N}{d} - 1$
   onde $d$ é um divisor de $N$ satisfazendo $1 \le d < b = \frac{N}{d} - 1 \iff d(d + 1) < N$!
   Assim, basta enumerar os divisores $d \mid N$ com $d \le \sqrt{N}$ e adicionar $b = \frac{N}{d} - 1$ sempre que $b > \sqrt{N}$ (ou $d < b$)!}
   {Na base $b = N$, $N = (10)_N$, que nunca é palíndromo (termina em 0). Para $N = 2$, não há nenhuma base válida (retornar \texttt{*}).}
@@ -73,11 +73,11 @@ vll palindromic_bases(ll N) {
   ll sq = 1;
   while ((sq + 1) * (sq + 1) <= N) ++sq;
 
-  // 1. Testa diretamente todas as bases b in [2, sqrt(N)]
+  /* 1. Testa diretamente todas as bases b in [2, sqrt(N)] */
   for (ll b = 2; b <= sq; ++b) {
     if (is_pal_base(N, b)) ans.pb(b);
   }
-  // 2. Para b > sqrt(N), N na base b tem 2 digitos iguais: N = d * b + d => b = N/d - 1
+  /* 2. Para b > sqrt(N), N na base b tem 2 digitos iguais: N = d * b + d => b = N/d - 1 */
   vll large_bases;
   for (ll d = 1; d <= sq; ++d) {
     if (N % d == 0) {
@@ -138,7 +138,7 @@ struct Comb {
   }
 };
 
-// Euclides Estendido: retorna g = gcd(a, b) e preenche x, y tais que a*x + b*y = g
+/* Euclides Estendido: retorna g = gcd(a, b) e preenche x, y tais que a*x + b*y = g */
 ll extgcd(ll a, ll b, ll& x, ll& y) {
   if (!b) { x = 1; y = 0; return a; }
   ll x1, y1, g = extgcd(b, a % b, x1, y1);
@@ -146,7 +146,7 @@ ll extgcd(ll a, ll b, ll& x, ll& y) {
   return g;
 }
 
-// CRT Geral (modulos nao necessariamente coprimos): retorna {rem, mod} ou {-1, -1}
+/* CRT Geral (modulos nao necessariamente coprimos): retorna {rem, mod} ou {-1, -1} */
 pll crt_merge(ll r1, ll m1, ll r2, ll m2) {
   ll x, y, g = extgcd(m1, m2, x, y);
   if ((r2 - r1) % g != 0) return {-1, -1};
@@ -158,22 +158,22 @@ pll crt_merge(ll r1, ll m1, ll r2, ll m2) {
 }
 \end{lstlisting}
 
-\subsubsection{Expansão Polinomial $\prod (x - r_k)$ em $\Ocomp{D^2}$ e Inversões em $S^N$ (2019 K, 2023 I)}
+\subsubsection{Expansão Polinomial $\prod (x - r_k)$ em $\Ocomp{D^2}$ e Inversões em $S^N$}
 \algobox
-  {(1) Em 2019 K (*Know your Aliens*), construir o polinômio de menor grau com coeficientes inteiros e coeficiente líder $\pm 1$ tal que $P(2i) > 0$ se $S_i = \text{'H'}$ e $P(2i) < 0$ se $S_i = \text{'A'}$; (2) Em 2023 I (*Inversions*), contar inversões na string $S$ repetida $N \le 10^{12}$ vezes $\bmod 10^9+7$.}
-  {\textbf{1. Em 2019 K:} O polinômio deve mudar de sinal entre $2i$ e $2(i+1)$ sse $S[i] \neq S[i+1]$! Colocamos uma raiz inteira ímpar $r_k = 2i + 1$ exatamente em cada transição $S[i] \neq S[i+1]$, obtendo o menor grau possível $D$ (número de trocas de sinal). Multiplicamos $\prod_{k=1}^D (x - r_k)$ em $\Ocomp{D^2}$ e ajustamos o sinal global de todos os coeficientes olhando se para $x = 2N$ (maior que todas as raízes, onde $\prod(x - r_k) > 0$) o último caractere $S[N]$ é \texttt{'H'} ($+1$) ou \texttt{'A'} ($-1$)!
-  \textbf{2. Em 2023 I:} Uma inversão em $S^N$ ou ocorre dentro da mesma cópia de $S$ ($N \cdot \text{inv}_{\text{in}}(S)$), ou ocorre entre uma letra $S[i]$ na cópia $a$ e uma letra menor $S[j] < S[i]$ na cópia $b > a$ ($\binom{N}{2} \cdot \sum_{c_1 > c_2} \text{cnt}[c_1] \cdot \text{cnt}[c_2]$)!}
-  {Em 2019 K, os coeficientes cabem em \texttt{signed long long} (\texttt{< 2\textasciicircum{}\{63\}} garantido pelo enunciado). Em 2023 I, reduzir $N \pmod{10^9+7}$ antes de calcular $\binom{N}{2} = N(N-1)/2 \pmod{10^9+7}$.}
+  {(1) Para construir polinômio por sinais, construir o polinômio de menor grau com coeficientes inteiros e coeficiente líder $\pm 1$ tal que $P(2i) > 0$ se $S_i = \text{'H'}$ e $P(2i) < 0$ se $S_i = \text{'A'}$; (2) Para inversões em string repetida, contar inversões na string $S$ repetida $N \le 10^{12}$ vezes $\bmod 10^9+7$.}
+  {\textbf{1. Polinômio por Trocas de Sinal:} O polinômio deve mudar de sinal entre $2i$ e $2(i+1)$ sse $S[i] \neq S[i+1]$! Colocamos uma raiz inteira ímpar $r_k = 2i + 1$ exatamente em cada transição $S[i] \neq S[i+1]$, obtendo o menor grau possível $D$ (número de trocas de sinal). Multiplicamos $\prod_{k=1}^D (x - r_k)$ em $\Ocomp{D^2}$ e ajustamos o sinal global de todos os coeficientes olhando se para $x = 2N$ (maior que todas as raízes, onde $\prod(x - r_k) > 0$) o último caractere $S[N]$ é \texttt{'H'} ($+1$) ou \texttt{'A'} ($-1$)!
+  \textbf{2. Inversões em $S^N$:} Uma inversão em $S^N$ ou ocorre dentro da mesma cópia de $S$ ($N \cdot \text{inv}_{\text{in}}(S)$), ou ocorre entre uma letra $S[i]$ na cópia $a$ e uma letra menor $S[j] < S[i]$ na cópia $b > a$ ($\binom{N}{2} \cdot \sum_{c_1 > c_2} \text{cnt}[c_1] \cdot \text{cnt}[c_2]$)!}
+  {No polinômio, os coeficientes cabem em \texttt{signed long long} ($< 2^{63}$ garantido pelo enunciado). Nas inversões em $S^N$, reduzir $N \pmod{10^9+7}$ antes de calcular $\binom{N}{2} = N(N-1)/2 \pmod{10^9+7}$.}
   {Polinômio: $\Ocomp{D^2}$ $\mid$ Inversões em $S^N$: $\Ocomp{|S|}$}
 
 \begin{lstlisting}
-// 1. Know your Aliens (2019 K): Retorna {grau D, coeficientes de x^D ate x^0}
+/* 1. Polinomio por trocas de sinal: Retorna {grau D, coeficientes de x^D ate x^0} */
 pair<int, vll> build_alien_polynomial(const string& S) {
   int n = sz(S);
   vll roots;
   rep(i, 0, n - 1) if (S[i] != S[i + 1]) roots.pb(2LL * (i + 1) + 1);
   int D = sz(roots);
-  // poly[k] = coeficiente de x^k (0 <= k <= D)
+  /* poly[k] = coeficiente de x^k (0 <= k <= D) */
   vll poly(D + 1, 0);
   poly[0] = 1;
   int cur_deg = 0;
@@ -182,16 +182,16 @@ pair<int, vll> build_alien_polynomial(const string& S) {
     for (int k = cur_deg; k >= 1; --k) poly[k] = poly[k - 1] - r * poly[k];
     poly[0] *= -r;
   }
-  // Para x = 2*n (acima de todas as raizes), prod(x - r) > 0.
-  // Se o ultimo cidadao S[n-1] for 'A', multiplicamos todos os coeficientes por -1!
+  /* Para x = 2*n (acima de todas as raizes), prod(x - r) > 0.
+   * Se o ultimo cidadao S[n-1] for 'A', multiplicamos todos os coeficientes por -1! */
   if (S.back() == 'A') {
     for (ll& c : poly) c = -c;
   }
-  reverse(all(poly)); // Ordem decrescente de grau: x^D, x^(D-1), ..., x^0
+  reverse(all(poly)); /* Ordem decrescente de grau: x^D, x^(D-1), ..., x^0 */
   return {D, poly};
 }
 
-// 2. Inversions em S^N (2023 I) mod 1e9+7
+/* 2. Inversoes na string S repetida N vezes mod 1e9+7 */
 ll count_repeated_string_inversions(const string& S, ll N) {
   constexpr ll MOD = 1'000'000'007, INV2 = (MOD + 1) / 2;
   vll cnt(26, 0);
@@ -211,23 +211,23 @@ ll count_repeated_string_inversions(const string& S, ll N) {
 }
 \end{lstlisting}
 
-\subsubsection{Ciclos de Permutação e Quadrado Latino Invariante (2024 L)}
+\subsubsection{Ciclos de Permutação e Quadrado Latino Invariante}
 \algobox
-  {Dada uma sequência de trocas (transposições) de linhas e de colunas sobre uma matriz $N \times N$, decidir se existe um Quadrado Latino que permanece idêntico a si mesmo após todas as trocas e construí-lo (2024 L).}
+  {Dada uma sequência de trocas (transposições) de linhas e de colunas sobre uma matriz $N \times N$, decidir se existe um Quadrado Latino que permanece idêntico a si mesmo após todas as trocas e construí-lo.}
   {Aplicar transposições de linhas equivale a permutar as linhas por uma permutação $\pi_R$, e as colunas por uma permutação $\pi_C$. O Quadrado Latino $M$ é invariante ($M_{\pi_R(i), \pi_C(j)} = M_{i, j}$ para todo $i, j$) sse $M$ é constante ao longo das órbitas conjuntas $(i, j) \mapsto (\pi_R(i), \pi_C(j))$.
   $\bullet$ \textbf{Teorema de Existência:} Decomponha $\pi_R$ e $\pi_C$ em ciclos disjuntos! Para que um bloco $C_R \times C_C$ (onde $C_R$ é um ciclo de linhas de tamanho $a$ e $C_C$ é um ciclo de colunas de tamanho $b$) possa fazer parte de um Quadrado Latino invariante sem repetir símbolos na mesma linha ou coluna, todas as órbitas precisam ser compatíveis; especificamente, um Quadrado Latino invariante sob $(\pi_R, \pi_C)$ existe \textbf{se e somente se $\pi_R$ e $\pi_C$ possuem exatamente a mesma partição de comprimentos de ciclos} (ou seja, os multiconjuntos dos tamanhos dos ciclos de $\pi_R$ e de $\pi_C$ são idênticos)!
   $\bullet$ \textbf{Construção Explícita em $\Ocomp{N^2}$:} Quando os tamanhos dos ciclos coincidem ($L_1, L_2, \dots, L_m$), pareamos o $p$-ésimo ciclo de linhas $R_p = (r_{p,0}, \dots, r_{p, L_p-1})$ com o $p$-ésimo ciclo de colunas $C_p = (c_{p,0}, \dots, c_{p, L_p-1})$. Mais ainda: todos os ciclos de tamanho $s$ têm o mesmo tamanho $L_p$ (de fato, se uma linha está num ciclo de tamanho $a$ e uma coluna num ciclo de tamanho $b$ com $a \neq b$, após $a$ passos a linha volta ao início mas a coluna não, o que forçaria o mesmo símbolo a se repetir na mesma linha em colunas distintas se $a < b$, logo \textbf{todos os ciclos de $\pi_R$ e $\pi_C$ precisam ter o MESMO tamanho $L$ divisor de $N$}, e ter a mesma quantidade $K = N / L$ de ciclos!).
   Portanto: um Quadrado Latino invariante existe sse \textbf{todos os ciclos de $\pi_R$ e todos os ciclos de $\pi_C$ possuem exatamente o mesmo comprimento $L$}! E quando todos os $K = N / L$ ciclos de linhas e $K$ ciclos de colunas têm tamanho $L$, para o bloco entre o $u$-ésimo ciclo de linhas ($0 \le u < K$) e o $v$-ésimo ciclo de colunas ($0 \le v < K$), na posição interna $(i, j) \in [0, L-1]^2$, atribuímos o símbolo:
-  $$\text{val} = \bigl((u + v) \bmod K\bigr) \cdot L + \bigl((j - i + L) \bmod L\bigr) + 1$$
+  $\displaystyle \text{val} = \bigl((u + v) \bmod K\bigr) \cdot L + \bigl((j - i + L) \bmod L\bigr) + 1$
   Como $(j + 1) - (i + 1) \equiv j - i \pmod L$, avançar simultaneamente no ciclo de linhas ($i+1$) e no ciclo de colunas ($j+1$) preserva o valor, e cada linha e coluna contém todos os números de $1$ a $N$!}
   {Simular os swaps rastreando de onde veio cada linha/coluna (ou para onde vai): na invariância $M' = M$, tanto $\pi$ quanto $\pi^{-1}$ têm os mesmos comprimentos de ciclo e as mesmas órbitas se girarmos ambos no mesmo sentido!}
   {Tempo: $\Ocomp{T + N^2}$ $\mid$ Espaço: $\Ocomp{N^2}$}
 
 \begin{lstlisting}
-// Resolve Latin Squares (2024 L) em O(T + N^2)
-// Retorna a matriz N x N (1-based values) ou {} se impossivel ("*")
+/* Quadrado Latino invariante sob permutacoes de linhas e colunas em O(T + N^2)
+ * Retorna a matriz N x N (1-based values) ou {} se impossivel ("*") */
 vector<vi> build_invariant_latin_square(int N, const vector<tuple<char, int, int>>& ops) {
-  // posR[i] = qual linha original esta atualmente na posicao i (0..N-1)
+  /* posR[i] = qual linha original esta atualmente na posicao i (0..N-1) */
   vi posR(N), posC(N);
   iota(all(posR), 0); iota(all(posC), 0);
   for (auto [type, u, v] : ops) {
@@ -235,7 +235,7 @@ vector<vi> build_invariant_latin_square(int N, const vector<tuple<char, int, int
     if (type == 'R') swap(posR[u], posR[v]);
     else             swap(posC[u], posC[v]);
   }
-  // A linha que comecou em posR[i] terminou na linha i: nextR[posR[i]] = i
+  /* A linha que comecou em posR[i] terminou na linha i: nextR[posR[i]] = i */
   vi nextR(N), nextC(N);
   rep(i, 0, N) { nextR[posR[i]] = i; nextC[posC[i]] = i; }
 
@@ -256,7 +256,7 @@ vector<vi> build_invariant_latin_square(int N, const vector<tuple<char, int, int
   for (const auto& c : cycR) if (sz(c) != L) return {};
   for (const auto& c : cycC) if (sz(c) != L) return {};
 
-  int K = N / L; // Quantidade de ciclos de tamanho L
+  int K = N / L; /* Quantidade de ciclos de tamanho L */
   vector<vi> ans(N, vi(N, 0));
   rep(u, 0, K) rep(v, 0, K) {
     int base = ((u + v) % K) * L;
@@ -274,10 +274,10 @@ vector<vi> build_invariant_latin_square(int N, const vector<tuple<char, int, int
 % ----------------------------------------------------------------------------
 \subsection{FFT / NTT, Ordem Multiplicativa, Totiente e Pollard's Rho}
 
-\subsubsection{Fast Fourier Transform (FFT), NTT e Pareamento Extremo + Convolução (2021 B)}
+\subsubsection{Fast Fourier Transform (FFT), NTT e Pareamento Extremo + Convolução}
 \algobox
-  {(1) Multiplicar dois polinômios em $\Ocomp{N \log N}$ sobre $\mathbb{C}$ (FFT para inteiros sem módulo) ou sobre $\ZZ_{998244353}$ (NTT exato); (2) Em 2021 B (*Because, Art!*), dados dois vetores $F$ e $C$ de tamanho $N \le 10^5$ com valores em $[-10^4, 10^4]$, encontrar para todo $k \in [1, N]$ o menor e o maior produto escalar de tamanho $k$ escolhendo $k$ elementos distintos de $F$ e $k$ de $C$.}
-  {\textbf{Estrutura Gulosa + Convolução Polinomial de 2021 B:}
+  {(1) Multiplicar dois polinômios em $\Ocomp{N \log N}$ sobre $\mathbb{C}$ (FFT para inteiros sem módulo) ou sobre $\ZZ_{998244353}$ (NTT exato); (2) Para produtos escalares extremos, dados dois vetores $F$ e $C$ de tamanho $N \le 10^5$ com valores em $[-10^4, 10^4]$, encontrar para todo $k \in [1, N]$ o menor e o maior produto escalar de tamanho $k$ escolhendo $k$ elementos distintos de $F$ e $k$ de $C$.}
+  {\textbf{Pareamento Extremo + Convolução:}
   $\bullet$ \textbf{Para o Máximo:} Ordenamos $F$ e $C$. Os elementos positivos de $F$ querem multiplicar os positivos de $C$ (do maior para o maior: $F_{\text{pos}} \times C_{\text{pos}}$), e os negativos de $F$ querem multiplicar os negativos de $C$ (do mais negativo para o mais negativo: $F_{\text{neg}} \times C_{\text{neg}}$)! Seja $P_{\text{same}}$ a lista desses produtos positivos ordenados do maior para o menor: para $k \le |P_{\text{same}}|$, basta somar os $k$ maiores produtos de $P_{\text{same}}$!
   E quando $k > |P_{\text{same}}|$? Já esgotamos todos os pares de mesmo sinal! Os elementos que sobraram em $F$ têm todos o mesmo sinal (digamos, positivos em $F$) e os que sobraram em $C$ têm todos o sinal oposto (negativos em $C$)! Para minimizar a perda ao escolher $m = k - |P_{\text{same}}|$ pares de sinais opostos, no conjunto de pares de mesmo sinal nunca devemos desfazer um par (já que trocar mesmo sinal por sinais opostos só diminui a soma), e dentre os elementos restantes de sinais opostos (ordenados por valor absoluto crescente: $A_0 \le A_1 \dots$ e $B_0 \le B_1 \dots$), para qualquer $m$ fixo, pela desigualdade de rearranjo devemos escolher os $m$ menores valores absolutos $A_0 \dots A_{m-1}$ e $B_0 \dots B_{m-1}$ pareados em \textbf{ordem reversa}: $\sum_{i=0}^{m-1} A_i \cdot B_{m - 1 - i}$!
   Veja a fórmula $\sum_{i=0}^{m-1} A_i B_{m-1-i}$: isso é \textbf{exatamente o coeficiente $x^{m-1}$ da Convolução Polinomial (FFT)} dos polinômios $A(x) = \sum A_i x^i$ e $B(x) = \sum B_i x^i$!
@@ -286,7 +286,7 @@ vector<vi> build_invariant_latin_square(int N, const vector<tuple<char, int, int
   {Tempo: $\Ocomp{N \log N}$ $\mid$ Espaço: $\Ocomp{N}$}
 
 \begin{lstlisting}
-// 1. FFT sobre Complex<double> e Convolucao Inteira Exata (ate ~10^15)
+/* 1. FFT sobre Complex<double> e Convolucao Inteira Exata (ate ~10^15) */
 using cd = complex<double>;
 
 void fft(vector<cd>& a, bool invert) {
@@ -328,7 +328,7 @@ vll poly_multiply_fft(const vll& a, const vll& b) {
   return res;
 }
 
-// 2. Number Theoretic Transform (NTT) exato mod 998244353 (Raiz primitiva G = 3)
+/* 2. Number Theoretic Transform (NTT) exato mod 998244353 (Raiz primitiva G = 3) */
 void ntt(vll& a, bool invert) {
   static constexpr ll MOD = 998244353, G = 3;
   auto modpow = [](ll b, ll e) {
@@ -362,7 +362,7 @@ void ntt(vll& a, bool invert) {
   }
 }
 
-// 3. Resolve Because, Art! (2021 B) em O(N log N)
+/* 3. Menor e maior produto escalar de tamanho k para k = 1..N em O(N log N) */
 vll max_subset_dot_products(vll F, vll C) {
   int n = sz(F);
   vll F_pos, F_neg, C_pos, C_neg;
@@ -378,7 +378,7 @@ vll max_subset_dot_products(vll F, vll C) {
   rep(i, 0, kn) same_prods.pb(F_neg[i] * C_neg[i]);
   sort(all(same_prods), greater<ll>());
 
-  // Elementos restantes de sinais opostos (ordenados por valor absoluto CRESCENTE)
+  /* Elementos restantes de sinais opostos (ordenados por valor absoluto CRESCENTE) */
   vll remA, remB;
   rep(i, kp, sz(F_pos)) remA.pb(F_pos[i]);
   rep(i, kn, sz(F_neg)) remA.pb(F_neg[i]);
@@ -395,7 +395,7 @@ vll max_subset_dot_products(vll F, vll C) {
       sum_same += same_prods[k - 1];
       ans[k - 1] = sum_same;
     } else {
-      int m = k - S; // Precisamos de 'm' pares de sinais opostos (soma minima = conv[m - 1])
+      int m = k - S; /* Precisamos de 'm' pares de sinais opostos (soma minima = conv[m - 1]) */
       ans[k - 1] = sum_same - conv[m - 1];
     }
   }
@@ -412,17 +412,17 @@ vector<pll> solve_because_art(const vll& F, vll C) {
 }
 \end{lstlisting}
 
-\subsubsection{Crivo Linear, Função Totiente ($\phi$), Ordem Multiplicativa e Dízimas (2025 D)}
+\subsubsection{Crivo Linear, Função Totiente ($\phi$), Ordem Multiplicativa e Dízimas}
 \algobox
-  {(1) Crivo Linear até $M$ pré-calculando menor fator primo \texttt{spf[x]} e $\phi(x)$ em $\Ocomp{M}$; (2) Calcular a \textbf{Ordem Multiplicativa} $\text{ord}_m(10)$ (menor $d \ge 1$ tal que $10^d \equiv 1 \pmod m$ para $\gcd(m, 10) = 1$) testando divisores de $\phi(m)$; (3) Em 2025 D (*Displaying Decimals*), calcular o valor esperado do número de dígitos da representação decimal exata/periódica de $A_i / A_j$ ($\bmod 998244353$).}
-  {\textbf{Análise Exata do Número de Dígitos de $\frac{A_i}{A_j}$ em 2025 D:}
+  {(1) Crivo Linear até $M$ pré-calculando menor fator primo \texttt{spf[x]} e $\phi(x)$ em $\Ocomp{M}$; (2) Calcular a \textbf{Ordem Multiplicativa} $\text{ord}_m(10)$ (menor $d \ge 1$ tal que $10^d \equiv 1 \pmod m$ para $\gcd(m, 10) = 1$) testando divisores de $\phi(m)$; (3) Para dígitos de dízimas $A_i/A_j$, calcular o valor esperado do número de dígitos da representação decimal exata/periódica de $A_i / A_j$ ($\bmod 998244353$).}
+  {\textbf{Análise Exata do Número de Dígitos de $\frac{A_i}{A_j}$ nas dízimas:}
   Reduza a fração $\frac{A_i}{A_j} = \frac{p}{q}$ dividindo por $g = \gcd(A_i, A_j)$.
   1. \textbf{Parte Inteira:} A parte inteira é $\lfloor p / q \rfloor$. Quantos dígitos ela usa? Se $\lfloor p / q \rfloor == 0$, usa $1$ dígito (\texttt{"0"}). Se $\lfloor p / q \rfloor \ge 1$, usa $\lfloor \log_{10}(p / q) \rfloor + 1$ dígitos!
   2. \textbf{Parte Fracionária (Pré-período + Período):} Escreva o denominador reduzido como $q = 2^a \cdot 5^b \cdot m$, onde $\gcd(m, 10) = 1$:
      $\bullet$ O número de dígitos decimais \textbf{não-periódicos} após a vírgula é exatamente $\max(a, b)$!
      $\bullet$ O número de dígitos do \textbf{período} da dízima é $0$ se $m = 1$, e é exatamente a \textbf{Ordem Multiplicativa $\text{ord}_m(10)$} se $m > 1$!
   Logo, para $\frac{p}{q}$ irredutível com $q = 2^a 5^b m$:
-  $$\text{digits}(p, q) = \text{int\_digits}(\lfloor p / q \rfloor) + \max(a, b) + (m > 1 ? \text{ord}_m(10) : 0)$$
+  $\displaystyle \text{digits}(p, q) = \text{int\_digits}(\lfloor p / q \rfloor) + \max(a, b) + (m > 1 ? \text{ord}_m(10) : 0)$
   \textbf{Agregação em $\Ocomp{M \log M}$ ($M = \max A_i \le 10^5$):}
   Seja $f[x]$ a frequência do valor $x$ no array $A$.
   $\bullet$ A soma de $\text{int\_digits}(\lfloor A_i / A_j \rfloor)$ para todos os pares $(i, j)$ é calculada em $\Ocomp{M}$ somando 1 para todos os $N^2$ pares, mais 1 para cada par com $A_i \ge 10 A_j$, mais 1 para $A_i \ge 100 A_j$, $\dots$, usando soma de prefixos de $f$!
@@ -455,7 +455,7 @@ struct SieveAndOrder {
     for (; e > 0; e >>= 1, b = b * b % mod) if (e & 1) r = r * b % mod;
     return r;
   }
-  // Ordem multiplicativa de 'a' modulo 'm' (requer gcd(a, m) == 1 e m <= M)
+  /* Ordem multiplicativa de 'a' modulo 'm' (requer gcd(a, m) == 1 e m <= M) */
   int mult_order(ll a, int m) const {
     if (m <= 1) return 0;
     int ord = phi[m], tmp = ord;
@@ -468,13 +468,13 @@ struct SieveAndOrder {
   }
 };
 
-// Resolve Displaying Decimals (2025 D) em O(N + M log^2 M)
+/* Valor esperado de digitos na expansao decimal de A_i / A_j em O(N + M log^2 M) */
 ll solve_displaying_decimals(const vi& A) {
   constexpr ll MOD = 998244353;
   int N = sz(A), M = *max_element(all(A));
   SieveAndOrder sv(M);
 
-  // 1. Pre-calcula frac_digits[q] = max(a, b) + (m > 1 ? ord_m(10) : 0) para q = 2^a * 5^b * m
+  /* 1. Pre-calcula frac_digits[q] = max(a, b) + (m > 1 ? ord_m(10) : 0) para q = 2^a * 5^b * m */
   vll frac_dig(M + 1, 0);
   rep(q, 1, M + 1) {
     int m = q, a = 0, b = 0;
@@ -487,7 +487,7 @@ ll solve_displaying_decimals(const vi& A) {
   for (int x : A) freq[x]++;
   rep(i, 1, M + 1) pref[i] = pref[i - 1] + freq[i];
 
-  // 2. Soma dos digitos da parte inteira floor(A_i / A_j):
+  /* 2. Soma dos digitos da parte inteira floor(A_i / A_j): */
   ll total_digits = (1LL * N * N) % MOD;
   rep(y, 1, M + 1) if (freq[y] > 0) {
     for (ll p10 = 10; y * p10 <= M; p10 *= 10) {
@@ -496,7 +496,7 @@ ll solve_displaying_decimals(const vi& A) {
     }
   }
 
-  // 3. Soma de frac_dig[ A_j / gcd(A_i, A_j) ]:
+  /* 3. Soma de frac_dig[ A_j / gcd(A_i, A_j) ]: */
   vll mult_cnt(M + 1, 0);
   rep(l, 1, M + 1) {
     for (int m = l; m <= M; m += l) mult_cnt[l] += freq[m];
@@ -505,7 +505,7 @@ ll solve_displaying_decimals(const vi& A) {
     for (int vp = 1; vp * k <= M; ++vp) {
       ll term_v = frac_dig[vp * k];
       if (!term_v) continue;
-      int step = vp * k; // Precisamos somar sobre g = 1 .. M / (vp * k), onde l = g * k e y = g * k * vp
+      int step = vp * k; /* Precisamos somar sobre g = 1 .. M / (vp * k), onde l = g * k e y = g * k * vp */
       ll ways_y_x = 0;
       for (int g = 1; g * step <= M; ++g) {
         int l = g * k, y = g * step;
@@ -521,15 +521,15 @@ ll solve_displaying_decimals(const vi& A) {
 }
 \end{lstlisting}
 
-\subsubsection{Miller-Rabin 64-bit, Pollard's Rho e Fatoração Difusa (2025 F)}
+\subsubsection{Miller-Rabin 64-bit, Pollard's Rho e Fatoração Difusa}
 \algobox
-  {(1) Testar primalidade determinística em 64 bits ($< 2^{64}$) em $\Ocomp{\log^3 N}$ (Miller-Rabin com as 7 bases de Sinclair); (2) Fatorar qualquer inteiro de 64 bits em $\Ocomp{N^{1/4}}$ via \textbf{Pollard's Rho}; (3) Em 2025 F (*Fuzzy Factorization*), dado $X \le 10^{1000}$, encontrar a fatoração prima de um inteiro $Y$ com erro relativo $\frac{|X - Y|}{X} \le 10^{-9}$ cujos fatores primos sejam todos $\le 10^{18}$.}
-  {\textbf{Estratégia para 2025 F (Fuzzy Factorization):}
+  {(1) Testar primalidade determinística em 64 bits ($< 2^{64}$) em $\Ocomp{\log^3 N}$ (Miller-Rabin com as 7 bases de Sinclair); (2) Fatorar qualquer inteiro de 64 bits em $\Ocomp{N^{1/4}}$ via \textbf{Pollard's Rho}; (3) Para fatoração aproximada de inteiros gigantes, dado $X \le 10^{1000}$, encontrar a fatoração prima de um inteiro $Y$ com erro relativo $\frac{|X - Y|}{X} \le 10^{-9}$ cujos fatores primos sejam todos $\le 10^{18}$.}
+  {\textbf{Fatoração Aproximada por Prefixo:}
   $\bullet$ Se $|S_X| \le 18$ ($X < 10^{18}$): basta fatorar $X$ exatamente com Pollard's Rho (erro relativo 0, todos os fatores primos $\le X \le 10^{18}$)!
   $\bullet$ Se $|S_X| > 18$: extraímos o prefixo $P$ formado pelos primeiros $18$ dígitos de $X$, e seja $E = |S_X| - 18$ a quantidade de dígitos restantes no sufixo. Qualquer número da forma $Y = P' \cdot 10^E = P' \cdot 2^E \cdot 5^E$ onde $|P' - P| \le 10^7$ satisfaz:
-  $$\frac{|X - Y|}{X} \le \frac{(|P' - P| + 1) \cdot 10^E}{P \cdot 10^E} \le \frac{10^7 + 1}{10^{17}} \approx 10^{-10} < 10^{-9}\text{ !}$$
+  $\displaystyle \frac{|X - Y|}{X} \le \frac{(|P' - P| + 1) \cdot 10^E}{P \cdot 10^E} \le \frac{10^7 + 1}{10^{17}} \approx 10^{-10} < 10^{-9}\text{ !}$
   Como $P' \in [10^{17}, 10^{18} - 1]$ já é estritamente menor que $10^{18}$, \textbf{qualquer} fator primo de $P'$ é automaticamente $< 10^{18}$! Logo, basta tomar $P' = P$ (os primeiros 18 dígitos exatos de $X$), fatorar $P'$ com \textbf{Pollard's Rho} em $\approx 2\text{ms}$ e somar $+E$ aos expoentes dos primos $2$ e $5$!}
-  {Esta observação resolve \texttt{2025 F} em uma única chamada de Pollard's Rho: como $P < 10^{18}$, todo fator primo de $P$ já é $< 10^{18}$, e $\frac{|X - P \cdot 10^E|}{X} < \frac{10^E}{10^{17} \cdot 10^E} = 10^{-17} \ll 10^{-9}$!}
+  {Esta propriedade resolve a fatoração aproximada em uma única chamada de Pollard's Rho: como $P < 10^{18}$, todo fator primo de $P$ já é $< 10^{18}$, e $\frac{|X - P \cdot 10^E|}{X} < \frac{10^E}{10^{17} \cdot 10^E} = 10^{-17} \ll 10^{-9}$!}
   {Miller-Rabin: $\Ocomp{k \log^3 N}$ $\mid$ Pollard's Rho: $\Ocomp{N^{1/4}}$ ($\approx 1\text{ms}$ para $10^{18}$)}
 
 \begin{lstlisting}
@@ -540,7 +540,7 @@ ull modpow64(ull b, ull e, ull m) {
   return r;
 }
 
-// 1. Miller-Rabin Deterministico para unsigned 64-bit (< 2^64)
+/* 1. Miller-Rabin Deterministico para unsigned 64-bit (< 2^64) */
 bool is_prime64(ull n) {
   if (n < 2 || n % 6 % 4 != 1) return (n | 1) == 3;
   static constexpr ull A[] = {2, 325, 9375, 28178, 450775, 9780504, 1795265022};
@@ -553,7 +553,7 @@ bool is_prime64(ull n) {
   return true;
 }
 
-// 2. Algoritmo de Pollard's Rho (Brent + multiplicacao acumulada em blocos de 128)
+/* 2. Algoritmo de Pollard's Rho (Brent + multiplicacao acumulada em blocos de 128) */
 ull pollard_rho(ull n) {
   auto f = [n](ull x) { return modmul64(x, x, n) + 1; };
   ull x = 0, y = 0, t = 30, prd = 2, i = 1, q;
@@ -573,7 +573,7 @@ void factorize64_rec(ull n, vector<ull>& fac) {
   factorize64_rec(n / d, fac);
 }
 
-// Retorna lista ordenada de pares {primo, expoente} para n <= 10^18
+/* Retorna lista ordenada de pares {primo, expoente} para n <= 10^18 */
 vector<pair<ull, int>> factorize64(ull n) {
   vector<ull> fac;
   factorize64_rec(n, fac);
@@ -586,7 +586,7 @@ vector<pair<ull, int>> factorize64(ull n) {
   return res;
 }
 
-// 3. Resolve Fuzzy Factorization (2025 F) para X de ate 1000 digitos em O(X_prefix^{1/4})
+/* 3. Fatoracao aproximada via prefixo de 18 digitos para X de ate 1000 digitos em O(X_prefix^{1/4}) */
 vector<pair<ull, int>> solve_fuzzy_factorization(const string& S_X) {
   int len = sz(S_X), take = min(len, 18), rem_zeros = len - take;
   ull pref_val = stoull(S_X.substr(0, take));

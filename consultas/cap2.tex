@@ -16,7 +16,7 @@
   {Bloqueio: $\Ocomp{N(N+M)}$ $\mid$ DAG: $\Ocomp{N+M}$ (1 fonte) ou $\Ocomp{NM/64}$ (todas)}
 
 \begin{lstlisting}
-// 1. Verifica para cada i se algum ancestral s != i alcanca X[i] e Y[i] sem passar por i
+/* 1. Verifica para cada i se algum ancestral s != i alcanca X[i] e Y[i] sem passar por i */
 string can_lose_money(int n, const vi& X, const vi& Y) {
   vector<vi> rev(n);
   rep(i, 0, n) { rev[X[i]].pb(i); rev[Y[i]].pb(i); }
@@ -35,7 +35,7 @@ string can_lose_money(int n, const vi& X, const vi& Y) {
   return ans;
 }
 
-// 2. Contagem de caminhos (mod 1e9+7) e folhas unicas alcancaveis em DAG (0..L-1 listas)
+/* 2. Contagem de caminhos (mod 1e9+7) e folhas unicas alcancaveis em DAG (0..L-1 listas) */
 pll dag_paths_and_unique_leaves(int N, int L, const vector<vi>& adj) {
   constexpr ll MOD = 1'000'000'007;
   vll ways(N, -1);
@@ -68,16 +68,9 @@ pll dag_paths_and_unique_leaves(int N, int L, const vector<vi>& adj) {
   {Tempo: $\Ocomp{N + M}$ $\mid$ Espaço: $\Ocomp{N + M}$}
 
 \begin{lstlisting}
+/* Remove N (n-1) e da a Bob a componente de N-1 (n-2) */
 string fields_division_pow2(int n, const vector<vi>& adj) {
-  string ans(n, 'B');
-  ans[n - 1] = 'A'; // Vertice N (indice n-1) fica com Ana
-  auto dfs = [&](auto& self, int u) -> void {
-    ans[u] = 'A';
-    for (int v : adj[u])
-      if (v != n - 2 && ans[v] == 'B') self(self, v);
-  };
-  // Alternativa equivalente: remover N (n-1) e marcar componente de N-1 (n-2) como 'B'
-  fill(all(ans), 'A');
+  string ans(n, 'A');
   auto dfs_bob = [&](auto& self, int u) -> void {
     ans[u] = 'B';
     for (int v : adj[u])
@@ -131,15 +124,16 @@ bool solve_cylindrical_maze(int R, int C, string nut, const vector<string>& grid
   {Tempo: $\Ocomp{\text{Cadeia de Adição}(N)}$ ($\le 1\text{ms}$ para $N \le 100$) $\mid$ Espaço: $\Ocomp{D}$}
 
 \begin{lstlisting}
+/* Menor sequencia de dobras de Haga para H = M/N */
 vector<pll> almost_origami_haga(ll M, ll N) {
-  if (M != 1) return {}; // Impossivel para M > 1
+  if (M != 1) return {}; /* Como 1/h = 1/L + 1/R partindo de {1/1}, so gera 1/k */
   vi chain = {1};
   vector<pii> steps;
   auto dfs = [&](auto& self, int depth, int max_d) -> bool {
     int last = chain.back();
     if (last == N) return true;
     if (depth == max_d) return false;
-    if ((last << (max_d - depth)) < N) return false; // Poda exponencial
+    if ((last << (max_d - depth)) < N) return false; /* Poda exponencial */
     for (int i = sz(chain) - 1; i >= 0; --i) {
       for (int j = i; j >= 0; --j) {
         int nxt = chain[i] + chain[j];
@@ -171,15 +165,15 @@ vector<pll> almost_origami_haga(ll M, ll N) {
 
 \begin{lstlisting}
 struct Cloud {
-  char dir; // 'N', 'S', 'E', 'W'
+  char dir; /* 'N', 'S', 'E', 'W' */
   vector<pii> poly;
 };
 
 int bfs_spacetime_clouds(int xo, int yo, int xd, int yd, const vector<Cloud>& clouds) {
   if (xo == xd && yo == yd) return 0;
   constexpr int G = 100, TMAX = 305;
-  // blocked_wait[t][x][y]: proibido esperar em (x,y) de t para t+1
-  // blocked_move[t][d][x][y]: proibido mover de (x,y) na direcao d (0=N,1=S,2=E,3=W) em [t,t+1]
+  /* blocked_wait[t][x][y]: proibido esperar em (x,y) de t para t+1
+   * blocked_move[t][d][x][y]: proibido mover de (x,y) na direcao d (0=N,1=S,2=E,3=W) em [t,t+1] */
   static bitset<G + 1> b_wait[TMAX][G + 1], b_move[TMAX][4][G + 1];
   rep(t, 0, TMAX) rep(x, 0, G + 1) {
     b_wait[t][x].reset();
@@ -188,7 +182,7 @@ int bfs_spacetime_clouds(int xo, int yo, int xd, int yd, const vector<Cloud>& cl
   const int dx[4] = {0, 0, 1, -1}, dy[4] = {1, -1, 0, 0};
   auto dir_id = [](char c) { return c == 'N' ? 0 : (c == 'S' ? 1 : (c == 'E' ? 2 : 3)); };
 
-  // Para cada nuvem, rasteriza as celulas unitarias [x, x+1] x [y, y+1] cobertas em t=0
+  /* Para cada nuvem, rasteriza as celulas unitarias [x, x+1] x [y, y+1] cobertas em t=0 */
   vector<vector<bool>> cell(G, vector<bool>(G, false));
   for (const auto& cl : clouds) {
     rep(x, 0, G) fill(all(cell[x]), false);
@@ -196,38 +190,38 @@ int bfs_spacetime_clouds(int xo, int yo, int xd, int yd, const vector<Cloud>& cl
     rep(i, 0, m) {
       auto [x1, y1] = cl.poly[i];
       auto [x2, y2] = cl.poly[(i + 1) % m];
-      if (y1 == y2) { // Aresta horizontal na altura y1
-        int L = min(x1, x2), R = max(x1, x2);
-        rep(x, L, R) rep(y, 0, y1) cell[x][y] = !cell[x][y];
+      if (y1 == y2) { /* Aresta horizontal na altura y1 */
+        int L = max(0, min(x1, x2)), R = min(G, max(x1, x2)), Y = min(G, y1);
+        rep(x, L, R) rep(y, 0, Y) cell[x][y] = !cell[x][y];
       }
     }
     int cd = dir_id(cl.dir), cdx = dx[cd], cdy = dy[cd];
     auto has_cell = [&](int cx, int cy) -> bool {
       return cx >= 0 && cx < G && cy >= 0 && cy < G && cell[cx][cy];
     };
-    // Propaga ocupacao das celulas no tempo t: celula (cx, cy) em t vem de (cx - t*cdx, cy - t*cdy)
+    /* Propaga ocupacao das celulas no tempo t: celula (cx, cy) em t vem de (cx - t*cdx, cy - t*cdy) */
     rep(t, 0, TMAX) {
       int ox = t * cdx, oy = t * cdy;
       if (abs(ox) > G + 2 || abs(oy) > G + 2) break;
       auto cov = [&](int cx, int cy) { return has_cell(cx - ox, cy - oy); };
       rep(x, 0, G + 1) rep(y, 0, G + 1) {
         bool wet_wait = false;
-        if (cd == 0) wet_wait = cov(x - 1, y - 1) && cov(x, y - 1); // Nuvem sobe (N)
-        if (cd == 1) wet_wait = cov(x - 1, y)     && cov(x, y);     // Nuvem desce (S)
-        if (cd == 2) wet_wait = cov(x - 1, y - 1) && cov(x - 1, y); // Nuvem vai p/ Leste (E)
-        if (cd == 3) wet_wait = cov(x, y - 1)     && cov(x, y);     // Nuvem vai p/ Oeste (W)
+        if (cd == 0) wet_wait = cov(x - 1, y - 1) && cov(x, y - 1); /* Nuvem sobe (N) */
+        if (cd == 1) wet_wait = cov(x - 1, y)     && cov(x, y); /* Nuvem desce (S) */
+        if (cd == 2) wet_wait = cov(x - 1, y - 1) && cov(x - 1, y); /* Nuvem vai p/ Leste (E) */
+        if (cd == 3) wet_wait = cov(x, y - 1)     && cov(x, y); /* Nuvem vai p/ Oeste (W) */
         if (wet_wait) b_wait[t][x].set(y);
 
         rep(d, 0, 4) {
           int nx = x + dx[d], ny = y + dy[d];
           if (nx < 0 || nx > G || ny < 0 || ny > G) continue;
-          // No referencial da nuvem, o ciclista move-se por (dx[d]-cdx, dy[d]-cdy)
+          /* No referencial da nuvem, o ciclista move-se por (dx[d]-cdx, dy[d]-cdy) */
           int rx = dx[d] - cdx, ry = dy[d] - cdy;
           bool wet_mv = false;
-          if (rx == 0 && ry == 0) { // Acompanha a nuvem: checa interior da aresta em t
+          if (rx == 0 && ry == 0) { /* Acompanha a nuvem: checa interior da aresta em t */
             if (dx[d] != 0) wet_mv = cov(min(x, nx), y - 1) && cov(min(x, nx), y);
             else            wet_mv = cov(x - 1, min(y, ny)) && cov(x, min(y, ny));
-          } else if (rx == 0 || ry == 0) { // Movimento colinear oposto (velocidade relativa 2)
+          } else if (rx == 0 || ry == 0) { /* Movimento colinear oposto (velocidade relativa 2) */
             if (rx != 0) {
               int lx = min(x, x + rx);
               wet_mv = (cov(lx, y - 1) && cov(lx, y)) || (cov(lx + 1, y - 1) && cov(lx + 1, y));
@@ -235,7 +229,7 @@ int bfs_spacetime_clouds(int xo, int yo, int xd, int yd, const vector<Cloud>& cl
               int ly = min(y, y + ry);
               wet_mv = (cov(x - 1, ly) && cov(x, ly)) || (cov(x - 1, ly + 1) && cov(x, ly + 1));
             }
-          } else { // Movimento diagonal relativo: cruza o interior da celula unitaria!
+          } else { /* Movimento diagonal relativo: cruza o interior da celula unitaria! */
             wet_mv = cov(min(x, x + rx), min(y, y + ry));
           }
           if (wet_mv) b_move[t][d][x].set(y);
@@ -243,7 +237,7 @@ int bfs_spacetime_clouds(int xo, int yo, int xd, int yd, const vector<Cloud>& cl
       }
     }
   }
-  // BFS no Espaco-Tempo (t, x, y)
+  /* BFS no Espaco-Tempo (t, x, y) */
   static bool vis[TMAX + 1][G + 1][G + 1];
   memset(vis, 0, sizeof(vis));
   queue<tuple<int, int, int>> q;
@@ -279,6 +273,7 @@ int bfs_spacetime_clouds(int xo, int yo, int xd, int yd, const vector<Cloud>& cl
   {Tempo: $\Ocomp{N \cdot M}$ $\mid$ Espaço: $\Ocomp{N^2}$}
 
 \begin{lstlisting}
+/* BFS em pares (u <= N reverso, v > N direto) em O(NM) */
 vi solve_infiltration_route(int N, const vector<pii>& edges) {
   int V = 2 * N;
   vector<vi> adj(V + 1), rev(V + 1);
@@ -315,8 +310,8 @@ vi solve_infiltration_route(int N, const vector<pii>& edges) {
       L_path.insert(L_path.end(), all(R_path));
       return L_path;
     }
-    // Se u < v - N, nao ha mais risco de colisao: avance u primeiro ate 1, depois v ate 2N.
-    // Se u > v - N, avance o lado que mantem a aproximacao (ou ambos, pois só colidem em u == v-N).
+    /* Se u < v - N, nao ha mais risco de colisao: avance u primeiro ate 1, depois v ate 2N.
+     * Se u > v - N, avance o lado que mantem a aproximacao (ou ambos, pois so colidem em u == v-N). */
     if (u < v - N) {
       if (u > 1) { for (int nu : rev[u]) push_state(nu, v, u, v); }
       else       { for (int nv : adj[v]) push_state(u, nv, u, v); }
@@ -350,7 +345,7 @@ int max_ordered_grid_dishes(int R, int C, const vector<vi>& grid) {
   const int dr[4] = {-1, 1, 0, 0}, dc[4] = {0, 0, -1, 1};
 
   rep(start_v, 1, N + 1) {
-    if (N - start_v + 1 <= ans) break; // Poda: impossivel bater o recorde
+    if (N - start_v + 1 <= ans) break; /* Poda: impossivel bater o recorde */
     ++timer;
     priority_queue<int, vi, greater<int>> pq;
     pq.push(start_v);
@@ -404,7 +399,7 @@ vll dijkstra_with_block(int n, int src, int blocked, const vector<vector< pair<i
   return dist;
 }
 
-// Retorna os vertices X (0-based) onde G eh ponto medio obrigatorio de P ate X
+/* Retorna os vertices X (0-based) onde G eh ponto medio obrigatorio de P ate X */
 vi mandatory_midpoint_nodes(int n, int P, int G, const vector<vector<pair<int, ll>>>& adj) {
   vll d_all = dijkstra_with_block(n, P, -1, adj);
   vll d_noG = dijkstra_with_block(n, P, G, adj);
@@ -433,11 +428,11 @@ vi mandatory_midpoint_nodes(int n, int P, int G, const vector<vector<pair<int, l
 \begin{lstlisting}
 struct EdgeRef { int to, id; };
 
-// Retorna a lista ordenada de IDs de arestas (1-based) de um ciclo cuja remocao
-// mantem o grafo conexo (ou vazio se nao existir).
+/* Ciclo simples cuja remocao preserva conectividade */
 vi find_non_disconnecting_cycle(int n, const vector<vector<EdgeRef>>& adj) {
   vi dep(n, -1), par(n, -1), par_edge(n, -1), dp(n, 0);
-  vector<tuple<int, int, int>> back_edges; // (u_baixo, v_alto, edge_id)
+  vector<vector<pii>> be_from(n); /* be_from[u] = lista de {v_ancestral, edge_id} */
+  vector<tuple<int, int, int>> back_edges;
 
   auto dfs1 = [&](auto& self, int u, int p, int pe, int d) -> void {
     dep[u] = d; par[u] = p; par_edge[u] = pe;
@@ -448,13 +443,13 @@ vi find_non_disconnecting_cycle(int n, const vector<vector<EdgeRef>>& adj) {
         dp[u] += dp[v];
       } else if (dep[v] < dep[u]) {
         dp[u]++; dp[v]--;
+        be_from[u].eb(v, id);
         back_edges.eb(u, v, id);
       }
     }
   };
   dfs1(dfs1, 0, -1, -1, 0);
 
-  // bad_anc[u] = profundidade do ancestral mais baixo x no caminho raiz->u tal que dp[x] == 1
   vi bad_anc(n, -1);
   auto dfs2 = [&](auto& self, int u, int cur_bad) -> void {
     if (par[u] != -1 && dp[u] == 1) cur_bad = dep[u];
@@ -464,8 +459,7 @@ vi find_non_disconnecting_cycle(int n, const vector<vector<EdgeRef>>& adj) {
   };
   dfs2(dfs2, 0, -1);
 
-  // Caso 1: Existe alguma back-edge (u, v) cujo caminho na arvore v -> u NAO tem aresta com dp == 1
-  // Isso ocorre sse bad_anc[u] <= dep[v]!
+  /* Caso 1: Alguma back-edge (u, v) nao cobre nenhuma aresta de arvore com dp == 1 */
   for (auto [u, v, id] : back_edges) {
     if (bad_anc[u] <= dep[v]) {
       vi cyc = {id};
@@ -473,35 +467,33 @@ vi find_non_disconnecting_cycle(int n, const vector<vector<EdgeRef>>& adj) {
       return cyc;
     }
   }
-  // Caso 2: Caso geral (ex: combinando duas back-edges que saem da mesma subarvore)
-  // Guarda para cada vertice x a back-edge que sobe a partir da subarvore de x
+  /* Caso 2: Combina duas back-edges (u1, v1, id1) e (u2, v2, id2) que se encontram em u
+   * sem atravessar nenhuma aresta de arvore com dp == 1 abaixo de u! */
+  auto build_theta = [&](tuple<int, int, int> b1, tuple<int, int, int> b2, int u) {
+    auto [u1, v1, id1] = b1;
+    auto [u2, v2, id2] = b2;
+    if (dep[v1] > dep[v2]) { swap(u1, u2); swap(v1, v2); swap(id1, id2); }
+    vi c1, c2;
+    for (int x = u1; x != u; x = par[x]) c1.pb(par_edge[x]);
+    reverse(all(c1)); c1.pb(id1);
+    for (int x = v1; x != v2; x = par[x]) c2.pb(par_edge[x]);
+    reverse(all(c2)); c1.insert(c1.end(), all(c2));
+    c1.pb(id2);
+    for (int x = u2; x != u; x = par[x]) c1.pb(par_edge[x]);
+    return c1;
+  };
+
   vector<tuple<int, int, int>> sub_be(n, {-1, -1, -1});
-  for (auto [u, v, id] : back_edges) sub_be[u] = {u, v, id};
   auto dfs3 = [&](auto& self, int u) -> vi {
+    vector<tuple<int, int, int>> cands;
+    for (auto [v_anc, id] : be_from[u]) cands.eb(u, v_anc, id);
     for (auto [v, id] : adj[u]) if (par[v] == u && par_edge[v] == id) {
       vi r = self(self, v);
       if (!r.empty()) return r;
-      if (get<0>(sub_be[v]) != -1) {
-        if (get<0>(sub_be[u]) == -1) sub_be[u] = sub_be[v];
-        else {
-          // Temos duas back-edges (u1, v1, id1) e (u2, v2, id2) que se encontram em u
-          // sem passar por nenhuma aresta de dp==1 abaixo de u!
-          auto [u1, v1, id1] = sub_be[u];
-          auto [u2, v2, id2] = sub_be[v];
-          if (dep[v1] > dep[v2]) { swap(u1, u2); swap(v1, v2); swap(id1, id2); }
-          vi c1, c2;
-          for (int x = u1; x != u; x = par[x]) c1.pb(par_edge[x]);
-          reverse(all(c1));
-          c1.pb(id1);
-          for (int x = v1; x != v2; x = par[x]) c2.pb(par_edge[x]);
-          reverse(all(c2));
-          c1.insert(c1.end(), all(c2));
-          c1.pb(id2);
-          for (int x = u2; x != u; x = par[x]) c1.pb(par_edge[x]);
-          return c1;
-        }
-      }
+      if (dp[v] >= 2 && get<0>(sub_be[v]) != -1) cands.pb(sub_be[v]);
     }
+    if (sz(cands) >= 2) return build_theta(cands[0], cands[1], u);
+    if (!cands.empty()) sub_be[u] = cands[0];
     return {};
   };
   return dfs3(dfs3, 0);
@@ -516,8 +508,8 @@ vi find_non_disconnecting_cycle(int n, const vector<vector<EdgeRef>>& adj) {
   {Hierholzer: $\Ocomp{V + E}$ $\mid$ Validação em $K_N$: $\Ocomp{N^2 + P + Q}$}
 
 \begin{lstlisting}
-// 1. Algoritmo de Hierholzer para Grafo Nao-Direcionado (arestas 0..M-1)
-// Retorna a sequencia de vertices da trilha Euleriana (ou {} se nao existir)
+/* 1. Algoritmo de Hierholzer para Grafo Nao-Direcionado (arestas 0..M-1)
+ * Retorna a sequencia de vertices da trilha Euleriana (ou {} se nao existir) */
 vi eulerian_undirected(int n, const vector<pii>& edges, int start_node = -1) {
   int m = sz(edges);
   vector<vector<pii>> adj(n);
@@ -553,7 +545,7 @@ vi eulerian_undirected(int n, const vector<pii>& edges, int start_node = -1) {
   return path;
 }
 
-// 2. Validador de Trilha Euleriana em K_N com prefixo L e sufixo R fixados (1-based)
+/* 2. Validador de Trilha Euleriana em K_N com prefixo L e sufixo R fixados (1-based) */
 bool can_complete_eulerian_kn(int N, const vi& L, const vi& R) {
   ll M = 1LL * N * (N - 1) / 2, tot_len = M + 1;
   int P = sz(L), Q = sz(R);
@@ -573,12 +565,12 @@ bool can_complete_eulerian_kn(int N, const vi& L, const vi& R) {
   rep(i, 0, Q - 1) if (!use_edge(R[i], R[i + 1])) return false;
 
   if (P + Q == tot_len) {
-    // Zero elementos ocultos: se P > 0 e Q > 0, L.back() e R.front() sao adjacentes
+    /* Zero elementos ocultos: se P > 0 e Q > 0, L.back() e R.front() sao adjacentes */
     if (P > 0 && Q > 0 && !use_edge(L.back(), R.front())) return false;
     return true;
   }
-  // Ha pelo menos 1 vertice oculto entre L e R: precisamos de um caminho no grafo residual
-  // de s = (P ? L.back() : livre) ate t = (Q ? R.front() : livre) passando por au_1..au_k (k >= 1)
+  /* Ha pelo menos 1 vertice oculto entre L e R: precisamos de um caminho no grafo residual
+   * de s = (P ? L.back() : livre) ate t = (Q ? R.front() : livre) passando por au_1..au_k (k >= 1) */
   int s = (P > 0 ? L.back() : -1), t = (Q > 0 ? R.front() : -1);
   vector<bool> active(N + 1, false), vis(N + 1, false);
   int start_bfs = -1, active_cnt = 0;
@@ -596,7 +588,7 @@ bool can_complete_eulerian_kn(int N, const vi& L, const vi& R) {
     }
     if (seen != active_cnt) return false;
   }
-  // Condicao de paridade dos graus no grafo residual:
+  /* Condicao de paridade dos graus no grafo residual: */
   int odd_other = 0;
   rep(i, 1, N + 1) if (i != s && i != t && (deg[i] % 2 != 0)) odd_other++;
 
@@ -606,14 +598,66 @@ bool can_complete_eulerian_kn(int N, const vi& L, const vi& R) {
     return (deg[s] % 2 == 1) && (deg[t] % 2 == 1);
   } else if (s != -1 || t != -1) {
     int fixed_end = (s != -1 ? s : t);
-    // O outro extremo eh livre: pode ser igual a fixed_end (grau par e odd_other==0)
-    // ou diferente de fixed_end (fixed_end tem grau impar e odd_other == 1)
+    /* O outro extremo eh livre: pode ser igual a fixed_end (grau par e odd_other==0)
+     * ou diferente de fixed_end (fixed_end tem grau impar e odd_other == 1) */
     if (deg[fixed_end] % 2 == 0) return odd_other == 0;
     else                         return odd_other == 1;
   } else {
     return odd_other == 0 || odd_other == 2;
   }
 }
+\end{lstlisting}
+
+
+
+\subsubsection{Componentes Fortemente Conexas (Tarjan SCC) e 2-SAT}
+\algobox
+  {(1) Comprimir qualquer grafo direcionado em um DAG de SCCs em $\Ocomp{V + E}$ (\texttt{comp[u]} em ordem topológica reversa); (2) Resolver sistemas booleanos de cláusulas $(a \lor b)$ e implicações $(a \implies b)$ em $\Ocomp{V + E}$.}
+  {Em Tarjan, um nó $u$ é raiz de uma SCC sse \texttt{low[u] == tin[u]}. No 2-SAT, a variável $x_i$ ($0 \le i < N$) é mapeada para $2i$ (verdadeiro) e $2i+1$ (falso, $\neg u = u \oplus 1$). Como os IDs das SCCs saem em ordem topológica reversa, a instância é satisfatível sse $\forall i, \text{comp}[2i] \neq \text{comp}[2i+1]$, atribuindo $\text{val}[i] = (\text{comp}[2i] < \text{comp}[2i+1])$!}
+  {Para forçar $x = \text{true}$, adicione a cláusula $(x \lor x)$. Para $a \oplus b = 1$ (XOR), adicione $(a \lor b)$ e $(\neg a \lor \neg b)$.}
+  {Tempo: $\Ocomp{V + E}$ $\mid$ Espaço: $\Ocomp{V + E}$}
+
+\begin{lstlisting}
+struct TwoSatSCC {
+  int n, timer = 0, num_scc = 0;
+  vector<vi> adj;
+  vi tin, low, comp, st, ans;
+
+  TwoSatSCC(int n_vars) : n(n_vars), adj(2 * n), tin(2 * n, -1), low(2 * n), comp(2 * n, -1), ans(n) {}
+
+  static int pos(int x) { return 2 * x; }
+  static int neg(int x) { return 2 * x + 1; }
+  void add_impl(int u, int v) { adj[u].pb(v); }
+  void add_or(int u, int v) { add_impl(u ^ 1, v); add_impl(v ^ 1, u); }
+  void add_xor(int u, int v) { add_or(u, v); add_or(u ^ 1, v ^ 1); }
+  void add_eq(int u, int v) { add_or(u, v ^ 1); add_or(u ^ 1, v); }
+  void set_true(int u) { add_impl(u ^ 1, u); }
+
+  void dfs(int u) {
+    tin[u] = low[u] = timer++;
+    st.pb(u);
+    for (int v : adj[u]) {
+      if (tin[v] == -1) { dfs(v); chmin(low[u], low[v]); }
+      else if (comp[v] == -1) chmin(low[u], tin[v]);
+    }
+    if (low[u] == tin[u]) {
+      while (true) {
+        int v = st.back(); st.pop_back();
+        comp[v] = num_scc;
+        if (u == v) break;
+      }
+      ++num_scc;
+    }
+  }
+  bool solve() {
+    rep(i, 0, 2 * n) if (tin[i] == -1) dfs(i);
+    rep(i, 0, n) {
+      if (comp[2 * i] == comp[2 * i + 1]) return false;
+      ans[i] = (comp[2 * i] < comp[2 * i + 1]);
+    }
+    return true;
+  }
+};
 \end{lstlisting}
 
 % ----------------------------------------------------------------------------
@@ -629,7 +673,7 @@ bool can_complete_eulerian_kn(int N, const vi& L, const vi& R) {
   {Tempo: $\Ocomp{N \log N}$ $\mid$ Espaço: $\Ocomp{N}$}
 
 \begin{lstlisting}
-// 1. DSU com Rollback (Sem compressao de caminho, uniao por rank/tamanho em O(log N))
+/* 1. DSU com Rollback (Sem compressao de caminho, uniao por rank/tamanho em O(log N)) */
 struct RollbackDSU {
   vi e;
   vector<pii> st;
@@ -651,7 +695,7 @@ struct RollbackDSU {
   }
 };
 
-// 2. Escalonamento Otimo em Arvore (Maximizar sum_{i=1..N} i * weight[p_i] com p_1 = root)
+/* 2. Escalonamento Otimo em Arvore (Maximizar sum_{i=1..N} i * weight[p_i] com p_1 = root) */
 ll max_tree_schedule_profit(int n, int root, const vll& weight, const vector<vi>& adj) {
   vi par(n, -1);
   auto dfs = [&](auto& self, int u, int p) -> void {
@@ -666,11 +710,11 @@ ll max_tree_schedule_profit(int n, int root, const vll& weight, const vector<vi>
     return dsu[x] == x ? x : dsu[x] = self(self, dsu[x]);
   };
   vll sum = weight;
-  ll ans = accumulate(all(weight), 0LL); // Contribuicao base 1 * weight[u]
+  ll ans = accumulate(all(weight), 0LL); /* Contribuicao base 1 * weight[u] */
 
   struct Node {
     ll s, c; int u;
-    // Menor media (s / c) no topo da fila -> funde imediatamente apos o pai!
+    /* Menor media (s / c) no topo da fila -> funde imediatamente apos o pai! */
     bool operator<(const Node& o) const { return (i128)s * o.c > (i128)o.s * c; }
   };
   priority_queue<Node> pq;
@@ -678,7 +722,7 @@ ll max_tree_schedule_profit(int n, int root, const vll& weight, const vector<vi>
 
   while (!pq.empty()) {
     auto [s, c, u] = pq.top(); pq.pop();
-    if (dsu[u] != u || sz_node[u] != c) continue; // Entrada obsoleta
+    if (dsu[u] != u || sz_node[u] != c) continue; /* Entrada obsoleta */
     int p = find_rep(find_rep, par[u]);
     ans += sz_node[p] * sum[u];
     sz_node[p] += sz_node[u];
@@ -692,25 +736,25 @@ ll max_tree_schedule_profit(int n, int root, const vll& weight, const vector<vi>
 
 \subsubsection{Binary Lifting, Rerooting DP e Diagrama de Voronoi em Árvore}
 \algobox
-  {Dado um conjunto de corredores partindo das folhas até uma meta variável $T$, determinar para uma folha $S$ e meta $T$ quantos vértices da árvore são reivindicados por $S$ (2024 G).}
-  {Todo corredor corre da folha $L$ até $T$ em velocidade 1, chegando em $v \in \text{path}(L, T)$ no tempo $\text{dist}(L, v)$. Como qualquer outra folha $L'$ se junta ao caminho $S \leadsto T$ em algum vértice $x$ e corre até $T$ junto com $S$, os vértices conquistados por $S$ formam um prefixo conexo do caminho $S \leadsto T$ onde $(\text{dist}(S, v), S)$ vence a folha mais próxima global \texttt{glob\_best[v]} calculada por Rerooting DP!}
-  {Usar Binary Lifting para saltar ao longo do caminho $S \leadsto T$ até o último vértice onde $S$ vence \texttt{glob\_best[v]}.}
+  {Dado um conjunto de corredores partindo das folhas até uma meta variável $T$, determinar para uma folha $S$ e meta $T$ quantos vértices da árvore são conquistados por $S$.}
+  {Um corredor da folha $L$ só passa por $v \neq T$ se $L$ estiver na componente de $v$ oposta à direção de $T$: na subida $S \leadsto \text{LCA}(S, T)$, o vencedor de $v$ é a folha mais próxima na subárvore de $v$ (\texttt{down1[v].snd}); na descida $\text{LCA}(S, T) \leadsto T$ (onde $w$ é o filho de $v$ ancestral de $T$), o vencedor de $v$ é a folha mais próxima fora da subárvore de $w$ (\texttt{up\_best[w].snd}); e em $v = T$, o vencedor é \texttt{glob\_best[T].snd}. Pré-calculando até onde a mesma folha vence continuamente na subida (\texttt{top\_down}) e na descida (\texttt{top\_up}), cada consulta responde em $\Ocomp{\log N}$.}
+  {Tratar o caso $S == T$ retornando $1$ imediatamente.}
   {Build: $\Ocomp{N \log N}$ $\mid$ Query: $\Ocomp{\log N}$}
 
 \begin{lstlisting}
-// Resolve Grand Glory Race (2024 G) e problemas de Voronoi / Rerooting + Binary Lifting
+/* Diagrama de Voronoi Direcional em Arvore (Rerooting DP + Binary Lifting) */
 struct TreeVoronoiRace {
-  using pli = pair<ll, int>; // {distancia, id_da_folha}
+  using pli = pair<ll, int>; /* {distancia, id_da_folha} */
   int n, LOG;
   vector<vector<pair<int, ll>>> adj;
   vector<vi> up;
-  vi dep, tin, tout, win_cnt;
-  vll dist_root;
+  vi dep, tin, tout, top_down, top_up;
   vector<pli> down1, down2, up_best, glob_best;
 
   TreeVoronoiRace(int n) : n(n), LOG(bit_width((ull)n) + 1), adj(n),
-    up(LOG, vi(n, 0)), dep(n, 0), tin(n, 0), tout(n, 0), win_cnt(n, 0),
-    dist_root(n, 0), down1(n, {INF_D, -1}), down2(n, {INF_D, -1}),
+    up(LOG, vi(n, 0)), dep(n, 0), tin(n, 0), tout(n, 0),
+    top_down(n, 0), top_up(n, 0),
+    down1(n, {INF_D, -1}), down2(n, {INF_D, -1}),
     up_best(n, {INF_D, -1}), glob_best(n, {INF_D, -1}) {}
 
   void add_edge(int u, int v, ll w) {
@@ -722,23 +766,24 @@ struct TreeVoronoiRace {
   }
   void build(int root = 0) {
     int timer = 0;
-    auto dfs1 = [&](auto& self, int u, int p, ll d) -> void {
+    auto dfs1 = [&](auto& self, int u, int p) -> void {
       tin[u] = ++timer;
-      up[0][u] = p; dist_root[u] = d;
+      up[0][u] = p;
       rep(j, 1, LOG) up[j][u] = up[j - 1][up[j - 1][u]];
-      if (sz(adj[u]) == 1) offer(u, {0, u}); // u eh folha
+      if (sz(adj[u]) == 1) offer(u, {0, u});
       for (auto [v, w] : adj[u]) if (v != p) {
         dep[v] = dep[u] + 1;
-        self(self, v, u, d + w);
+        self(self, v, u);
         offer(u, {down1[v].fst + w, down1[v].snd});
       }
       tout[u] = timer;
     };
-    dfs1(dfs1, root, root, 0);
+    dfs1(dfs1, root, root);
 
     auto dfs2 = [&](auto& self, int u, int p) -> void {
       glob_best[u] = min(down1[u], up_best[u]);
-      win_cnt[glob_best[u].snd]++;
+      top_down[u] = (u != p && down1[u].snd == down1[p].snd) ? top_down[p] : u;
+      top_up[u]   = (u != p && up_best[u].snd == up_best[p].snd) ? top_up[p] : u;
       for (auto [v, w] : adj[u]) if (v != p) {
         pli best_from_u = up_best[u];
         pli sib = (down1[u].snd == down1[v].snd) ? down2[u] : down1[u];
@@ -757,31 +802,41 @@ struct TreeVoronoiRace {
       if (!is_anc(up[j][u], v)) u = up[j][u];
     return up[0][u];
   }
-  ll dist(int u, int v) const {
-    return dist_root[u] + dist_root[v] - 2 * dist_root[lca(u, v)];
+  int kth_anc(int u, int k) const {
+    for (int j = 0; k > 0; ++j, k >>= 1)
+      if (k & 1) u = up[j][u];
+    return u;
   }
+  /* Retorna quantos vertices no caminho S -> T sao conquistados pela folha S */
   int query_claimed_on_path(int S, int T) const {
     if (S == T) return 1;
-    int L = lca(S, T), len = dep[S] + dep[T] - 2 * dep[L] + 1;
-    // Busca o comprimento do prefixo de S -> T onde pli(dist(S, v), S) == glob_best[v]
-    auto wins = [&](int v) -> bool {
-      return pli{dist(S, v), S} <= glob_best[v];
-    };
-    int cur = S, steps = 1;
-    for (int j = LOG - 1; j >= 0; --j) {
-      int anc = up[j][cur];
-      if (dep[anc] >= dep[L] && wins(anc)) { cur = anc; steps += (1 << j); }
+    int L = lca(S, T), ans = 0;
+    if (S != L && down1[S].snd == S) {
+      int hi = top_down[S];
+      if (dep[hi] <= dep[L]) hi = kth_anc(S, dep[S] - dep[L] - 1);
+      ans += dep[S] - dep[hi] + 1;
+      if (dep[hi] > dep[L] + 1) return ans;
+    } else if (S != L) {
+      return 0;
     }
-    if (cur != L) return steps;
-    // S venceu ate o LCA L; agora verificamos a descida de L ate T
-    if (wins(T)) return len;
-    cur = T;
-    int lost_suffix = 1;
-    for (int j = LOG - 1; j >= 0; --j) {
-      int anc = up[j][cur];
-      if (dep[anc] > dep[L] && !wins(anc)) { cur = anc; lost_suffix += (1 << j); }
+    if (L != T) {
+      int w_first = kth_anc(T, dep[T] - dep[L] - 1);
+      if (up_best[w_first].snd != S) return ans;
+      int cur = T;
+      for (int j = LOG - 1; j >= 0; --j) {
+        int anc = up[j][cur];
+        if (dep[anc] >= dep[w_first] && up_best[anc].snd != S) cur = anc;
+      }
+      int w_last = (up_best[cur].snd == S) ? cur : up[0][cur];
+      for (int j = LOG - 1; j >= 0; --j) {
+        int anc = up[j][w_last];
+        if (dep[anc] >= dep[w_first] && dep[top_up[w_last]] > dep[w_first]) w_last = up[0][top_up[w_last]];
+      }
+      ans += dep[w_last] - dep[w_first] + 1;
+      if (w_last != T) return ans;
     }
-    return len - lost_suffix;
+    if (glob_best[T].snd == S) ++ans;
+    return ans;
   }
 };
 \end{lstlisting}
@@ -798,7 +853,7 @@ struct CentroidDecomposition {
   int n;
   vector<vi> adj;
   vi sub, dead;
-  vector<vector<pii>> anc; // anc[u] = lista de {centroid_c, dist(u, c)}
+  vector<vector<pii>> anc; /* anc[u] = lista de {centroid_c, dist(u, c)} */
 
   CentroidDecomposition(int n) : n(n), adj(n), sub(n), dead(n, 0), anc(n) {}
   void add_edge(int u, int v) { adj[u].pb(v); adj[v].pb(u); }
@@ -823,8 +878,8 @@ struct CentroidDecomposition {
     dfs_dist(c, -1, 0, c);
     for (int v : adj[c]) if (!dead[v]) build(v);
   }
-  // Exemplo (2023 J - Journey of the Robber):
-  // Para cada cidade i (0..n-1), achar j > i que minimiza {dist(i, j), j}
+  /* Exemplo de aplicacao:
+   * Para cada cidade i (0..n-1), achar j > i que minimiza {dist(i, j), j} */
   vi solve_robber_next_city() {
     build(0);
     const pii INF_P = {1e9, 1e9};
@@ -863,7 +918,7 @@ struct HLD {
   }
   void dfs_sz(int u) {
     for (int& v : adj[u]) {
-      adj[v].erase(find(all(adj[v]), u)); // Remove pai da lista do filho
+      adj[v].erase(find(all(adj[v]), u)); /* Remove pai da lista do filho */
       par[v] = u; dep[v] = dep[u] + 1;
       dfs_sz(v);
       sz_sub[u] += sz_sub[v];
@@ -875,7 +930,7 @@ struct HLD {
     for (int v : adj[u])
       dfs_hld(v, v == adj[u][0] ? h : v);
   }
-  // Executa callback f(L, R) (0-indexed, inclusivo) nos O(log N) intervalos do caminho (u, v)
+  /* Executa callback f(L, R) (0-indexed, inclusivo) nos O(log N) intervalos do caminho (u, v) */
   template <class F>
   void process_path(int u, int v, F f, bool edges_only = false) const {
     for (; head[u] != head[v]; v = par[head[v]]) {
@@ -897,7 +952,7 @@ struct HLD {
   {Hash Livre: $\Ocomp{K}$ $\mid$ Generator Tree: $\Ocomp{\sum K_i \cdot \sigma_0(K_i)}$}
 
 \begin{lstlisting}
-// Retorna os 1 ou 2 centroides de uma arvore (ou componente conexa)
+/* Retorna os 1 ou 2 centroides de uma arvore (ou componente conexa) */
 vi get_tree_centroids(int n, const vector<vi>& adj) {
   vi sub(n, 0), cents;
   auto dfs = [&](auto& self, int u, int p) -> void {
@@ -915,7 +970,7 @@ vi get_tree_centroids(int n, const vector<vi>& adj) {
   return cents;
 }
 
-// Hash canonico de arvore enraizada em 'root' em O(V)
+/* Hash canonico de arvore enraizada em 'root' em O(V) */
 ull rooted_tree_hash(int root, const vector<vi>& adj) {
   static const ull SEED = rng();
   auto dfs = [&](auto& self, int u, int p) -> ull {
@@ -927,7 +982,7 @@ ull rooted_tree_hash(int root, const vector<vi>& adj) {
   return CustomHash::splitmix64(dfs(dfs, root, -1));
 }
 
-// Hash canonico de arvore NAO-ENRAIZADA (invariante a isomorfismo) em O(V)
+/* Hash canonico de arvore NAO-ENRAIZADA (invariante a isomorfismo) em O(V) */
 ull unrooted_tree_hash(int n, const vector<vi>& adj) {
   vi cents = get_tree_centroids(n, adj);
   ull h1 = rooted_tree_hash(cents[0], adj);
@@ -936,8 +991,8 @@ ull unrooted_tree_hash(int n, const vector<vi>& adj) {
   return h1 ^ CustomHash::splitmix64(h2 + 0x9e3779b97f4a7c15ULL);
 }
 
-// Resolve Generator Tree (2021 G): Para cada arvore da colecao, conta quantas
-// outras arvores da colecao podem gera-la conectando copias isomorfas.
+/* Para cada arvore da colecao, conta quantas
+ * outras arvores da colecao podem gera-la conectando copias isomorfas. */
 vi solve_generator_trees(const vector<vector<vi>>& trees) {
   int N = sz(trees), maxK = 0;
   for (const auto& g : trees) chmax(maxK, sz(g));
@@ -956,10 +1011,10 @@ vi solve_generator_trees(const vector<vector<vi>>& trees) {
   rep(i, 0, N) {
     const auto& g = trees[i];
     int K = sz(g);
-    // Outras arvores identicas de mesmo tamanho K (exceto ela mesma)
+    /* Outras arvores identicas de mesmo tamanho K (exceto ela mesma) */
     ans[i] += freq[base_hash[i]] - 1;
 
-    // Pre-calcula ordem DFS e tamanho de subarvore de T_i enraizada em 0
+    /* Pre-calcula ordem DFS e tamanho de subarvore de T_i enraizada em 0 */
     vi order, par(K, -1), sub(K, 1);
     order.reserve(K);
     auto dfs_ord = [&](auto& self, int u, int p) -> void {
@@ -968,15 +1023,15 @@ vi solve_generator_trees(const vector<vector<vi>>& trees) {
     };
     dfs_ord(dfs_ord, 0, -1);
 
-    // Testa cada divisor proprio d | K tal que existe alguma arvore de tamanho d na entrada
+    /* Testa cada divisor proprio d | K tal que existe alguma arvore de tamanho d na entrada */
     for (int d = 2; d * 2 <= K; ++d) {
       if (K % d != 0 || !has_size[d]) continue;
       int mult_cnt = 0;
       for (int u : order) if (sub[u] % d == 0) mult_cnt++;
-      if (mult_cnt != K / d) continue; // Impossivel particionar em blocos de tamanho d
+      if (mult_cnt != K / d) continue; /* Impossivel particionar em blocos de tamanho d */
 
-      // Extrai as K/d componentes conexas cortando arestas (par[u], u) onde sub[u] % d == 0
-      // e calcula o hash livre de cada componente sem alocar vetores globais
+      /* Extrai as K/d componentes conexas cortando arestas (par[u], u) onde sub[u] % d == 0
+       * e calcula o hash livre de cada componente sem alocar vetores globais */
       vi comp_id(K, -1), local_id(K, 0), comp_cnt(K / d, 0);
       int cid = 0;
       for (int u : order) {

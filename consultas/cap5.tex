@@ -38,8 +38,8 @@ struct Pt {
   T cross(const Pt& a, const Pt& b) const { return (a - *this).cross(b - *this); }
   T dist2() const { return x * x + y * y; }
   ld dist() const { return hypotl((ld)x, (ld)y); }
-  ld angle() const { return atan2l((ld)y, (ld)x); } // [-pi, pi]
-  Pt perp() const { return {-y, x}; }               // Rotacao +90 graus (CCW)
+  ld angle() const { return atan2l((ld)y, (ld)x); } /* [-pi, pi] */
+  Pt perp() const { return {-y, x}; } /* Rotacao +90 graus (CCW) */
   Pt rot(ld a) const {
     ld c = cosl(a), s = sinl(a);
     return {(T)(x * c - y * s), (T)(x * s + y * c)};
@@ -48,17 +48,17 @@ struct Pt {
 using Pll = Pt<ll>;
 using Pld = Pt<ld>;
 
-// Orientacao de (a -> b -> c): +1 = CCW (esq), -1 = CW (dir), 0 = colinear
+/* Orientacao de (a -> b -> c): +1 = CCW (esq), -1 = CW (dir), 0 = colinear */
 template <class T> int ccw(const Pt<T>& a, const Pt<T>& b, const Pt<T>& c) {
   return sgn(a.cross(b, c));
 }
 
-// Verifica se o ponto p pertence ao segmento fechado [a, b]
+/* Verifica se o ponto p pertence ao segmento fechado [a, b] */
 template <class T> bool on_segment(const Pt<T>& a, const Pt<T>& b, const Pt<T>& p) {
   return ccw(a, b, p) == 0 && sgn((a - p).dot(b - p)) <= 0;
 }
 
-// Intersecao de segmentos fechados [a, b] e [c, d] (exata para inteiros)
+/* Intersecao de segmentos fechados [a, b] e [c, d] (exata para inteiros) */
 template <class T> bool seg_intersect(const Pt<T>& a, const Pt<T>& b,
                                       const Pt<T>& c, const Pt<T>& d) {
   int oa = ccw(c, d, a), ob = ccw(c, d, b), oc = ccw(a, b, c), od = ccw(a, b, d);
@@ -67,7 +67,7 @@ template <class T> bool seg_intersect(const Pt<T>& a, const Pt<T>& b,
          on_segment(a, b, c) || on_segment(a, b, d);
 }
 
-// Intersecao de retas infinitas (a + t*v) e (c + u*w) em ponto flutuante
+/* Intersecao de retas infinitas (a + t*v) e (c + u*w) em ponto flutuante */
 bool line_intersect(Pld a, Pld b, Pld c, Pld d, Pld& out) {
   Pld v = b - a, w = d - c;
   ld cr = v.cross(w);
@@ -76,7 +76,7 @@ bool line_intersect(Pld a, Pld b, Pld c, Pld d, Pld& out) {
   return true;
 }
 
-// Dobro da area com sinal de um poligono (positivo se CCW)
+/* Dobro da area com sinal de um poligono (positivo se CCW) */
 ll polygon_area2(const vector<Pll>& p) {
   ll a = 0; int n = sz(p);
   rep(i, 0, n) a += p[i].cross(p[(i + 1) % n]);
@@ -84,9 +84,9 @@ ll polygon_area2(const vector<Pll>& p) {
 }
 \end{lstlisting}
 
-\subsubsection{União de Intervalos 1D e Projeção de Sombras (2024 J)}
+\subsubsection{União de Intervalos 1D e Projeção de Sombras}
 \algobox
-  {Calcular a medida da união de $N$ intervalos $[L_i, R_i]$ na reta (ex.: sombras $[X_i, X_i + H_i \cot \theta]$ projetadas por raios com ângulo $\theta$ em graus, 2024 J).}
+  {Calcular a medida da união de $N$ intervalos $[L_i, R_i]$ na reta (ex.: sombras $[X_i, X_i + H_i \cot \theta]$ projetadas por raios com ângulo $\theta$ em graus).}
   {Ordenar os intervalos por $L_i$ crescente e fundir todo intervalo que intersecta o intervalo acumulado atual $[curL, curR]$. Como $\cot \theta = \frac{1}{\tan(\theta \cdot \pi / 180)}$ é constante para todos os objetos, podemos fazer a união diretamente em ponto flutuante (ou escalar) em $\Ocomp{N \log N}$.}
   {Converter graus para radianos com \texttt{rad = theta * PI / 180.0L}.}
   {Tempo: $\Ocomp{N \log N}$ $\mid$ Espaço: $\Ocomp{N}$}
@@ -117,32 +117,32 @@ ld solve_jigsaw_of_shadows(int theta_deg, const vector<pll>& flatlanders) {
 % ----------------------------------------------------------------------------
 \subsection{Geometria Analítica: Manhattan $45^\circ$, Parábolas e Retas}
 
-\subsubsection{Rotação de Coordenadas de $45^\circ$ (Distância de Manhattan — 2023 G)}
+\subsubsection{Rotação de Coordenadas de $45^\circ$ (Distância de Manhattan)}
 \algobox
-  {Transformar problemas de Distância de Manhattan $|x_1 - x_2| + |y_1 - y_2|$ em Distância de Chebyshev $\max(|u_1 - u_2|, |v_1 - v_2|)$, e encontrar todos os pontos inteiros que estão a distância exata $D_i$ de cada torre $(X_i, Y_i)$ (2023 G).}
+  {Transformar problemas de Distância de Manhattan $|x_1 - x_2| + |y_1 - y_2|$ em Distância de Chebyshev $\max(|u_1 - u_2|, |v_1 - v_2|)$, e encontrar todos os pontos inteiros que estão a distância exata $D_i$ de cada torre $(X_i, Y_i)$.}
   {Aplicando a bijeção $u = x + y$ e $v = x - y$:
   $\bullet$ $|x_1 - x_2| + |y_1 - y_2| = \max(|u_1 - u_2|, |v_1 - v_2|)$.
   $\bullet$ Um par $(u, v) \in \ZZ^2$ corresponde a um ponto inteiro $(x, y) = (\frac{u+v}{2}, \frac{u-v}{2}) \in \ZZ^2$ sse $u \equiv v \pmod 2$ (mesma paridade!).
   $\bullet$ O conjunto de pontos a distância de Manhattan \textbf{exatamente} $D_i$ de $(X_i, Y_i)$ (uma "esfera de Manhattan") vira a \textbf{borda de um quadrado alinhado aos eixos} $[U_i - D_i, U_i + D_i] \times [V_i - D_i, V_i + D_i]$ no plano $(u, v)$, que consiste em apenas 4 segmentos ortogonais (2 horizontais e 2 verticais)!
   Para achar a interseção das $N$ bordas de quadrados: começamos com os 4 segmentos da primeira torre ($i = 0$) e, para cada torre seguinte, substituímos cada segmento ativo pela sua interseção com a borda do novo quadrado (que é um segmento ou até 2 pontos extremos!), mantendo no máximo $\Ocomp{1}$ segmentos ativos! Ao final, varremos os pontos inteiros com $u \equiv v \pmod 2$ nos segmentos sobreviventes!}
-  {Se a primera torre tiver $D_0 = 0$, os 4 segmentos degeneram em 1 único ponto. Ao intersectar um segmento horizontal $v = v_0, u \in [u_L, u_R]$ com a borda do quadrado $[U-D, U+D] \times [V-D, V+D]$: se $v_0 \notin [V-D, V+D]$, a interseção é vazia; se $v_0 \in \{V-D, V+D\}$ (toca a tampa superior/inferior do quadrado), a interseção é o sub-segmento $[ \max(u_L, U-D), \min(u_R, U+D) ]$; se $V - D < v_0 < V + D$, o segmento só toca as paredes laterais nos até 2 pontos $u = U - D$ e $u = U + D$ (que viram segmentos degenerados de comprimento 0)!}
+  {Se a primeira torre tiver $D_0 = 0$, os 4 segmentos degeneram em 1 único ponto. Ao intersectar um segmento horizontal $v = v_0, u \in [u_L, u_R]$ com a borda do quadrado $[U-D, U+D] \times [V-D, V+D]$: se $v_0 \notin [V-D, V+D]$, a interseção é vazia; se $v_0 \in \{V-D, V+D\}$ (toca a tampa superior/inferior do quadrado), a interseção é o sub-segmento $[ \max(u_L, U-D), \min(u_R, U+D) ]$; se $V - D < v_0 < V + D$, o segmento só toca as paredes laterais nos até 2 pontos $u = U - D$ e $u = U + D$ (que viram segmentos degenerados de comprimento 0)!}
   {Tempo: $\Ocomp{N + K \log K}$ ($K$ = pontos de saída) $\mid$ Espaço: $\Ocomp{K}$}
 
 \begin{lstlisting}
-struct OrthoSeg { ll u1, v1, u2, v2; }; // u1 == u2 (vertical) ou v1 == v2 (horizontal)
+struct OrthoSeg { ll u1, v1, u2, v2; }; /* u1 == u2 (vertical) ou v1 == v2 (horizontal) */
 
 vector<pll> solve_gps_manhattan_spheres(const vector<tuple<ll, ll, ll>>& towers) {
   auto get_square_sides = [](ll x, ll y, ll d) -> vector<OrthoSeg> {
     ll U = x + y, V = x - y;
     if (d == 0) return {{U, V, U, V}};
     return {
-      {U - d, V - d, U + d, V - d}, // Base horizontal (v = V - d)
-      {U - d, V + d, U + d, V + d}, // Topo horizontal (v = V + d)
-      {U - d, V - d, U - d, V + d}, // Parede esquerda (u = U - d)
-      {U + d, V - d, U + d, V + d}  // Parede direita  (u = U + d)
+      {U - d, V - d, U + d, V - d}, /* Base horizontal (v = V - d) */
+      {U - d, V + d, U + d, V + d}, /* Topo horizontal (v = V + d) */
+      {U - d, V - d, U - d, V + d}, /* Parede esquerda (u = U - d) */
+      {U + d, V - d, U + d, V + d} /* Parede direita  (u = U + d) */
     };
   };
-  // Intersecta dois segmentos ortogonais a e b (retorna 0 ou 1 OrthoSeg)
+  /* Intersecta dois segmentos ortogonais a e b (retorna 0 ou 1 OrthoSeg) */
   auto isect_two = [](OrthoSeg a, OrthoSeg b, vector<OrthoSeg>& out) {
     if (a.u1 > a.u2) swap(a.u1, a.u2);
     if (a.v1 > a.v2) swap(a.v1, a.v2);
@@ -162,7 +162,7 @@ vector<pll> solve_gps_manhattan_spheres(const vector<tuple<ll, ll, ll>>& towers)
     vector<OrthoSeg> nxt;
     for (const auto& s1 : active)
       for (const auto& s2 : sides) isect_two(s1, s2, nxt);
-    // Deduplica segmentos identicos para manter sz(active) <= 8
+    /* Deduplica segmentos identicos para manter sz(active) <= 8 */
     active.clear();
     for (const auto& s : nxt) {
       bool dup = false;
@@ -172,7 +172,7 @@ vector<pll> solve_gps_manhattan_spheres(const vector<tuple<ll, ll, ll>>& towers)
     }
     if (active.empty()) break;
   }
-  // Extrai todos os pontos inteiros (x, y) dos segmentos finais (garantido conjunto finito pelo problema)
+  /* Extrai todos os pontos inteiros (x, y) dos segmentos finais (garantido conjunto finito pelo problema) */
   vector<pll> ans;
   for (auto [u1, v1, u2, v2] : active) {
     for (ll u = u1; u <= u2; ++u) {
@@ -187,9 +187,9 @@ vector<pll> solve_gps_manhattan_spheres(const vector<tuple<ll, ll, ll>>& towers)
 }
 \end{lstlisting}
 
-\subsubsection{Interseção Reta-Parábola e Cruzamento de Cordas via BIT (2025 L)}
+\subsubsection{Interseção Reta-Parábola e Cruzamento de Cordas via BIT}
 \algobox
-  {Dadas $N$ retas distintas $y = M_i x + C_i$ e a região aberta $y > A x^2 + B$ ($A > 0$), contar quantos pares de retas se cruzam estritamente dentro da parábola (2025 L).}
+  {Dadas $N$ retas distintas $y = M_i x + C_i$ e a região aberta $y > A x^2 + B$ ($A > 0$), contar quantos pares de retas se cruzam estritamente dentro da parábola.}
   {Uma reta $y = M_i x + C_i$ entra na região aberta $y > A x^2 + B$ sse a equação $A x^2 - M_i x + (B - C_i) = 0$ possui duas raízes reais distintas, ou seja, $\Delta_i = M_i^2 - 4A(B - C_i) > 0$! Nesse caso, a interseção da reta $i$ com o interior da parábola é uma \textbf{corda aberta} com abscissas extremas $(l_i, r_i) = \bigl(\frac{M_i - \sqrt{\Delta_i}}{2A}, \frac{M_i + \sqrt{\Delta_i}}{2A}\bigr)$ na fronteira da parábola!
   Como a parábola é estritamente convexa, duas cordas $(l_i, r_i)$ e $(l_j, r_j)$ se cruzam estritamente no interior da região parabólica sse seus extremos se alternam estritamente ao longo da fronteira da parábola: $l_i < l_j < r_i < r_j$ ou $l_j < l_i < r_j < r_i$!
   Isso reduz o problema a \textbf{contar pares de intervalos $(l_i, r_i)$ que se entrelaçam estritamente}, resolvido em $\Ocomp{N \log N}$ com compressão de coordenadas + Fenwick Tree (BIT)!}
@@ -203,7 +203,7 @@ ll count_parabola_chord_intersections(ll A, ll B, const vector<pll>& lines) {
   chords.reserve(sz(lines));
   for (auto [M, C] : lines) {
     ll delta = M * M - 4LL * A * (B - C);
-    if (delta <= 0) continue; // Nao entra no interior da parabola
+    if (delta <= 0) continue; /* Nao entra no interior da parabola */
     ld sq = sqrtl((ld)delta);
     ld l = ((ld)M - sq) / (2.0L * A);
     ld r = ((ld)M + sq) / (2.0L * A);
@@ -212,7 +212,7 @@ ll count_parabola_chord_intersections(ll A, ll B, const vector<pll>& lines) {
   int m = sz(chords);
   if (m < 2) return 0;
 
-  // Coleta e unifica coordenadas de r_i (e l_i) com tolerancia EPS_P
+  /* Coleta e unifica coordenadas de r_i (e l_i) com tolerancia EPS_P */
   vector<ld> coords;
   coords.reserve(2 * m);
   for (auto [l, r] : chords) { coords.pb(l); coords.pb(r); }
@@ -228,8 +228,8 @@ ll count_parabola_chord_intersections(ll A, ll B, const vector<pll>& lines) {
 
   vector<pii> segs(m);
   rep(i, 0, m) segs[i] = {get_id(chords[i].fst), get_id(chords[i].snd)};
-  // Ordena por L crescente; se L empatar (encontro na borda esquerda), ordena por R DECRESCENTE
-  // para que o primeiro nao conte o segundo em query(L+1, R-1)!
+  /* Ordena por L crescente; se L empatar (encontro na borda esquerda), ordena por R DECRESCENTE
+   * para que o primeiro nao conte o segundo em query(L+1, R-1)! */
   sort(all(segs), [](const pii& a, const pii& b) {
     return a.fst != b.fst ? a.fst < b.fst : a.snd > b.snd;
   });
@@ -237,7 +237,7 @@ ll count_parabola_chord_intersections(ll A, ll B, const vector<pll>& lines) {
   int K = sz(uniq);
   Fenwick<int> bit(K);
   ll ans = 0;
-  // Agrupa cordas com mesmo L para nao inserir R antes de consultar o mesmo L
+  /* Agrupa cordas com mesmo L para nao inserir R antes de consultar o mesmo L */
   for (int i = 0; i < m; ) {
     int j = i;
     while (j < m && segs[j].fst == segs[i].fst) ++j;
@@ -252,30 +252,28 @@ ll count_parabola_chord_intersections(ll A, ll B, const vector<pll>& lines) {
 }
 \end{lstlisting}
 
-\subsubsection{Envoltória de Retas no Plano Espaço-Tempo e Busca Binária Paralela + CHT (2022 J, 2022 B)}
+\subsubsection{Busca Binária Paralela + CHT e Filtragem no Espaço-Tempo}
 \algobox
-  {(1) Em 2022 J (*Joining a Marathon*), filtrar fotos $(U_j, [A_j, B_j])$ não cobertas pelos $R$ corredores existentes e, para $Q$ queries $(T', S')$, contar quantas fotos vazias continuam sem corredor; (2) Em 2022 B (*Board Game*), dados $T$ pontos $(X_i, Y_i)$ e $P$ jogadores com retas $y = A_j x + B_j$, achar para cada ponto o primeiro jogador $j$ tal que $Y_i < A_j X_i + B_j$.}
-  {\textbf{1. Em 2022 J:} Um corredor $(T, S)$ está na posição $(U - T) \cdot S$ no instante $U \ge T$. Ele aparece na foto $(U, A, B)$ sse $U \ge T$ e $A \le (U - T)S \le B$.
-  $\bullet$ Primeiro filtramos as $P \le 10^6$ fotos que não contêm nenhum dos $R \le 1000$ corredores originais: para não gastar $\Ocomp{P \cdot R}$, para cada instante $U$ (ou ordenando corredores e fotos, ou usando CHT? Não: na condição $A \le U \cdot S - T \cdot S \le B$, uma foto é salva se o máximo de $S_i U - S_i T_i$ entre os corredores que satisfazem $S_i U - S_i T_i \le B$ for $\ge A$! Ou mais simples: para uma query $(T', S')$, uma foto vazia $j$ é salva por Johnny sse $T' \le U_j - \lceil A_j / S' \rceil$ e $T' \ge U_j - \lfloor B_j / S' \rfloor$? Não, $S'$ muda a cada query!). Mas há apenas $R \le 1000$ corredores e $Q \le 1000$ queries! Se para cada foto vazia $j$ precisamos checar quais corredores/queries passam por ela: no plano dual onde uma foto $(U, [A, B])$ exige $A \le (U - T)S \le B$, como $P \le 10^6$, se uma foto $(U, [A, B])$ já contém algum dos $R$ corredores (ou se Johnny passa por ela), note que para um corredor fixo $(T, S)$, ele está na posição $x = S \cdot U - S \cdot T$: mas $P$ é $10^6$ e $R, Q \le 1000$. Se agruparmos ou se notarmos que para uma foto $(U, A, B)$, os corredores $(T, S)$ são pontos: melhor ainda, na equação $A \le (U - T)S \le B \iff U - \frac{B}{S} \le T \le U - \frac{A}{S}$, se ordenarmos as fotos por $U$, ou se para cada corredor/query $(T, S)$? Não: na verdade, para filtrar as fotos e responder queries, dois corredores com mesmo $T$ ou envoltória? Não, um corredor é um ponto $(-T \cdot S, S)$? Não! Mas se duas fotos têm o mesmo $U$ e intervalos que se sobrepõem, ou se olharmos para cada foto $(U, A, B)$: para uma query $(T', S')$, o corredor é uma semirreta $x(t) = S'(t - T')$ e a foto é um segmento vertical $\{U\} \times [A, B]$! Uma semirreta de origem $(T', 0)$ e inclinação $S'$ cruza o segmento vertical $\{U\} \times [A, B]$ sse a inclinação $S'$ está entre a inclinação para $(U, A)$ e para $(U, B)$!
-  \textbf{2. Em 2022 B (PBS + CHT):} Um ponto $(X_i, Y_i)$ é capturado no turno $\le m$ sse $\max_{1 \le j \le m} (A_j X_i + B_j) > Y_i$! Com \textbf{Busca Binária Paralela (PBS)} em $\Ocomp{(T + P) \log P}$: em cada camada da PBS, construímos a envoltória superior (CHT estático ordenado por $A_j$) dos jogadores em $[L, mid]$ e consultamos os pontos daquele nó em $\Ocomp{1}$ amortizado (ordenando os pontos por $X_i$ uma única vez no início)!}
-  {Em 2022 B, ordenar tanto os pontos $(X_i, Y_i)$ por $X_i$ crescente quanto as retas por inclinação $A_j$ uma única vez antes da PBS elimina o fator $\log$ do CHT, fazendo o algoritmo inteiro rodar em $\Ocomp{(T + P) \log P}$ puro!}
-  {Board Game (PBS + CHT): $\Ocomp{(T + P) \log P}$ $\mid$ Espaço: $\Ocomp{T + P}$}
+  {(1) Dados $T$ pontos $(X_i, Y_i)$ e $P$ retas $y = A_j x + B_j$, achar para cada ponto a primeira reta $j$ com $Y_i < A_j X_i + B_j$; (2) Filtrar intervalos verticais $(U_j, [A_j, B_j])$ não cobertos por semirretas $x(t) = (t - T_i)S_i$ e responder queries $(T', S')$.}
+  {\textbf{1. PBS + CHT:} Um ponto $(X_i, Y_i)$ é capturado no turno $\le m$ sse $\max_{1 \le j \le m} (A_j X_i + B_j) > Y_i$. Com Busca Binária Paralela (PBS) + CHT incremental, resolvemos todas as camadas em $\Ocomp{(T + P) \log P}$. \textbf{2. Janela Espaço-Tempo:} Ordenamos os segmentos por $U_j$ e filtramos os descobertos (parando em $T_i > U_j$). Para cada query $(T', S')$, restringimos a busca por busca binária à janela $U_j \in [T', T' + X_{\max} / S']$.}
+  {Ordenar os pontos por $X_i$ antes da PBS melhora a localidade de cache no CHT.}
+  {PBS + CHT: $\Ocomp{(T + P) \log P}$ $\mid$ Espaço: $\Ocomp{T + P}$}
 
 \begin{lstlisting}
-// 1. Resolve Board Game (2022 B) em O((T + P) log P) via Busca Binaria Paralela + CHT Estatico
+/* 1. Primeira reta estritamente acima de cada ponto em O((T + P) log P) via Busca Binaria Paralela + CHT Estatico */
 vector<vi> solve_board_game_pbs(const vector<pll>& tokens, const vector<pll>& cards) {
   int T = sz(tokens), P = sz(cards);
-  // Ordena tokens por X crescente para consultar o CHT com ponteiro monotono em O(1)!
+  /* Ordena tokens por X crescente para consultar o CHT com ponteiro monotono em O(1)! */
   vi tok_ord(T); iota(all(tok_ord), 0);
   sort(all(tok_ord), [&](int i, int j) { return tokens[i].fst < tokens[j].fst; });
 
   vi lo(T, 0), hi(T, P - 1), ans(T, P);
   vector<vi> buckets(P);
 
-  // Stack para CHT estatico (inclinacao k crescente, consulta maxima)
+  /* Stack para CHT estatico (inclinacao k crescente, consulta maxima) */
   struct CLine { ll k, m; };
   auto bad = [](const CLine& l1, const CLine& l2, const CLine& l3) {
-    // Intersecao de l1 e l2 >= intersecao de l2 e l3 <=> (l2.m - l1.m)*(l3.k - l2.k) >= (l3.m - l2.m)*(l2.k - l1.k)
+    /* Intersecao de l1 e l2 >= intersecao de l2 e l3 <=> (l2.m - l1.m)*(l3.k - l2.k) >= (l3.m - l2.m)*(l2.k - l1.k) */
     return (i128)(l2.m - l1.m) * (l3.k - l2.k) >= (i128)(l3.m - l2.m) * (l2.k - l1.k);
   };
 
@@ -288,7 +286,7 @@ vector<vi> solve_board_game_pbs(const vector<pll>& tokens, const vector<pll>& ca
     }
     if (!any) break;
 
-    // Podemos usar LiChao / LineContainer incremental de 0 ate P-1 em uma unica varredura!
+    /* Podemos usar LiChao / LineContainer incremental de 0 ate P-1 em uma unica varredura! */
     LineContainer cht;
     rep(mid, 0, P) {
       cht.add(cards[mid].fst, cards[mid].snd);
@@ -300,17 +298,17 @@ vector<vi> solve_board_game_pbs(const vector<pll>& tokens, const vector<pll>& ca
     }
   }
   vector<vi> player_tokens(P);
-  rep(id, 0, T) if (ans[id] < P) player_tokens[ans[id]].pb(id + 1); // 1-based token IDs
+  rep(id, 0, T) if (ans[id] < P) player_tokens[ans[id]].pb(id + 1); /* 1-based token IDs */
   return player_tokens;
 }
 
-// 2. Resolve Joining a Marathon (2022 J) com Poda de Janela Temporal
-// Implementacao Ultra-Rapida (Otimizada c/ Poda de Janela de Tempo + Cache-Friendly) para 2022 J
+/* 2. Filtragem de semirretas espaco-tempo contra segmentos verticais
+ * Busca binaria na janela temporal ativa U in [t, t + MAX_COORD / s] */
 vi solve_joining_marathon(const vector<pll>& runners,
                           const vector<tuple<ll, ll, ll>>& photos,
                           const vector<pll>& queries) {
   int P = sz(photos), R = sz(runners), Q = sz(queries);
-  // Ordena fotos por tempo U crescente para podar U < T e U > T + MAX_X / S via binary search!
+  /* Ordena fotos por tempo U crescente para podar U < T e U > T + MAX_X / S via binary search! */
   struct Photo { int u, a, b; };
   vector<Photo> ph(P);
   rep(i, 0, P) {
@@ -319,8 +317,8 @@ vi solve_joining_marathon(const vector<pll>& runners,
   }
   sort(all(ph), [](const Photo& x, const Photo& y) { return x.u < y.u; });
 
-  // Filtra apenas as fotos que sao LIXO (nenhum dos R corredores iniciais aparece nelas)
-  // Ordena corredores por T crescente para parar assim que T_i > U
+  /* Filtra apenas as fotos que sao LIXO (nenhum dos R corredores iniciais aparece nelas)
+   * Ordena corredores por T crescente para parar assim que T_i > U */
   vector<pll> run_sorted = runners;
   sort(all(run_sorted));
   vector<Photo> trash;
@@ -342,7 +340,7 @@ vi solve_joining_marathon(const vector<pll>& runners,
   static constexpr ll MAX_COORD = 1'000'000'000LL;
   rep(q, 0, Q) {
     ll t = queries[q].fst, s = queries[q].snd;
-    // Uma foto so pode ser salva por (t, s) se t <= U <= t + MAX_COORD / s
+    /* Uma foto so pode ser salva por (t, s) se t <= U <= t + MAX_COORD / s */
     ll max_u = t + MAX_COORD / s;
     int l = (int)(lower_bound(all(trash_u), (int)min(t, (ll)INT_MAX)) - trash_u.begin());
     int r = (int)(upper_bound(all(trash_u), (int)min(max_u, (ll)INT_MAX)) - trash_u.begin());
@@ -362,19 +360,19 @@ vi solve_joining_marathon(const vector<pll>& runners,
 % ----------------------------------------------------------------------------
 \subsection{Sweep Radial, Semiplanos, Círculos e Soma de Minkowski}
 
-\subsubsection{Ordenação Polar Exata e Interseção de Intervalos Angulares (2019 D, 2019 B)}
+\subsubsection{Ordenação Polar Exata e Interseção de Intervalos Angulares}
 \algobox
-  {(1) Ordenar pontos/vetores por ângulo polar em $[-\pi, \pi)$ usando apenas inteiros (\texttt{half} + \texttt{cross}); (2) Em 2019 D (*Dazzling Stars*), decidir se existe uma direção de gravidade/impressão $\vec{g}$ tal que $\vec{g} \cdot P_i \ge \vec{g} \cdot P_j$ para todo par com $B_i > B_j$; (3) Em 2019 B (*Build the Perfect House*), achar o maior quadrado centrado em $(0,0)$ que não contém nenhum ponto no seu interior estrito.}
-  {\textbf{1. Em 2019 D:} Para cada par $(i, j)$ com $B_i > B_j$, o vetor direção $\vec{g}$ deve satisfazer $\vec{g} \cdot (P_i - P_j) \ge 0$, o que restringe o ângulo de $\vec{g}$ a um semicírculo fechado de comprimento $\pi$ centrado na direção de $\vec{v}_{ij} = P_i - P_j$! Existe $\vec{g}$ sse a interseção de todos esses semicírculos não for vazia, o que equivale a: todos os vetores $\vec{v}_{ij}$ cabem em um semicírculo fechado de abertura $\le \pi$ (basta ordenar os vetores $\vec{v}_{ij}$ radialmente e checar se existe um gap angular $\ge \pi$ entre dois vetores consecutivos, sem contar vetores exatamente opostos $\vec{v}$ e $-\vec{v}$ a menos que haja direção perpendicular comum!).
-  \textbf{2. Em 2019 B:} Como o quadrado centrado na origem tem simetria de $90^\circ$ ($\pi/2$), podemos rotacionar todos os $N$ pontos para o primeiro quadrante (ou testar o ângulo de inclinação $\theta \in [0, \pi/2)$ do quadrado)! Para um semilado $L$ fixo (distância da origem aos 4 lados do quadrado), um ponto $P_i$ a distância $r_i = |P_i|$ da origem impede os ângulos $\theta$ nos quais $|x'_i| < L$ e $|y'_i| < L$:
+  {(1) Ordenar pontos/vetores por ângulo polar em $[-\pi, \pi)$ usando apenas inteiros (\texttt{half} + \texttt{cross}); (2) Para semiplanos de direção, decidir se existe uma direção de gravidade/impressão $\vec{g}$ tal que $\vec{g} \cdot P_i \ge \vec{g} \cdot P_j$ para todo par com $B_i > B_j$; (3) Para o maior quadrado vazio, achar o maior quadrado centrado em $(0,0)$ que não contém nenhum ponto no seu interior estrito.}
+  {\textbf{1. Semiplanos de Direção:} Para cada par $(i, j)$ com $B_i > B_j$, o vetor direção $\vec{g}$ deve satisfazer $\vec{g} \cdot (P_i - P_j) \ge 0$, o que restringe o ângulo de $\vec{g}$ a um semicírculo fechado de comprimento $\pi$ centrado na direção de $\vec{v}_{ij} = P_i - P_j$! Existe $\vec{g}$ sse a interseção de todos esses semicírculos não for vazia, o que equivale a: todos os vetores $\vec{v}_{ij}$ cabem em um semicírculo fechado de abertura $\le \pi$ (basta ordenar os vetores $\vec{v}_{ij}$ radialmente e checar se existe um gap angular $\ge \pi$ entre dois vetores consecutivos, sem contar vetores exatamente opostos $\vec{v}$ e $-\vec{v}$ a menos que haja direção perpendicular comum!).
+  \textbf{2. Maior Quadrado Vazio:} Como o quadrado centrado na origem tem simetria de $90^\circ$ ($\pi/2$), podemos rotacionar todos os $N$ pontos para o primeiro quadrante (ou testar o ângulo de inclinação $\theta \in [0, \pi/2)$ do quadrado)! Para um semilado $L$ fixo (distância da origem aos 4 lados do quadrado), um ponto $P_i$ a distância $r_i = |P_i|$ da origem impede os ângulos $\theta$ nos quais $|x'_i| < L$ e $|y'_i| < L$:
   $\bullet$ Se $r_i < L$: o ponto $P_i$ está dentro do círculo inscrito no quadrado, logo fica estritamente dentro do quadrado para \textbf{qualquer} ângulo ($L$ é impossível!).
   $\bullet$ Se $r_i \ge \sqrt{2} L$: o ponto está fora do círculo circunscrito ao quadrado, logo nunca entra no quadrado!
   $\bullet$ Se $L \le r_i < \sqrt{2} L$: seja $\alpha_i = \text{atan2}(y_i, x_i) \bmod (\pi/2) \in [0, \pi/2)$ e $\delta_i = \arccos(L / r_i) \in [0, \pi/4)$. Na rotação por $\theta$, o ponto entra no quadrado sse sua distância angular aos eixos fica entre $\delta_i$ e $\frac{\pi}{2} - \delta_i$, proibindo o intervalo aberto $(\alpha_i + \delta_i - \frac{\pi}{2}, \alpha_i - \delta_i) \pmod{\pi/2}$! Fazemos Busca Binária em $L$ + União de Intervalos em $[0, \pi/2)$!}
-  {Em 2019 D, com implementação por ângulos ou produto vetorial: ordenar as direções únicas de $\vec{v}_{ij} = P_i - P_j$ radialmente; existe um semiplano contendo todos os $\vec{v}_{ij}$ sse há um salto angular $\ge \pi$ entre duas direções consecutivas $d_k$ e $d_{k+1}$ (isto é, $d_k \times d_{k+1} < 0$, ou $d_k \times d_{k+1} == 0$ com $d_k \cdot d_{k+1} < 0$ desde que todos os vetores estejam no mesmo semiplano fechado!).}
-  {Dazzling Stars: $\Ocomp{N^2 \log N}$ $\mid$ Perfect House: $\Ocomp{N \log N \cdot \text{iter}}$}
+  {Nos semiplanos de direção, com implementação por ângulos ou produto vetorial: ordenar as direções únicas de $\vec{v}_{ij} = P_i - P_j$ radialmente; existe um semiplano contendo todos os $\vec{v}_{ij}$ sse há um salto angular $\ge \pi$ entre duas direções consecutivas $d_k$ e $d_{k+1}$ (isto é, $d_k \times d_{k+1} < 0$, ou $d_k \times d_{k+1} == 0$ com $d_k \cdot d_{k+1} < 0$ desde que todos os vetores estejam no mesmo semiplano fechado!).}
+  {Semiplanos: $\Ocomp{N^2 \log N}$ $\mid$ Quadrado Vazio: $\Ocomp{N \log N \cdot \text{iter}}$}
 
 \begin{lstlisting}
-// Predicado de ordenacao polar exata em [-pi, pi) sem ponto flutuante
+/* Predicado de ordenacao polar exata em [-pi, pi) sem ponto flutuante */
 int half_plane(const Pll& p) { return p.y < 0 || (p.y == 0 && p.x < 0); }
 bool polar_cmp(const Pll& a, const Pll& b) {
   int ha = half_plane(a), hb = half_plane(b);
@@ -382,7 +380,7 @@ bool polar_cmp(const Pll& a, const Pll& b) {
   return a.cross(b) > 0;
 }
 
-// 1. Resolve Dazzling Stars (2019 D) em O(N^2 log N) com aritmetica 100% inteira
+/* 1. Verifica existencia de semiplano comum de orientacao em O(N^2 log N) com aritmetica 100% inteira */
 bool can_rotate_dazzling_stars(const vector<tuple<ll, ll, int>>& stars) {
   int n = sz(stars);
   vector<Pll> dirs;
@@ -399,8 +397,8 @@ bool can_rotate_dazzling_stars(const vector<tuple<ll, ll, int>>& stars) {
   dirs.erase(unique(all(dirs)), dirs.end());
   int m = sz(dirs);
   if (m == 1) return true;
-  // Existe um semiplano fechado que contem todos os vetores (com produto escalar >= 0)
-  // sse existe um par adjacente (dirs[i], dirs[(i+1)%m]) com giro >= 180 graus (CCW <= 0)!
+  /* Existe um semiplano fechado que contem todos os vetores (com produto escalar >= 0)
+   * sse existe um par adjacente (dirs[i], dirs[(i+1)%m]) com giro >= 180 graus (CCW <= 0)! */
   rep(i, 0, m) {
     Pll a = dirs[i], b = dirs[(i + 1) % m];
     ll cr = a.cross(b), dt = a.dot(b);
@@ -409,7 +407,7 @@ bool can_rotate_dazzling_stars(const vector<tuple<ll, ll, int>>& stars) {
   return false;
 }
 
-// 2. Resolve Build the Perfect House (2019 B) via Busca Binaria + Sweep Angular mod pi/2
+/* 2. Maior quadrado centrado na origem sem pontos internos via Busca Binaria + Sweep Angular mod pi/2 */
 ld max_perfect_house_perimeter(const vector<Pll>& plants) {
   int n = sz(plants);
   ld Period = PI / 2.0L;
@@ -422,20 +420,20 @@ ld max_perfect_house_perimeter(const vector<Pll>& plants) {
     if (a < 0) a += Period;
     alpha[i] = a;
   }
-  // Para o semilado L (perimetro = 8 * L):
-  // Sabemos que min_r / sqrt(2) <= L_opt <= min_r!
+  /* Para o semilado L (perimetro = 8 * L):
+   * Sabemos que min_r / sqrt(2) <= L_opt <= min_r! */
   auto can_place = [&](ld L) -> bool {
     vector<pair<ld, ld>> bad;
     bad.reserve(2 * n);
     rep(i, 0, n) {
       if (r[i] < L) return false;
       if (r[i] >= L * sqrtl(2.0L)) continue;
-      // Ponto entra no interior estrito (-L, L)^2 quando phi = (alpha[i] - theta) mod (pi/2)
-      // satisfaz r[i]*cos(phi) < L E r[i]*sin(phi) < L <=> delta < phi < pi/2 - delta!
+      /* Ponto entra no interior estrito (-L, L)^2 quando phi = (alpha[i] - theta) mod (pi/2)
+       * satisfaz r[i]*cos(phi) < L E r[i]*sin(phi) < L <=> delta < phi < pi/2 - delta! */
       ld delta = acosl(clamp(L / r[i], -1.0L, 1.0L));
-      ld len = Period - 2.0L * delta; // Largura do intervalo proibido
+      ld len = Period - 2.0L * delta; /* Largura do intervalo proibido */
       if (len <= 1e-13L) continue;
-      // phi in (delta, pi/2 - delta) <=> theta in (alpha[i] - (pi/2 - delta), alpha[i] - delta) mod Period
+      /* phi in (delta, pi/2 - delta) <=> theta in (alpha[i] - (pi/2 - delta), alpha[i] - delta) mod Period */
       ld l = alpha[i] - (Period - delta), h = alpha[i] - delta;
       while (l < 0) { l += Period; h += Period; }
       while (l >= Period) { l -= Period; h -= Period; }
@@ -455,9 +453,9 @@ ld max_perfect_house_perimeter(const vector<Pll>& plants) {
 }
 \end{lstlisting}
 
-\subsubsection{DP Radial de Polígonos Visíveis (2020 I — Impenetrable Wall)}
+\subsubsection{DP Radial de Polígonos Visíveis}
 \algobox
-  {Dados a casa $H$, o portão $G$ e $N \le 300$ torres, contar quantos polígonos fechados têm $G$ e um subconjunto de torres como vértices tais que: (1) $H$ é estritamente interno ao polígono; (2) todo o muro é visível a partir de $H$ (polígono estrelado que dá exatamente 1 volta em torno de $H$); (3) todos os ângulos internos nas torres são $< 180^\circ$ ($\bmod 10^9+7$, 2020 I).}
+  {Dados a casa $H$, o portão $G$ e $N \le 300$ torres, contar quantos polígonos fechados têm $G$ e um subconjunto de torres como vértices tais que: (1) $H$ é estritamente interno ao polígono; (2) todo o muro é visível a partir de $H$ (polígono estrelado que dá exatamente 1 volta em torno de $H$); (3) todos os ângulos internos nas torres são $< 180^\circ$ ($\bmod 10^9+7$).}
   {Transladamos a casa $H$ para a origem $(0, 0)$. Para que todo o muro seja visível a partir de $H$ e encerre $H$ estritamente, os vértices escolhidos $G = v_0, v_1, \dots, v_k, G$ devem progredir \textbf{estritamente no sentido anti-horário (CCW)} em torno de $H$, com cada aresta $(v_i, v_{i+1})$ dando um giro estritamente entre $0^\circ$ e $180^\circ$ vista de $H$, isto é, $\text{cross}(H, v_i, v_{i+1}) > 0$!
   E a condição de que o ângulo interno na torre $v_i$ seja $< 180^\circ$ equivale a dizer que a curva $v_{i-1} \to v_i \to v_{i+1}$ também dobra estritamente para a esquerda (CCW): $\text{cross}(v_{i-1}, v_i, v_{i+1}) > 0$!
   Logo: ordenamos todas as $N$ torres em sentido anti-horário ao redor de $H$ começando a partir do raio $H \to G$ (descartando pontos colineares com $H$ e $G$ que dariam giro $0^\circ$ ou $180^\circ$; se duas torres têm o mesmo raio a partir de $H$, não podemos usar ambas consecutivamente!). Definimos $dp[i][j]$ = número de cadeias válidas $G \to \dots \to i \to j$: para transitar de $(i, j)$ para $k > j$ (com $\text{cross}(H, j, k) > 0$), exigimos $\text{cross}(i, j, k) > 0$! Ao ordenar para cada $j$ os anteriores $i$ e os próximos $k$ radialmente em torno de $j$, dois ponteiros + soma de prefixos reduzem a transição de $\Ocomp{N^3}$ para $\Ocomp{N^2 \log N}$!}
@@ -471,14 +469,14 @@ ll count_impenetrable_walls(Pll H, Pll G, vector<Pll> towers) {
   vector<Pll> pts;
   for (auto p : towers) {
     p = p - H;
-    // Torres colineares na mesma semirreta de G nao podem ser usadas com visibilidade estrita
+    /* Torres colineares na mesma semirreta de G nao podem ser usadas com visibilidade estrita */
     if (G.cross(p) == 0 && G.dot(p) > 0) continue;
     pts.pb(p);
   }
-  // Ordena todas as torres no sentido anti-horario (CCW) comecando logo apos o vetor G
+  /* Ordena todas as torres no sentido anti-horario (CCW) comecando logo apos o vetor G */
   auto ccw_from_G = [&](const Pll& a, const Pll& b) {
     ll ca = G.cross(a), cb = G.cross(b);
-    bool ha = (ca > 0 || (ca == 0 && G.dot(a) < 0)); // 1 se a esta em (0, pi] a partir de G
+    bool ha = (ca > 0 || (ca == 0 && G.dot(a) < 0)); /* 1 se a esta em (0, pi] a partir de G */
     bool hb = (cb > 0 || (cb == 0 && G.dot(b) < 0));
     if (ha != hb) return ha > hb;
     return a.cross(b) > 0;
@@ -487,7 +485,7 @@ ll count_impenetrable_walls(Pll H, Pll G, vector<Pll> towers) {
 
   int n = sz(pts);
   pts.insert(pts.begin(), G);
-  // dp[u][v] = caminhos 0 -> ... -> u -> v (1 <= v <= n, 0 <= u < v)
+  /* dp[u][v] = caminhos 0 -> ... -> u -> v (1 <= v <= n, 0 <= u < v) */
   vector<vll> dp(n + 1, vll(n + 1, 0));
   rep(v, 1, n + 1) {
     if (pts[0].cross(pts[v]) > 0) dp[0][v] = 1;
@@ -496,12 +494,12 @@ ll count_impenetrable_walls(Pll H, Pll G, vector<Pll> towers) {
   rep(v, 1, n + 1) {
     rep(u, 0, v) if (dp[u][v] > 0) {
       ll ways = dp[u][v];
-      // Tenta fechar o poligono voltando para G (indice 0): precisa pts[v].cross(G) > 0
-      // e angulo interno em v < 180 graus (ccw(pts[u], pts[v], G) > 0)
+      /* Tenta fechar o poligono voltando para G (indice 0): precisa pts[v].cross(G) > 0
+       * e angulo interno em v < 180 graus (ccw(pts[u], pts[v], G) > 0) */
       if (u != 0 && pts[v].cross(pts[0]) > 0 && ccw(pts[u], pts[v], pts[0]) > 0) {
         ans = (ans + ways) % MOD;
       }
-      // Transita para a proxima torre w > v
+      /* Transita para a proxima torre w > v */
       rep(w, v + 1, n + 1) {
         if (pts[v].cross(pts[w]) > 0 && ccw(pts[u], pts[v], pts[w]) > 0) {
           dp[v][w] += ways;
@@ -514,18 +512,18 @@ ll count_impenetrable_walls(Pll H, Pll G, vector<Pll> towers) {
 }
 \end{lstlisting}
 
-\subsubsection{Interseção de Semiplanos em $\Ocomp{N \log N}$ e Reta-Círculo (2023 H)}
+\subsubsection{Interseção de Semiplanos em $\Ocomp{N \log N}$ e Reta-Círculo}
 \algobox
-  {(1) Calcular o polígono convexo resultante da interseção de $N$ semiplanos $\vec{n}_i \cdot X \le c_i$ (região à esquerda da reta orientada $P_i \to Q_i$) em $\Ocomp{N \log N}$; (2) Em 2023 H (*Health in Hazard*), encontrar o menor prefixo de retas que impede a origem $(0,0)$ de alcançar qualquer ponto na circunferência de raio $D$.}
-  {\textbf{Duas Formas de Resolver 2023 H:}
+  {(1) Calcular o polígono convexo resultante da interseção de $N$ semiplanos $\vec{n}_i \cdot X \le c_i$ (região à esquerda da reta orientada $P_i \to Q_i$) em $\Ocomp{N \log N}$; (2) Para bloquear a origem em raio $D$, encontrar o menor prefixo de retas que impede a origem $(0,0)$ de alcançar qualquer ponto na circunferência de raio $D$.}
+  {\textbf{Bloqueio da Origem ao Raio $D$:}
   \textbf{Método 1 (Busca Binária + Interseção de Semiplanos):} Cada reta que não passa por $(0,0)$ define um semiplano contendo $(0,0)$. O urso consegue chegar a algum ponto a distância $D$ da origem sse a interseção dos primeiros $k$ semiplanos contém algum ponto com $|P| \ge D$, o que pela convexidade equivale a: a interseção dos $k$ semiplanos é ilimitada OU possui algum vértice $V$ com $|V| \ge D$! (Para garantir que a região é sempre limitada na busca binária, adicionamos uma caixa gigante $[-2D, 2D]^2$!).
   \textbf{Método 2 ($\Ocomp{N \log N}$ Direto via Arcos ou Dual):} Basta usar Busca Binária com a struct \texttt{HalfplaneIntersection} pronta abaixo!}
-  {Na \texttt{HalfplaneIntersection}, adicionar primeiro uma *Bounding Box* de lado $M = 2 \cdot D + 10$ transforma qualquer região aberta em um polígono convexo fechado: então basta verificar se algum vértice desse polígono satisfaz $x^2 + y^2 \ge D^2$!}
+  {Na \texttt{HalfplaneIntersection}, adicionar primeiro uma \emph{Bounding Box} de lado $M = 2 \cdot D + 10$ transforma qualquer região aberta em um polígono convexo fechado: então basta verificar se algum vértice desse polígono satisfaz $x^2 + y^2 \ge D^2$!}
   {Interseção de Semiplanos: $\Ocomp{N \log N}$ $\mid$ Com Busca Binária: $\Ocomp{N \log^2 N}$}
 
 \begin{lstlisting}
 struct Halfplane {
-  Pld p, pq; // Reta passando por 'p' com direcao 'pq' (semiplano a ESQUERDA / CCW de pq)
+  Pld p, pq; /* Reta passando por 'p' com direcao 'pq' (semiplano a ESQUERDA / CCW de pq) */
   ld ang;
   Halfplane() {}
   Halfplane(Pld a, Pld b) : p(a), pq(b - a), ang(pq.angle()) {}
@@ -541,7 +539,7 @@ struct Halfplane {
   }
 };
 
-// Retorna os vertices (em CCW) da intersecao dos semiplanos (vazio se inviavel)
+/* Retorna os vertices (em CCW) da intersecao dos semiplanos (vazio se inviavel) */
 vector<Pld> halfplane_intersection(vector<Halfplane> H) {
   sort(all(H));
   deque<Halfplane> dq;
@@ -559,7 +557,7 @@ vector<Pld> halfplane_intersection(vector<Halfplane> H) {
   return poly;
 }
 
-// Resolve Health in Hazard (2023 H): Retorna 1-based indice da predicao ou -1 se "*"
+/* Menor prefixo de semiplanos que confina a origem no raio D: Retorna 1-based indice da predicao ou -1 se "*" */
 int earliest_hazard_prediction(ld D, const vector<pair<Pld, Pld>>& lines) {
   int n = sz(lines);
   ld B = 2.0L * D + 100.0L;
@@ -570,7 +568,7 @@ int earliest_hazard_prediction(ld D, const vector<pair<Pld, Pld>>& lines) {
   vector<Halfplane> all_hp(n);
   rep(i, 0, n) {
     auto [a, b] = lines[i];
-    // Orienta a -> b de modo que a origem (0,0) esteja estritamente a esquerda (CCW)
+    /* Orienta a -> b de modo que a origem (0,0) esteja estritamente a esquerda (CCW) */
     if ((b - a).cross(Pld{0, 0} - a) < 0) swap(a, b);
     all_hp[i] = Halfplane(a, b);
   }
@@ -582,7 +580,7 @@ int earliest_hazard_prediction(ld D, const vector<pair<Pld, Pld>>& lines) {
     for (const auto& v : poly) if (v.dist2() >= D2 - 1e-7L) return true;
     return false;
   };
-  if (can_reach_D(n)) return -1; // Nunca fica bloqueado ("*")
+  if (can_reach_D(n)) return -1; /* Nunca fica bloqueado ("*") */
   int lo = 1, hi = n, ans = n;
   while (lo <= hi) {
     int mid = (lo + hi) >> 1;
@@ -593,9 +591,9 @@ int earliest_hazard_prediction(ld D, const vector<pair<Pld, Pld>>& lines) {
 }
 \end{lstlisting}
 
-\subsubsection{Sweep Radial de Todas as $\binom{N}{2}$ Retas — Rotating Line (2021 A)}
+\subsubsection{Sweep Radial de Todas as $\binom{N}{2}$ Retas — Rotating Line}
 \algobox
-  {Dados $N \le 400$ pontos sem 3 colineares e área mínima $S$, contar quantos quadriláteros simples (convexos ou côncavos!) possuem vértices na entrada e área $\ge S$ (2021 A).}
+  {Dados $N \le 400$ pontos sem 3 colineares e área mínima $S$, contar quantos quadriláteros simples (convexos ou côncavos!) possuem vértices na entrada e área $\ge S$.}
   {\textbf{1. Decomposição de Quadriláteros Simples (Convexos vs. Côncavos):}
   $\bullet$ Todo conjunto de 4 pontos em posição convexa forma \textbf{exatamente 1} quadrilátero simples, que possui \textbf{2 diagonais internas} (cada diagonal separa 2 vértices de um lado e 2 do outro).
   $\bullet$ Todo conjunto de 4 pontos em posição côncava (1 ponto interno ao triângulo dos outros 3) forma \textbf{exatamente 3} quadriláteros simples (côncavos), e cada um desses 3 quadriláteros possui \textbf{exatamente 1 diagonal interna} (que separa os outros 2 vértices em lados opostos da reta suporte da diagonal) e 1 diagonal externa (onde os outros 2 vértices estão do \textbf{mesmo lado} da reta suporte e o triângulo maior contém o triângulo menor)!
@@ -608,22 +606,14 @@ int earliest_hazard_prediction(ld D, const vector<pair<Pld, Pld>>& lines) {
   {Tempo: $\Ocomp{N^2 \log N}$ (ou $\Ocomp{N^3}$ com bitset) $\mid$ Espaço: $\Ocomp{N^2}$}
 
 \begin{lstlisting}
-// Resolve Ancient Towers (2021 A) em O(N^2 log N + N^3 / 64)
+/* Contagem de quadrilateros simples com area >= S em O(N^2 log N + N^3 / 64) */
 ll count_simple_quadrilaterals_area(ll S, vector<Pll> pts) {
   int n = sz(pts);
-  ll twoS = 2 * S; // Trabalhamos com o dobro da area (inteiro exato!)
+  ll twoS = 2 * S; /* Trabalhamos com o dobro da area (inteiro exato!) */
 
-  // 1. Pre-calcula para cada raio direcionado (i -> j) o bitset dos pontos a esquerda de (i -> j)
-  static bitset<405> left_of[405][405];
-  rep(i, 0, n) rep(j, 0, n) left_of[i][j].reset();
-  rep(i, 0, n) rep(j, 0, n) if (i != j) {
-    rep(k, 0, n) if (k != i && k != j && pts[i].cross(pts[j], pts[k]) > 0)
-      left_of[i][j].set(k);
-  }
-
-  // 2. Rotating Line Sweep em O(N^2 log N) para calcular T_opp
+  /* 1. Ordena pontos por (x, y) e pre-calcula bitset left_of[i][j] dos pontos a esquerda de (i -> j) */
   sort(all(pts));
-  // Recomputa left_of apos ordenar pts por (x, y)
+  static bitset<405> left_of[405][405];
   rep(i, 0, n) rep(j, 0, n) left_of[i][j].reset();
   rep(i, 0, n) rep(j, 0, n) if (i != j) {
     rep(k, 0, n) if (k != i && k != j && pts[i].cross(pts[j], pts[k]) > 0)
@@ -657,14 +647,12 @@ ll count_simple_quadrilaterals_area(ll S, vector<Pll> pts) {
     swap(pos[u], pos[v]);
   }
 
-  // 3. Conta Q_conc: para cada par ordenado (A, B) e C a esquerda de (A -> B),
+  /* 3. Conta Q_conc: para cada par ordenado (A, B) e C a esquerda de (A -> B), */
   ll Q_conc = 0;
   vi left_list; left_list.reserve(n);
   vi rank_in_ab(n, 0);
   vll areas_ab; areas_ab.reserve(n);
 
-  // Para evitar O(N^3) bitsets, fazemos por par (A, B):
-  vector<bitset<405>> left_reindexed(n);
   rep(a, 0, n) rep(b, 0, n) if (a != b) {
     left_list.clear();
     rep(c, 0, n) if (left_of[a][b].test(c)) left_list.pb(c);
@@ -696,10 +684,10 @@ ll count_simple_quadrilaterals_area(ll S, vector<Pll> pts) {
 }
 \end{lstlisting}
 
-\subsubsection{Envoltória Convexa, Soma de Minkowski e Ponto em Polígono Convexo $\Ocomp{\log N}$ (2022 G)}
+\subsubsection{Envoltória Convexa, Soma de Minkowski e Ponto em Polígono Convexo $\Ocomp{\log N}$}
 \algobox
-  {(1) Construir a Envoltória Convexa (Monotone Chain) em $\Ocomp{N \log N}$; (2) Calcular a \textbf{Soma de Minkowski} $P + Q = \{p + q : p \in P, q \in Q\}$ de dois polígonos convexos em $\Ocomp{|P| + |Q|}$; (3) Testar se um ponto pertence a um polígono convexo (incluindo a borda) em $\Ocomp{\log N}$; (4) Em 2022 G (*Gravitational Wave Detector*), dados dois polígonos convexos $P_1, P_2$, decidir para cada ponto $q$ se existem $p_1 \in P_1, p_2 \in P_2$ colineares com $q$ tais que um dos três é ponto médio dos outros dois!}
-  {\textbf{Redução Algébrica de 2022 G para Soma de Minkowski:} Três pontos $p_1 \in P_1, p_2 \in P_2, q$ têm um deles exatamente no meio dos outros dois sse uma das 3 equações vetoriais vale:
+  {(1) Construir a Envoltória Convexa (Monotone Chain) em $\Ocomp{N \log N}$; (2) Calcular a \textbf{Soma de Minkowski} $P + Q = \{p + q : p \in P, q \in Q\}$ de dois polígonos convexos em $\Ocomp{|P| + |Q|}$; (3) Testar se um ponto pertence a um polígono convexo (incluindo a borda) em $\Ocomp{\log N}$; (4) Para pontos médios entre polígonos, dados dois polígonos convexos $P_1, P_2$, decidir para cada ponto $q$ se existem $p_1 \in P_1, p_2 \in P_2$ colineares com $q$ tais que um dos três é ponto médio dos outros dois!}
+  {\textbf{Ponto Médio via Soma de Minkowski:} Três pontos $p_1 \in P_1, p_2 \in P_2, q$ têm um deles exatamente no meio dos outros dois sse uma das 3 equações vetoriais vale:
   (1) $q$ é o ponto médio de $p_1$ e $p_2 \iff 2q = p_1 + p_2 \iff 2q \in P_1 + P_2$;
   (2) $p_1$ é o ponto médio de $q$ e $p_2 \iff q = 2p_1 - p_2 \iff q \in 2P_1 + (-P_2)$;
   (3) $p_2$ é o ponto médio de $q$ e $p_1 \iff q = 2p_2 - p_1 \iff q \in 2P_2 + (-P_1)$!
@@ -708,7 +696,7 @@ ll count_simple_quadrilaterals_area(ll S, vector<Pll> pts) {
   {Minkowski: $\Ocomp{|P| + |Q|}$ $\mid$ Query Ponto em Polígono Convexo: $\Ocomp{\log |P|}$}
 
 \begin{lstlisting}
-// Reordena poligono convexo CCW para comecar no vertice de menor (y, x)
+/* Reordena poligono convexo CCW para comecar no vertice de menor (y, x) */
 void reorder_polygon(vector<Pll>& P) {
   int pos = 0;
   rep(i, 1, sz(P)) {
@@ -717,7 +705,7 @@ void reorder_polygon(vector<Pll>& P) {
   rotate(P.begin(), P.begin() + pos, P.end());
 }
 
-// Soma de Minkowski de dois poligonos convexos CCW em O(|P| + |Q|)
+/* Soma de Minkowski de dois poligonos convexos CCW em O(|P| + |Q|) */
 vector<Pll> minkowski_sum(vector<Pll> P, vector<Pll> Q) {
   reorder_polygon(P);
   reorder_polygon(Q);
@@ -733,7 +721,7 @@ vector<Pll> minkowski_sum(vector<Pll> P, vector<Pll> Q) {
     if (cr >= 0 && i < n) ++i;
     if (cr <= 0 && j < m) ++j;
   }
-  // Remove vertices colineares internos nas arestas para permitir Point-in-Convex-Polygon O(log N)
+  /* Remove vertices colineares internos nas arestas para permitir Point-in-Convex-Polygon O(log N) */
   vector<Pll> clean;
   for (const auto& pt : res) {
     while (sz(clean) >= 2 && ccw(clean[sz(clean) - 2], clean.back(), pt) == 0)
@@ -745,8 +733,8 @@ vector<Pll> minkowski_sum(vector<Pll> P, vector<Pll> Q) {
   return clean;
 }
 
-// Testa se o ponto 'pt' pertence ao poligono convexo CCW 'P' (borda inclusa) em O(log |P|)
-// Requer que 'P' nao tenha 3 vertices colineares!
+/* Testa se o ponto 'pt' pertence ao poligono convexo CCW 'P' (borda inclusa) em O(log |P|)
+ * Requer que 'P' nao tenha 3 vertices colineares! */
 bool point_in_convex_polygon(const vector<Pll>& P, const Pll& pt) {
   int n = sz(P);
   if (n == 1) return pt == P[0];
@@ -764,17 +752,17 @@ bool point_in_convex_polygon(const vector<Pll>& P, const Pll& pt) {
   return ccw(P[idx], P[idx + 1], pt) >= 0;
 }
 
-// Resolve Gravitational Wave Detector (2022 G) em O((M1 + M2) + N log(M1 + M2))
+/* Ponto medio colinear entre dois poligonos convexos via Minkowski em O((M1 + M2) + N log(M1 + M2)) */
 string solve_gravitational_wave_detector(const vector<Pll>& P1, const vector<Pll>& P2,
                                          const vector<Pll>& queries) {
   auto scale_poly = [](vector<Pll> P, ll k) {
     for (auto& p : P) p = p * k;
-    if (k < 0) reverse(P.begin() + 1, P.end()); // Preserva orientacao CCW ao multiplicar por < 0!
+    if (k < 0) reverse(P.begin() + 1, P.end()); /* Preserva orientacao CCW ao multiplicar por < 0! */
     return P;
   };
-  vector<Pll> M1 = minkowski_sum(P1, P2);                           // P1 + P2 (testar 2*q)
-  vector<Pll> M2 = minkowski_sum(scale_poly(P1, 2), scale_poly(P2, -1)); // 2*P1 - P2 (testar q)
-  vector<Pll> M3 = minkowski_sum(scale_poly(P2, 2), scale_poly(P1, -1)); // 2*P2 - P1 (testar q)
+  vector<Pll> M1 = minkowski_sum(P1, P2); /* P1 + P2 (testar 2*q) */
+  vector<Pll> M2 = minkowski_sum(scale_poly(P1, 2), scale_poly(P2, -1)); /* 2*P1 - P2 (testar q) */
+  vector<Pll> M3 = minkowski_sum(scale_poly(P2, 2), scale_poly(P1, -1)); /* 2*P2 - P1 (testar q) */
 
   string ans(sz(queries), 'N');
   rep(i, 0, sz(queries)) {
@@ -786,5 +774,64 @@ string solve_gravitational_wave_detector(const vector<Pll>& P1, const vector<Pll
     }
   }
   return ans;
+}
+\end{lstlisting}
+
+
+\subsubsection{Geometria de Círculos: Interseções, Tangentes e Área Comum}
+\algobox
+  {Interseção Reta-Círculo, Interseção Círculo-Círculo, Tangentes a partir de ponto externo e área de interseção de dois círculos.}
+  {Projetar o centro $O$ na reta $AB$ dá o pé da perpendicular $P$; a semidistância da corda é $h = \sqrt{r^2 - |P - O|^2}$. Para dois círculos $(O_1, r_1)$ e $(O_2, r_2)$ a distância $d = |O_2 - O_1|$, a lei dos cossenos fornece $a = \frac{r_1^2 - r_2^2 + d^2}{2d}$ e $h = \sqrt{r_1^2 - a^2}$.}
+  {Tratar círculos concêntricos ($d == 0$) antes de dividir por $d$, e usar \texttt{clamp} antes de \texttt{acosl}/\texttt{sqrtl}.}
+  {Tempo: $\Ocomp{1}$ por operação}
+
+\begin{lstlisting}
+/* 1. Intersecao Reta (a, b) com Circulo (c, r): retorna 0, 1 ou 2 pontos */
+vector<Pld> circle_line_isect(Pld c, ld r, Pld a, Pld b) {
+  Pld ab = b - a, p = a + ab * ((c - a).dot(ab) / ab.dist2());
+  ld s = (c - p).dist2(), h2 = r * r - s;
+  if (h2 < -EPS) return {};
+  if (h2 < EPS) return {p};
+  Pld dir = ab * (sqrtl(max(0.0L, h2)) / ab.dist());
+  return {p - dir, p + dir};
+}
+
+/* 2. Intersecao de dois Circulos (c1, r1) e (c2, r2): retorna 0, 1 ou 2 pontos */
+vector<Pld> circle_circle_isect(Pld c1, ld r1, Pld c2, ld r2) {
+  Pld d_vec = c2 - c1;
+  ld d2 = d_vec.dist2(), d = sqrtl(d2);
+  if (d < EPS || d > r1 + r2 + EPS || d < fabsl(r1 - r2) - EPS) return {};
+  ld a = (r1 * r1 - r2 * r2 + d2) / (2.0L * d);
+  ld h2 = r1 * r1 - a * a;
+  Pld mid = c1 + d_vec * (a / d);
+  if (h2 < EPS) return {mid};
+  Pld perp = d_vec.perp() * (sqrtl(max(0.0L, h2)) / d);
+  return {mid - perp, mid + perp};
+}
+
+/* 3. Area de intersecao de dois circulos (c1, r1) e (c2, r2) */
+ld circle_circle_area(Pld c1, ld r1, Pld c2, ld r2) {
+  ld d = (c2 - c1).dist();
+  if (d >= r1 + r2) return 0.0L;
+  if (d <= fabsl(r1 - r2)) { ld rm = min(r1, r2); return PI * rm * rm; }
+  ld a1 = 2.0L * acosl(clamp((d * d + r1 * r1 - r2 * r2) / (2.0L * d * r1), -1.0L, 1.0L));
+  ld a2 = 2.0L * acosl(clamp((d * d + r2 * r2 - r1 * r1) / (2.0L * d * r2), -1.0L, 1.0L));
+  return 0.5L * r1 * r1 * (a1 - sinl(a1)) + 0.5L * r2 * r2 * (a2 - sinl(a2));
+}
+
+/* 4. Tangentes comuns a dois circulos (c1, r1) e (c2, r2) (para ponto-circulo, use r2 = 0) */
+vector<pair<Pld, Pld>> circle_tangents(Pld c1, ld r1, Pld c2, ld r2, bool inner) {
+  if (inner) r2 = -r2;
+  Pld d = c2 - c1;
+  ld dr = r1 - r2, d2 = d.dist2(), h2 = d2 - dr * dr;
+  if (d2 < EPS || h2 < -EPS) return {};
+  h2 = max(0.0L, h2);
+  vector<pair<Pld, Pld>> out;
+  for (ld sign : {-1.0L, 1.0L}) {
+    Pld v = (d * dr + d.perp() * (sqrtl(h2) * sign)) / d2;
+    out.eb(c1 + v * r1, c2 + v * r2);
+    if (h2 < EPS) break;
+  }
+  return out;
 }
 \end{lstlisting}
