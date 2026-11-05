@@ -68,6 +68,8 @@ acs-*.bib
 *.synctex.gz(busy)
 *.pdfsync
 latex.out/
+build/
+consultas/main.pdf
 
 # ================================================================
 # LATEX PACKAGES & EXTENSION ARTEFACTS
@@ -212,3 +214,4 @@ TSWLatexianTemp*
 *.tps
 ./auto/*
 *.el
+!configurações/init.el

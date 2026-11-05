@@ -1,0 +1,647 @@
+% ============================================================================
+% CAPITULO 8: FLUXO EM REDES, EMPARELHAMENTO BIPARTIDO E DUALIDADE PLANAR
+% ============================================================================
+\section{Fluxo em Redes, Emparelhamento e Dualidade Planar}
+
+% ----------------------------------------------------------------------------
+% SUBTEMA 8.1: EMPARELHAMENTO BIPARTIDO, KONIG, DILWORTH, GRAFO DE LINHA E HUNGARO
+% ----------------------------------------------------------------------------
+\subsection{Emparelhamento Bipartido, König, Dilworth, Grafo de Linha e Húngaro}
+
+\subsubsection{Hopcroft-Karp $\Ocomp{E\sqrt{V}}$, Teorema de König e Restrições de Posição (2022 H)}
+\algobox
+  {(1) Encontrar o Emparelhamento Bipartido Máximo em $\Ocomp{E\sqrt{V}}$; (2) Extrair a Cobertura Mínima por Vértices (MVC) e o Conjunto Independente Máximo (MIS) pelo Teorema de König ($|\text{MVC}| = |\text{Matching}|$, $|\text{MIS}| = V - |\text{Matching}|$); (3) Em 2022 H (*Horse Race*), reconstruir a classificação completa dos $N$ cavalos a partir dos vencedores relativos $W_i$ de cada bateria.}
+  {\textbf{1. Teorema de König (Construção da MVC):} A partir de todos os vértices não-emparelhados da esquerda $L$, fazemos uma DFS/BFS alternante (arestas fora do matching de $L \to R$, e arestas dentro do matching de $R \to L$). Então $\text{MVC} = (L \setminus \text{vis}_L) \cup (R \cap \text{vis}_R)$, e o Conjunto Independente Máximo é o complemento $\text{MIS} = (L \cap \text{vis}_L) \cup (R \setminus \text{vis}_R)$!
+  \textbf{2. Redução de 2022 H:} Na bateria $r$ com conjunto de cavalos $S_r$ e colocação vencedora $W_r$:
+  $\bullet$ O vencedor $W_r$ obrigatoriamente pertence a $S_r$, logo qualquer cavalo $h \notin S_r$ é proibido de ocupar a posição $W_r$!
+  $\bullet$ Todo cavalo $h \in S_r$ terminou em uma posição $\ge W_r$, logo seu limite inferior de posição atualiza para $\text{min\_pos}[h] = \max(\text{min\_pos}[h], W_r)$!
+  Após processar todas as baterias, montamos o grafo bipartido onde o cavalo $h$ liga na posição $p$ sse $p \ge \text{min\_pos}[h]$ e $p$ não foi proibida para $h$, e rodamos Hopcroft-Karp!}
+  {Na BFS do Hopcroft-Karp, usar distância $\infty$ nos vértices emparelhados de $L$ e parar de expandir assim que alcançar um vértice livre em $R$.}
+  {Hopcroft-Karp: $\Ocomp{E\sqrt{V}}$ $\mid$ Horse Race: $\Ocomp{\sum M_i + N^{2.5}}$}
+
+\begin{lstlisting}
+struct HopcroftKarp {
+  int nL, nR;
+  vector<vi> adj;
+  vi matchL, matchR, dist;
+
+  HopcroftKarp(int nL, int nR)
+    : nL(nL), nR(nR), adj(nL), matchL(nL, -1), matchR(nR, -1), dist(nL) {}
+
+  void add_edge(int u, int v) { adj[u].pb(v); } // 0 <= u < nL, 0 <= v < nR
+
+  bool bfs() {
+    queue<int> q;
+    bool found_aug = false;
+    rep(u, 0, nL) {
+      if (matchL[u] == -1) { dist[u] = 0; q.push(u); }
+      else dist[u] = -1;
+    }
+    while (!q.empty()) {
+      int u = q.front(); q.pop();
+      for (int v : adj[u]) {
+        int nxt = matchR[v];
+        if (nxt == -1) found_aug = true;
+        else if (dist[nxt] == -1) { dist[nxt] = dist[u] + 1; q.push(nxt); }
+      }
+    }
+    return found_aug;
+  }
+  bool dfs(int u) {
+    for (int v : adj[u]) {
+      int nxt = matchR[v];
+      if (nxt == -1 || (dist[nxt] == dist[u] + 1 && dfs(nxt))) {
+        matchL[u] = v; matchR[v] = u;
+        return true;
+      }
+    }
+    dist[u] = -1;
+    return false;
+  }
+  int max_matching() {
+    int ans = 0;
+    while (bfs()) {
+      rep(u, 0, nL) if (matchL[u] == -1 && dfs(u)) ++ans;
+    }
+    return ans;
+  }
+  // Teorema de Konig: Retorna {MVC_L, MVC_R} (Cobertura Minima por Vertices)
+  // Para Conjunto Independente Maximo (MIS), pegue os vertices que NAO estao na MVC!
+  pair<vi, vi> min_vertex_cover() {
+    vector<bool> visL(nL, false), visR(nR, false);
+    queue<int> q;
+    rep(u, 0, nL) if (matchL[u] == -1) { visL[u] = true; q.push(u); }
+    while (!q.empty()) {
+      int u = q.front(); q.pop();
+      for (int v : adj[u]) if (v != matchL[u] && !visR[v]) {
+        visR[v] = true;
+        if (matchR[v] != -1 && !visL[matchR[v]]) {
+          visL[matchR[v]] = true;
+          q.push(matchR[v]);
+        }
+      }
+    }
+    vi mvcL, mvcR;
+    rep(u, 0, nL) if (!visL[u]) mvcL.pb(u);
+    rep(v, 0, nR) if (visR[v])  mvcR.pb(v);
+    return {mvcL, mvcR};
+  }
+};
+
+// Resolve Horse Race (2022 H): Retorna o indice do cavalo (0..N-1) em cada posicao (0..N-1)
+vi solve_horse_race(int N, const vector<pair<int, vi>>& races) {
+  vi min_pos(N, 0), seen_in_race(N, -1);
+  vector<vector<bool>> can_place(N, vector<bool>(N, true));
+
+  rep(r, 0, sz(races)) {
+    int w = races[r].fst; // 0-indexed winning placement
+    for (int h : races[r].snd) {
+      seen_in_race[h] = r;
+      chmax(min_pos[h], w);
+    }
+    rep(h, 0, N) if (seen_in_race[h] != r) can_place[h][w] = false;
+  }
+  HopcroftKarp hk(N, N);
+  rep(h, 0, N) rep(p, min_pos[h], N) {
+    if (can_place[h][p]) hk.add_edge(h, p);
+  }
+  hk.max_matching();
+  return hk.matchR; // matchR[p] = cavalo alocado na colocacao p
+}
+\end{lstlisting}
+
+\subsubsection{Teorema de Dilworth (Anticadeia Máxima em Poset — 2019 A)}
+\algobox
+  {Encontrar a maior anticadeia em um Poset finito e resolver 2019 A (maior equipe de alunos onde nenhum sabe um subconjunto dos algoritmos de outro).}
+  {Pelo Teorema de Dilworth, $|\text{Maior Anticadeia}| = |V| - |\text{Max Matching}(V_{\text{out}}, V_{\text{in}})|$. Como o conjunto $V$ de subconjuntos de algoritmos ensinados é fechado para baixo ($S \in V, T \subset S \implies T \in V$), unificamos subconjuntos idênticos e executamos Hopcroft-Karp sobre as transições de submáscaras!}
+  {Indexar cada subconjunto ordenado de IDs de algoritmos para eliminar duplicatas entre professores antes de montar o grafo bipartido.}
+  {Tempo: $\Ocomp{|V| \cdot A \sqrt{|V|}}$ $\mid$ Espaço: $\Ocomp{|V| \cdot A}$}
+
+\begin{lstlisting}
+int solve_algorithm_teaching_dilworth(const vector<vector<string>>& teachers) {
+  map<string, int> algo_id;
+  auto get_id = [&](const string& s) {
+    auto [it, ins] = algo_id.try_emplace(s, sz(algo_id));
+    return it->second;
+  };
+  // Representa cada subconjunto nao-vazio como um vector<int> ordenado e hasheado
+  map<vi, int> subset_id;
+  vector<vi> states;
+
+  for (const auto& t : teachers) {
+    vi a;
+    for (const auto& s : t) a.pb(get_id(s));
+    sort(all(a));
+    int k = sz(a);
+    rep(mask, 1, 1 << k) {
+      vi sub;
+      rep(b, 0, k) if ((mask >> b) & 1) sub.pb(a[b]);
+      if (subset_id.try_emplace(sub, sz(states)).snd) states.pb(move(sub));
+    }
+  }
+  int V = sz(states);
+  HopcroftKarp hk(V, V);
+  vi tmp;
+  rep(u, 0, V) {
+    const vi& s = states[u];
+    int k = sz(s);
+    if (V <= 8000) { // Fecho transitivo completo de submascaras
+      rep(mask, 1, (1 << k) - 1) {
+        tmp.clear();
+        rep(b, 0, k) if ((mask >> b) & 1) tmp.pb(s[b]);
+        hk.add_edge(u, subset_id[tmp]);
+      }
+    } else { // Grafo de Hasse + nivel 2 (remover 1 ou 2 elementos)
+      rep(i, 0, k) {
+        tmp.clear();
+        rep(j, 0, k) if (j != i) tmp.pb(s[j]);
+        if (!tmp.empty()) hk.add_edge(u, subset_id[tmp]);
+      }
+    }
+  }
+  return V - hk.max_matching();
+}
+\end{lstlisting}
+
+\subsubsection{DP de Isomorfismo de Subárvore com Emparelhamento Bipartido (2022 F)}
+\algobox
+  {Dadas duas árvores $T_1$ (com $N_1 \le 100$ vértices) e $T_2$ (com $N_2 \le 100$ vértices), decidir se existe uma subárvore conexa de $T_1$ que é isomorfa a $T_2$ (2022 F — Favorite Tree).}
+  {Se $N_2 > N_1$, é impossível (\texttt{'N'}); se $N_2 == 1$, é sempre possível (\texttt{'Y'}).
+  Fixamos uma raiz arbitrária $r_2 = 0$ para a árvore modelo $T_2$, orientando $T_2$ como uma árvore enraizada onde cada vértice $v \in T_2$ tem conjunto de filhos $C_2(v)$.
+  Agora testamos cada vértice $r_1 \in [0, N_1 - 1]$ como a raiz correspondente em $T_1$ (ou fazemos uma única DP sobre todas as arestas direcionadas $(u, p_u)$ de $T_1$!):
+  Seja $\text{can}((u, p_u), v)$ um booleano que indica se a subárvore de $u$ (quando seu pai em $T_1$ é $p_u$, com conjunto de filhos $C_1(u, p_u)$) contém uma subárvore enraizada em $u$ isomorfa à subárvore de $v \in T_2$:
+  $\bullet$ Condição necessária: $|C_1(u, p_u)| \ge |C_2(v)|$.
+  $\bullet$ Transição: $\text{can}((u, p_u), v)$ é verdadeiro sse existe um \textbf{Emparelhamento Bipartido} de tamanho $|C_2(v)|$ que casa cada filho $y \in C_2(v)$ com um filho distinto $x \in C_1(u, p_u)$ tal que $\text{can}((x, u), y)$ é verdadeiro!
+  Ao memoizar $\text{can}(\text{dir\_edge\_id}, v)$ sobre as $2(N_1 - 1) + N_1$ estados direcionados de $T_1$ e os $N_2$ vértices de $T_2$, cada par $(x, y)$ é resolvido uma única vez, reduzindo a complexidade de $\Ocomp{N_1^2 N_2^{2.5}}$ para $\Ocomp{N_1 N_2^{2.5}}$ ($\le 1\text{ms}$)!}
+  {Não esquecer o caso base $N_2 == 1$ (retorna \texttt{true} imediatamente).}
+  {Tempo: $\Ocomp{N_1 \cdot N_2^{2.5}}$ $\mid$ Espaço: $\Ocomp{N_1 \cdot N_2}$}
+
+\begin{lstlisting}
+bool has_isomorphic_subtree(int n1, const vector<vi>& g1, int n2, const vector<vi>& g2) {
+  if (n2 > n1) return false;
+  if (n2 <= 1) return true;
+
+  // Enraiza T2 no vertice 0
+  vector<vi> ch2(n2);
+  auto dfs_t2 = [&](auto& self, int v, int p) -> void {
+    for (int y : g2[v]) if (y != p) { ch2[v].pb(y); self(self, y, v); }
+  };
+  dfs_t2(dfs_t2, 0, -1);
+
+  // Indexa todos os pares direcionados (u, p) em T1 (incluindo p = -1 para raizes)
+  map<pii, int> state_id;
+  auto get_state = [&](int u, int p) {
+    auto [it, ins] = state_id.try_emplace({u, p}, sz(state_id));
+    return it->second;
+  };
+  rep(u, 0, n1) {
+    get_state(u, -1);
+    for (int p : g1[u]) get_state(u, p);
+  }
+  int S = sz(state_id);
+  vector<vi> memo(S, vi(n2, -1));
+
+  auto solve = [&](auto& self, int u, int p, int v) -> bool {
+    int k2 = sz(ch2[v]);
+    if (k2 == 0) return true; // Folha de T2 casa com qualquer no u!
+    int k1 = sz(g1[u]) - (p != -1);
+    if (k1 < k2) return false;
+
+    int sid = state_id[{u, p}];
+    if (memo[sid][v] != -1) return memo[sid][v];
+
+    vi ch1;
+    for (int x : g1[u]) if (x != p) ch1.pb(x);
+
+    HopcroftKarp hk(k2, k1);
+    rep(i, 0, k2) {
+      int y = ch2[v][i];
+      rep(j, 0, k1) {
+        int x = ch1[j];
+        if (self(self, x, u, y)) hk.add_edge(i, j);
+      }
+    }
+    return memo[sid][v] = (hk.max_matching() == k2);
+  };
+
+  rep(r1, 0, n1) if (solve(solve, r1, -1, 0)) return true;
+  return false;
+}
+\end{lstlisting}
+
+\subsubsection{Reconstrução de Grafo de Linha Bipartido e Matching (2024 D — Diverse T-Shirts)}
+\algobox
+  {Dada a matriz $A$ ($N \times N$) de conflitos entre modelos de camisetas que compartilham cor de texto ou cor de fundo, encontrar o maior conjunto independente de modelos (2024 D).}
+  {Cada modelo $i$ é uma aresta de um grafo bipartido oculto $H = (L_{\text{texto}}, R_{\text{fundo}}, E)$, e a matriz $A$ é o Grafo de Linha $L(H)$. Como $H$ é bipartido ($K_3$-free), toda aresta $\{i, j\}$ com $A_{i,j} = 1$ determina unicamente a clique maximal $C = \{i, j\} \cup (N(i) \cap N(j))$! Extraímos as cliques via bitset, 2-colorimos o grafo de cliques e rodamos Hopcroft-Karp!}
+  {Adicionar cliques unitárias até que cada modelo pertença a exatamente 2 cliques (1 de linha e 1 de coluna).}
+  {Tempo: $\Ocomp{N^3 / 64 + N\sqrt{N}}$ $\mid$ Espaço: $\Ocomp{N^2 / 64}$}
+
+\begin{lstlisting}
+int solve_diverse_tshirts_line_graph(int N, const vector<string>& A_str) {
+  vector<bitset<1005>> adj(N);
+  rep(i, 0, N) rep(j, 0, N) if (A_str[i][j] == '1') adj[i].set(j);
+
+  vector<vector<bool>> edge_covered(N, vector<bool>(N, false));
+  vector<vi> cliques;
+  vector<vi> cliques_of_node(N);
+
+  // 1. Extrai todas as cliques de tamanho >= 2 usando C(i, j) = {i, j} U (N(i) & N(j))
+  rep(i, 0, N) rep(j, i + 1, N) {
+    if (A_str[i][j] == '1' && !edge_covered[i][j]) {
+      bitset<1005> common = adj[i] & adj[j];
+      vi clq = {i, j};
+      for (int k = common._Find_first(); k < N; k = common._Find_next(k)) clq.pb(k);
+      int cid = sz(cliques);
+      for (int u : clq) {
+        cliques_of_node[u].pb(cid);
+        for (int v : clq) if (u != v) edge_covered[u][v] = true;
+      }
+      cliques.pb(move(clq));
+    }
+  }
+  // 2. Qualquer no i que pertence a < 2 cliques ganha cliques unitarias {i} ate ter 2 cliques
+  rep(i, 0, N) {
+    while (sz(cliques_of_node[i]) < 2) {
+      int cid = sz(cliques);
+      cliques.pb({i});
+      cliques_of_node[i].pb(cid);
+    }
+  }
+  // 3. Biparticiona as cliques em L (cor 0) e R (cor 1): cada modelo i eh uma aresta
+  //    que conecta cliques_of_node[i][0] e cliques_of_node[i][1]!
+  int C = sz(cliques);
+  vector<vi> c_adj(C);
+  rep(i, 0, N) {
+    int c1 = cliques_of_node[i][0], c2 = cliques_of_node[i][1];
+    c_adj[c1].pb(c2); c_adj[c2].pb(c1);
+  }
+  vi color(C, -1);
+  rep(c, 0, C) if (color[c] == -1) {
+    queue<int> q; q.push(c); color[c] = 0;
+    while (!q.empty()) {
+      int u = q.front(); q.pop();
+      for (int v : c_adj[u]) if (color[v] == -1) {
+        color[v] = color[u] ^ 1;
+        q.push(v);
+      }
+    }
+  }
+  // 4. Monta o grafo bipartido H e retorna o Maximum Bipartite Matching!
+  HopcroftKarp hk(C, C);
+  rep(i, 0, N) {
+    int c1 = cliques_of_node[i][0], c2 = cliques_of_node[i][1];
+    if (color[c1] == 1) swap(c1, c2);
+    hk.add_edge(c1, c2);
+  }
+  return hk.max_matching();
+}
+\end{lstlisting}
+
+\subsubsection{Algoritmo Húngaro em $\Ocomp{N^3}$ (Assignment Problem — 2021 H)}
+\algobox
+  {(1) Encontrar o Emparelhamento Bipartido Perfeito de Custo Mínimo em uma matriz $n \times m$ ($n \le m$) em $\Ocomp{n^2 m}$; (2) Em 2021 H (*Hamilton The Musical*), dado que as posições pares da permutação $P_1, \dots, P_N$ já estão fixadas como $P_{2k} = 2k$, alocar as cidades ímpares nas posições ímpares minimizando o comprimento total $\sum_{i=1}^{N-1} L_{P_i, P_{i+1}}$.}
+  {\textbf{Redução de 2021 H para o Algoritmo Húngaro:}
+  Como todas as posições pares $P_2 = 2, P_4 = 4, \dots$ já estão fixadas, colocar uma cidade ímpar $u \in \{1, 3, 5, \dots\}$ na posição ímpar $2k - 1$ conecta $u$ diretamente aos seus vizinhos pares fixos $P_{2k-2} = 2k - 2$ (se $2k - 2 \ge 2$) e $P_{2k} = 2k$ (se $2k \le N$), gerando um custo \textbf{100\% independente das outras escolhas ímpares}:
+  $$\text{cost}(k, u) = (2k - 2 \ge 2 ? L_{2k-2, u} : 0) + (2k \le N ? L_{u, 2k} : 0)$$
+  Logo, basta montar a matriz $\lceil N/2 \rceil \times \lceil N/2 \rceil$ entre os slots ímpares e as cidades ímpares e rodar o \textbf{Algoritmo Húngaro} em $\Ocomp{N^3}$!}
+  {O template abaixo usa indexação 1-based interna (\texttt{1..n}, \texttt{1..m}), mas recebe uma matriz 0-based \texttt{cost[0..n-1][0..m-1]} e retorna \texttt{\{min\_cost, matchL\}} em $\Ocomp{n^2 m}$ com potenciais de Jonker-Volgenant/Kuhn-Munkres.}
+  {Tempo: $\Ocomp{N^2 M}$ $\mid$ Espaço: $\Ocomp{NM}$}
+
+\begin{lstlisting}
+// Algoritmo Hungaro (Min-Cost Perfect Matching) para matriz n x m (n <= m, 0-indexed na entrada)
+// Retorna {custo_minimo, vetor ans de tamanho n onde ans[i] = coluna casada com a linha i}
+pair<ll, vi> hungarian_min_cost(const vector<vll>& cost) {
+  int n = sz(cost), m = sz(cost[0]);
+  static constexpr ll INF = LLONG_MAX / 4;
+  vll u(n + 1, 0), v(m + 1, 0);
+  vi p(m + 1, 0), way(m + 1, 0);
+
+  rep(i, 1, n + 1) {
+    p[0] = i;
+    int j0 = 0;
+    vll minv(m + 1, INF);
+    vector<bool> used(m + 1, false);
+    do {
+      used[j0] = true;
+      int i0 = p[j0], j1 = 0;
+      ll delta = INF;
+      rep(j, 1, m + 1) if (!used[j]) {
+        ll cur = cost[i0 - 1][j - 1] - u[i0] - v[j];
+        if (cur < minv[j]) { minv[j] = cur; way[j] = j0; }
+        if (minv[j] < delta) { delta = minv[j]; j1 = j; }
+      }
+      rep(j, 0, m + 1) {
+        if (used[j]) { u[p[j]] += delta; v[j] -= delta; }
+        else minv[j] -= delta;
+      }
+      j0 = j1;
+    } while (p[j0] != 0);
+    do {
+      int j1 = way[j0];
+      p[j0] = p[j1];
+      j0 = j1;
+    } while (j0);
+  }
+  vi match_col(n);
+  rep(j, 1, m + 1) if (p[j] > 0) match_col[p[j] - 1] = j - 1;
+  return {-v[0], match_col};
+}
+
+// Resolve Hamilton The Musical (2021 H) em O((N/2)^3)
+ll solve_hamilton_musical(int N, const vector<vll>& L) {
+  vi odd_cities, odd_slots;
+  for (int i = 1; i <= N; i += 2) { odd_cities.pb(i - 1); odd_slots.pb(i); }
+  int K = sz(odd_cities);
+  vector<vll> mat(K, vll(K, 0));
+  rep(i, 0, K) {
+    int pos = odd_slots[i]; // 1-based position in the path
+    rep(j, 0, K) {
+      int u = odd_cities[j];
+      ll c = 0;
+      if (pos - 1 >= 1) c += L[pos - 2][u]; // Aresta de P_{pos-1} = pos-1 para u
+      if (pos + 1 <= N) c += L[u][pos];     // Aresta de u para P_{pos+1} = pos+1
+      mat[i][j] = c;
+    }
+  }
+  return hungarian_min_cost(mat).fst;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+% SUBTEMA 8.2: FLUXO MAXIMO (DINIC), MCMF E CORTE MINIMO NO DUAL PLANAR
+% ----------------------------------------------------------------------------
+\subsection{Fluxo Máximo (Dinic), MCMF e Corte Mínimo no Grafo Dual Planar}
+
+\subsubsection{Algoritmo de Dinic, Saltos Finitos/Infinitos (2020 H) e Min-Cost Max-Flow}
+\algobox
+  {(1) Calcular Fluxo Máximo e Corte Mínimo ($s$-$t$ Min-Cut) em $\Ocomp{V^2 E}$ via Dinic; (2) Em 2020 H (*Halting Wolf*), determinar o número máximo de vezes que a instrução 1 pode ser executada em um programa com saltos finitos (arestas consumíveis) e saltos infinitos (arestas de capacidade $\infty$); (3) Min-Cost Max-Flow (MCMF) com SPFA/Potenciais.}
+  {\textbf{Modelagem de 2020 H (Halting Wolf) com Dinic:}
+  Queremos contar quantos ciclos começando na instrução $1$ e voltando à instrução $1$ podem ser percorridos (somando $+1$ pela execução inicial da instrução $1$ ao ligar o programa!).
+  Dividimos o nó $1$ em \textbf{Fonte $S = 1_{\text{out}}$} (saída da instrução 1) e \textbf{Sorvedouro $T = 1_{\text{in}}$} (retorno à instrução 1):
+  $\bullet$ Se uma instrução $u$ é um salto finito com lista $L_1, \dots, L_K$: para cada destino $v = L_j$, adicionamos uma aresta direcionada $u \to (v == 1 ? T : v)$ de \textbf{capacidade $1$}! (Se $u == 1$ e $v == 1$, é uma aresta direta $S \to T$ de capacidade 1!).
+  $\bullet$ Se uma instrução $u$ é um salto infinito \texttt{* L}: adicionamos uma aresta direcionada $u \to (L == 1 ? T : L)$ de \textbf{capacidade $\infty$}!
+  O fluxo máximo $F$ de $S$ para $T$ conta exatamente o número máximo de retornos à instrução $1$:
+  - Se $F \ge \infty$, a instrução 1 pode ser executada infinitas vezes (retornar \texttt{*})!
+  - Se $F < \infty$, o total máximo de execuções da instrução 1 é \textbf{$F + 1$} (a execução inicial na largada mais os $F$ retornos)!}
+  {Em 2020 H, um ciclo de saltos infinitos entre outros vértices ($2 \leftrightarrow 4$) que não alcança nem vem de $1$ com capacidade infinita NÃO torna a resposta infinita: o Fluxo Máximo de $S = 1_{\text{out}}$ para $T = 1_{\text{in}}$ trata isso automaticamente!}
+  {Dinic: $\Ocomp{V^2 E}$ (ou $\Ocomp{E\sqrt{V}}$ unitário) $\mid$ MCMF: $\Ocomp{F \cdot E \log V}$}
+
+\begin{lstlisting}
+struct Dinic {
+  struct Edge { int to, rev; ll cap; };
+  int n;
+  vector<vector<Edge>> adj;
+  vi lvl, ptr;
+
+  Dinic(int n) : n(n), adj(n), lvl(n), ptr(n) {}
+
+  void add_edge(int u, int v, ll cap, ll rcap = 0) {
+    adj[u].pb({v, sz(adj[v]), cap});
+    adj[v].pb({u, sz(adj[u]) - 1, rcap});
+  }
+  bool bfs(int s, int t) {
+    fill(all(lvl), -1);
+    lvl[s] = 0;
+    queue<int> q; q.push(s);
+    while (!q.empty()) {
+      int u = q.front(); q.pop();
+      for (const auto& e : adj[u]) if (e.cap > 0 && lvl[e.to] == -1) {
+        lvl[e.to] = lvl[u] + 1;
+        q.push(e.to);
+      }
+    }
+    return lvl[t] != -1;
+  }
+  ll dfs(int u, int t, ll pushed) {
+    if (pushed == 0 || u == t) return pushed;
+    for (int& cid = ptr[u]; cid < sz(adj[u]); ++cid) {
+      auto& e = adj[u][cid];
+      if (lvl[e.to] != lvl[u] + 1 || e.cap == 0) continue;
+      ll tr = dfs(e.to, t, min(pushed, e.cap));
+      if (tr == 0) continue;
+      e.cap -= tr;
+      adj[e.to][e.rev].cap += tr;
+      return tr;
+    }
+    return 0;
+  }
+  ll max_flow(int s, int t) {
+    ll flow = 0;
+    while (bfs(s, t)) {
+      fill(all(ptr), 0);
+      while (ll pushed = dfs(s, t, LLONG_MAX / 4)) flow += pushed;
+    }
+    return flow;
+  }
+  // Retorna true se u pertence ao lado de 's' no Corte Minimo (apos rodar max_flow)
+  bool in_source_side(int u) const { return lvl[u] != -1; }
+};
+
+// Resolve Halting Wolf (2020 H): retorna -1 se infinito ("*"), ou o maximo de execucoes de 1
+ll solve_halting_wolf(int N, const vector<pair<bool, vi>>& inst) {
+  // inst[u] (0-indexed): {is_infinite, lista_de_destinos_0_indexed}
+  static constexpr ll INF_CAP = 1'000'000'000LL;
+  int S = 0, T = N; // 0 = saida da inst 1; N = retorno a inst 1
+  Dinic dinic(N + 1);
+  rep(u, 0, N) {
+    bool is_inf = inst[u].fst;
+    for (int v : inst[u].snd) {
+      int dst = (v == 0 ? T : v);
+      dinic.add_edge(u, dst, is_inf ? INF_CAP : 1);
+    }
+  }
+  ll f = dinic.max_flow(S, T);
+  return (f >= INF_CAP) ? -1 : (f + 1);
+}
+
+// 2. Min-Cost Max-Flow (MCMF) com Potenciais de Johnson + Dijkstra em O(F * E log V)
+struct MCMF {
+  static constexpr ll INF = LLONG_MAX / 4;
+  struct Edge { int to, rev; ll cap, cost; };
+  int n;
+  vector<vector<Edge>> adj;
+  vll pot, dist;
+  vi par_u, par_e;
+
+  MCMF(int n) : n(n), adj(n), pot(n, 0), dist(n), par_u(n), par_e(n) {}
+
+  void add_edge(int u, int v, ll cap, ll cost) {
+    adj[u].pb({v, sz(adj[v]), cap, cost});
+    adj[v].pb({u, sz(adj[u]) - 1, 0, -cost});
+  }
+  // Inicializa potenciais com Bellman-Ford / SPFA (necessario apenas se houver custos negativos iniciais)
+  void init_potentials(int s) {
+    fill(all(pot), INF); pot[s] = 0;
+    vector<bool> inq(n, false);
+    queue<int> q; q.push(s); inq[s] = true;
+    while (!q.empty()) {
+      int u = q.front(); q.pop(); inq[u] = false;
+      for (const auto& e : adj[u]) if (e.cap > 0 && chmin(pot[e.to], pot[u] + e.cost)) {
+        if (!inq[e.to]) { inq[e.to] = true; q.push(e.to); }
+      }
+    }
+  }
+  bool dijkstra(int s, int t) {
+    fill(all(dist), INF); dist[s] = 0;
+    priority_queue<pll, vector<pll>, greater<pll>> pq;
+    pq.push({0, s});
+    while (!pq.empty()) {
+      auto [d, u] = pq.top(); pq.pop();
+      if (d > dist[u]) continue;
+      rep(i, 0, sz(adj[u])) {
+        const auto& e = adj[u][i];
+        ll nd = d + e.cost + pot[u] - pot[e.to];
+        if (e.cap > 0 && chmin(dist[e.to], nd)) {
+          par_u[e.to] = u; par_e[e.to] = i;
+          pq.push({nd, e.to});
+        }
+      }
+    }
+    return dist[t] < INF;
+  }
+  pll min_cost_max_flow(int s, int t, ll max_f = INF) {
+    ll flow = 0, cost = 0;
+    while (flow < max_f && dijkstra(s, t)) {
+      rep(i, 0, n) if (dist[i] < INF) pot[i] += dist[i];
+      ll push = max_f - flow;
+      for (int v = t; v != s; v = par_u[v])
+        chmin(push, adj[par_u[v]][par_e[v]].cap);
+      for (int v = t; v != s; v = par_u[v]) {
+        auto& e = adj[par_u[v]][par_e[v]];
+        e.cap -= push;
+        adj[v][e.rev].cap += push;
+      }
+      flow += push;
+      cost += push * pot[t];
+    }
+    return {flow, cost};
+  }
+};
+\end{lstlisting}
+
+\subsubsection{Corte Mínimo no Grafo Dual Planar + Busca Ternária (2025 G)}
+\algobox
+  {Em um grid $N \times M$ onde cada bloco tem capacidade afim $w_{rc}(t) = C_{rc} + t R_{rc} \ge 0$ ($t \in [0, K]$) e cabos conectam blocos adjacentes, maximizar o fluxo de $(1,1)$ a $(N,M)$ (2025 G).}
+  {Para $t$ fixo, o fluxo máximo é o corte mínimo de blocos $F(t) = \min_S \sum_{(r,c)\in S}(C_{rc} + t R_{rc})$, que é uma função côncava de $t$ (mínimo de funções afins), maximizada por Busca Ternária em $[0, K]$. Para avaliar $F(t)$, modelamos o Grafo Dual Bloco-Canto: cada bloco $(r, c)$ conecta seus 4 cantos com peso $w_{rc}(t)$, e cada fronteira sem cabo conecta seus 2 cantos com peso 0; $F(t)$ é a menor distância (Dijkstra) da borda Nordeste à borda Sudoeste!}
+  {Incluir os blocos $(0,0)$ e $(N-1, M-1)$ normalmente: a fronteira Nordeste contorna $(0, y \ge 1)$ e $(x < N, M)$, e a Sudoeste contorna $(x \ge 1, 0)$ e $(N, y < M)$.}
+  {Tempo: $\Ocomp{NM \log(NM) \log K}$ $\mid$ Espaço: $\Ocomp{NM}$}
+
+\begin{lstlisting}
+ll solve_gridoland_power_gauge(int N, int M, ll K,
+                               const vector<vll>& C, const vector<vll>& R,
+                               const vector<tuple<int, int, int, int>>& cables) {
+  vector<vector<bool>> has_h(N, vector<bool>(M, false)), has_v(N, vector<bool>(M, false));
+  for (auto [r1, c1, r2, c2] : cables) {
+    --r1; --c1; --r2; --c2; // Converte para 0-based
+    if (r1 == r2) has_v[r1][max(c1, c2)] = true;
+    else          has_h[max(r1, r2)][c1] = true;
+  }
+
+  int C_NODES = (N + 1) * (M + 1), B_NODES = N * M;
+  int S_DUAL = C_NODES + B_NODES, T_DUAL = S_DUAL + 1, TOT_V = T_DUAL + 1;
+  auto corner_id = [&](int x, int y) { return x * (M + 1) + y; };
+  auto block_id  = [&](int r, int c) { return C_NODES + r * M + c; };
+
+  // Pre-constroi a topologia estatica do grafo dual (pesos dos blocos dependem de t)
+  vector<vi> zero_adj(C_NODES); // Arestas de custo 0 entre cantos onde NAO ha cabo
+  rep(r, 1, N) rep(c, 0, M) if (!has_h[r][c]) {
+    int u = corner_id(r, c), v = corner_id(r, c + 1);
+    zero_adj[u].pb(v); zero_adj[v].pb(u);
+  }
+  rep(r, 0, N) rep(c, 1, M) if (!has_v[r][c]) {
+    int u = corner_id(r, c), v = corner_id(r + 1, c);
+    zero_adj[u].pb(v); zero_adj[v].pb(u);
+  }
+
+  vector<bool> is_S_corner(C_NODES, false), is_T_corner(C_NODES, false);
+  rep(y, 1, M + 1) is_S_corner[corner_id(0, y)] = true;
+  rep(x, 0, N)     is_S_corner[corner_id(x, M)] = true;
+  rep(x, 1, N + 1) is_T_corner[corner_id(x, 0)] = true;
+  rep(y, 0, M)     is_T_corner[corner_id(N, y)] = true;
+
+  // Avalia o Corte Minimo F(t) no instante t via Dijkstra Node-Weighted em O(NM log(NM))
+  vll dist(TOT_V);
+  auto eval_flow = [&](ll t) -> ll {
+    static constexpr ll INF = LLONG_MAX / 4;
+    fill(all(dist), INF);
+    priority_queue<pll, vector<pll>, greater<pll>> pq;
+
+    rep(u, 0, C_NODES) if (is_S_corner[u]) {
+      dist[u] = 0;
+      pq.push({0, u});
+    }
+    while (!pq.empty()) {
+      auto [d, u] = pq.top(); pq.pop();
+      if (d > dist[u]) continue;
+      if (u < C_NODES && is_T_corner[u]) return d; // Alcancou a fronteira Sudoeste!
+
+      if (u < C_NODES) {
+        // u eh um canto (x, y):
+        // 1) Arestas de custo 0 para cantos adjacentes sem cabo
+        for (int v : zero_adj[u]) if (chmin(dist[v], d)) pq.push({d, v});
+        // 2) Entrar em qualquer um dos ate 4 blocos adjacentes ao canto (x, y) pagando w_{r,c}(t)
+        int x = u / (M + 1), y = u % (M + 1);
+        for (int r : {x - 1, x}) for (int c : {y - 1, y}) {
+          if (r >= 0 && r < N && c >= 0 && c < M) {
+            int b = block_id(r, c);
+            ll w = C[r][c] + t * R[r][c];
+            if (chmin(dist[b], d + w)) pq.push({d + w, b});
+          }
+        }
+      } else {
+        // u eh um bloco (r, c): sai com custo 0 para qualquer um dos seus 4 cantos!
+        int idx = u - C_NODES, r = idx / M, c = idx % M;
+        for (int cx : {r, r + 1}) for (int cy : {c, c + 1}) {
+          int v = corner_id(cx, cy);
+          if (chmin(dist[v], d)) pq.push({d, v});
+        }
+      }
+    }
+    return 0;
+  };
+
+  // Busca Ternaria Inteira sobre t in [0, K] para maximizar a funcao concava F(t)
+  ll lo = 0, hi = K;
+  while (hi - lo > 3) {
+    ll m1 = lo + (hi - lo) / 3;
+    ll m2 = hi - (hi - lo) / 3;
+    if (eval_flow(m1) < eval_flow(m2)) lo = m1 + 1;
+    else                               hi = m2 - 1;
+  }
+  ll best = 0;
+  for (ll t = lo; t <= hi; ++t) chmax(best, eval_flow(t));
+  return best;
+}
+\end{lstlisting}
+
+\subsubsection{Fluxo com Demandas Mínimas (Lower Bounds nas Arestas)}
+\algobox
+  {Encontrar uma circulação viável ou fluxo $s$-$t$ onde cada aresta $e = (u, v)$ exige fluxo no intervalo $[l_e, r_e]$ ($0 \le l_e \le r_e$).}
+  {Impõe o fluxo base $l_e$ em cada aresta, criando uma capacidade residual $r_e - l_e$ e um balanço de excesso $B[v] += l_e, B[u] -= l_e$ nos vértices. Conecta uma Super-Fonte $S^*$ a todo $v$ com $B[v] > 0$ (capacidade $B[v]$) e todo $u$ com $B[u] < 0$ a um Super-Sorvedouro $T^*$ (capacidade $-B[u]$). Para fluxo $s$-$t$, adiciona a aresta de retorno $(t \to s, \infty)$: existe fluxo viável sse o fluxo máximo de $S^*$ a $T^*$ satura todas as arestas de $S^*$ ($\sum_{B[v]>0} B[v]$)!}
+  {Para maximizar o fluxo de $s$ a $t$ após achar uma solução viável com $(t \to s, \infty)$, basta ler o fluxo que passou na aresta $(t \to s)$, remover a aresta $(t \to s)$ e rodar \texttt{dinic.max\_flow(s, t)} no grafo residual!}
+  {Tempo: $\Ocomp{V^2 E}$ $\mid$ Espaço: $\Ocomp{V + E}$}
+
+\begin{lstlisting}
+struct LowerBoundFlow {
+  int n, S_star, T_star;
+  Dinic dinic;
+  vll bal;
+  ll sum_pos = 0;
+
+  LowerBoundFlow(int n) : n(n), S_star(n), T_star(n + 1), dinic(n + 2), bal(n, 0) {}
+
+  void add_edge(int u, int v, ll lo, ll hi) {
+    bal[u] -= lo; bal[v] += lo;
+    dinic.add_edge(u, v, hi - lo);
+  }
+  // Verifica se existe circulacao (ou fluxo s-t se passar s != -1 e t != -1) viavel
+  bool has_feasible_flow(int s = -1, int t = -1) {
+    if (s != -1 && t != -1) dinic.add_edge(t, s, LLONG_MAX / 4);
+    rep(i, 0, n) {
+      if (bal[i] > 0) { dinic.add_edge(S_star, i, bal[i]); sum_pos += bal[i]; }
+      else if (bal[i] < 0) dinic.add_edge(i, T_star, -bal[i]);
+    }
+    return dinic.max_flow(S_star, T_star) == sum_pos;
+  }
+};
+\end{lstlisting}

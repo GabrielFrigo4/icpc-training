@@ -1,0 +1,1105 @@
+% ============================================================================
+% CAPITULO 3: ESTRUTURAS DE DADOS
+% ============================================================================
+\section{Estruturas de Dados}
+
+% ----------------------------------------------------------------------------
+% SUBTEMA 3.1: PILHA, PILHA MONOTONICA, HISTOGRAMAS 1D/2D E SERIE HARMONICA
+% ----------------------------------------------------------------------------
+\subsection{Pilha, Pilha Monotônica, Histogramas 1D/2D e Série Harmônica}
+
+\subsubsection{Emparelhamento Planar na Borda de Retângulo via Pilha}
+\algobox
+  {Verificar se $N$ pares de pontos da mesma cor em um retângulo $[0, W] \times [0, H]$ podem ser ligados por curvas contínuas sem cruzamentos (2021 J).}
+  {Qualquer ponto estritamente no interior do retângulo pode ser roteado livremente pelo plano ao redor dos demais. O único obstáculo topológico ocorre para pares onde \textbf{ambas} as extremidades pertencem à borda do retângulo! Mapeamos cada ponto da borda para um escalar 1D $t \in [0, 2(W+H))$ percorrendo o perímetro em sentido horário, ordenamos os pontos de borda desses pares por $t$ e testamos se a sequência de cores forma uma expressão de parênteses balanceada usando uma Pilha ($A \dots B \dots A \dots B$ se cruzam!).}
+  {Ignorar pares que tenham pelo menos 1 extremidade estritamente interna ($0 < x < W$ e $0 < y < H$). Usar \texttt{long long} no perímetro pois $W, H \le 10^9$.}
+  {Tempo: $\Ocomp{N \log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+bool can_join_pairs_in_rect(ll W, ll H, const vector<tuple<ll, ll, ll, ll>>& pairs) {
+  auto on_border = [&](ll x, ll y) {
+    return x == 0 || x == W || y == 0 || y == H;
+  };
+  auto perim_pos = [&](ll x, ll y) -> ll {
+    if (y == 0) return x;                     // Base: (0,0) -> (W,0)
+    if (x == W) return W + y;                 // Direita: (W,0) -> (W,H)
+    if (y == H) return W + H + (W - x);       // Topo: (W,H) -> (0,H)
+    return 2 * W + H + (H - y);               // Esquerda: (0,H) -> (0,0)
+  };
+  vector<pair<ll, int>> evs;
+  rep(i, 0, sz(pairs)) {
+    auto [x1, y1, x2, y2] = pairs[i];
+    if (on_border(x1, y1) && on_border(x2, y2)) {
+      evs.eb(perim_pos(x1, y1), i);
+      evs.eb(perim_pos(x2, y2), i);
+    }
+  }
+  sort(all(evs));
+  vi st;
+  for (auto [pos, id] : evs) {
+    if (!st.empty() && st.back() == id) st.pop_back();
+    else st.pb(id);
+  }
+  return st.empty();
+}
+\end{lstlisting}
+
+\subsubsection{Pilha Monotônica (NGE/PGE) e Alcance de Visibilidade}
+\algobox
+  {(1) Encontrar para cada índice $i$ o primeiro elemento maior/menor à esquerda ($L_i$) e à direita ($R_i$); (2) Contar para cada prédio $i$ quantos prédios $j$ valem a pena visitar ($\nexists k$ com $|i-k| \le |i-j|$ e $H_k > H_j$, 2020 E).}
+  {Um prédio $j$ vale a pena ser visitado a partir de $i$ sse $H_j > H_i$ e não há prédio mais alto que $j$ mais perto ou à mesma distância de $i$. Isso equivale a: $i$ deve estar entre $j$ e o primeiro prédio maior que $j$, sendo estritamente mais próximo de $j$ do que desse bloqueador! Assim, em vez de contar a partir de $i$, invertemos a perspectiva: cada prédio $j$ acha seu primeiro maior à esquerda $L_j$ e à direita $R_j$ via Pilha Monotônica e soma $+1$ (via Array de Diferenças) ao intervalo de índices $i$ que conseguem olhar para $j$: à esquerda de $j$, $i \in [\lfloor(L_j + j)/2\rfloor + 1, j - 1]$ (ou $[0, j-1]$ se $L_j = -1$); à direita de $j$, $i \in [j + 1, \lceil(j + R_j)/2\rceil - 1]$ (ou $[j+1, N-1]$ se $R_j = N$).}
+  {Atenção ao empate de distância $|i - L_j| = |i - j|$: a condição do problema proíbe $k$ com $|i-k| \le |i-j|$, logo o ponto médio exato entre $j$ e seu bloqueador $L_j$ ou $R_j$ NÃO pode visitar $j$!}
+  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+// Retorna {L, R} onde L[i] = maior indice < i com H[L[i]] > H[i] (-1 se nao existe)
+// e R[i] = menor indice > i com H[R[i]] > H[i] (n se nao existe)
+pair<vi, vi> prev_next_greater(const vi& H) {
+  int n = sz(H);
+  vi L(n, -1), R(n, n), st;
+  rep(i, 0, n) {
+    while (!st.empty() && H[st.back()] <= H[i]) st.pop_back();
+    if (!st.empty()) L[i] = st.back();
+    st.pb(i);
+  }
+  st.clear();
+  for (int i = n - 1; i >= 0; --i) {
+    while (!st.empty() && H[st.back()] <= H[i]) st.pop_back();
+    if (!st.empty()) R[i] = st.back();
+    st.pb(i);
+  }
+  return {L, R};
+}
+
+// Resolve Excellent Views (2020 E) em O(N)
+vi excellent_views_count(const vi& H) {
+  int n = sz(H);
+  auto [L, R] = prev_next_greater(H);
+  vi diff(n + 1, 0);
+  auto add_range = [&](int l, int r) {
+    if (l <= r) { diff[l]++; diff[r + 1]--; }
+  };
+  rep(j, 0, n) {
+    int left_lim = (L[j] == -1) ? 0 : (L[j] + j) / 2 + 1;
+    add_range(left_lim, j - 1);
+    int right_lim = (R[j] == n) ? n - 1 : (j + R[j] - 1) / 2;
+    add_range(j + 1, right_lim);
+  }
+  vi ans(n);
+  int cur = 0;
+  rep(i, 0, n) { cur += diff[i]; ans[i] = cur; }
+  return ans;
+}
+\end{lstlisting}
+
+\subsubsection{Maior Retângulo e Maior Quadrado em Histograma 1D e Matriz 2D}
+\algobox
+  {(1) Encontrar o maior retângulo/quadrado sob um histograma 1D em $\Ocomp{N}$; (2) Encontrar a maior submatriz quadrada em um grid $N \times M$ onde cada linha pode ser invertida independentemente (2019 L).}
+  {Inverter uma linha inteira preserva a igualdade entre elementos adjacentes da mesma linha! Logo, um bloco de colunas $[c_1, c_2]$ pode ficar todo igual a \texttt{'G'} na linha $r$ sse todos os caracteres originais em $r \in [c_1, c_2]$ já forem iguais entre si. Definindo $B[r][c] = [A[r][c] == A[r][c-1]]$, uma submatriz $k \times k$ é válida sse a submatriz $k \times (k-1)$ em $B$ for toda de $1$s (resolvido por DP $O(NM)$ ou Histograma 2D com Pilha Monotônica para retângulos gerais).}
+  {Em 2019 L, um quadrado de lado $k$ em $A$ corresponde a altura $k$ e largura $k-1$ na matriz de adjacência horizontal (ou basta acumular \texttt{hist[r][c] = (A[r][c] == A[r][c-1]) ? hist[r][c-1] + 1 : 1} e rodar o histograma verticalmente!).}
+  {Tempo: $\Ocomp{NM}$ $\mid$ Espaço: $\Ocomp{M}$}
+
+\begin{lstlisting}
+// 1. Maior Retangulo e Maior Quadrado (area) sob Histograma 1D em O(N)
+// Retorna {max_rect_area, max_square_area}
+pll max_histogram_rect_and_square(const vi& h) {
+  int n = sz(h);
+  vi st;
+  ll max_rect = 0, max_sq_side = 0;
+  rep(i, 0, n + 1) {
+    int cur_h = (i == n ? 0 : h[i]);
+    while (!st.empty() && h[st.back()] >= cur_h) {
+      ll H = h[st.back()]; st.pop_back();
+      ll W = st.empty() ? i : i - st.back() - 1;
+      chmax(max_rect, H * W);
+      chmax(max_sq_side, min(H, W));
+    }
+    st.pb(i);
+  }
+  return {max_rect, max_sq_side * max_sq_side};
+}
+
+// 2. Maior Quadrado em Matriz 2D com flip de linhas permitido (2019 L)
+ll max_square_with_row_flips(const vector<string>& grid) {
+  int n = sz(grid), m = sz(grid[0]);
+  vi dp(m, 1), ndp(m, 1);
+  int max_side = 1;
+  rep(r, 0, n) {
+    rep(c, 0, m) {
+      if (r == 0 || c == 0) ndp[c] = 1;
+      else if (grid[r][c] == grid[r][c - 1] && grid[r - 1][c] == grid[r - 1][c - 1])
+        ndp[c] = 1 + min({dp[c], dp[c - 1], ndp[c - 1]});
+      else
+        ndp[c] = 1;
+      chmax(max_side, ndp[c]);
+    }
+    swap(dp, ndp);
+  }
+  return 1LL * max_side * max_side;
+}
+\end{lstlisting}
+
+\subsubsection{Pré-processamento de Extensões Monótonas + Série Harmônica}
+\algobox
+  {Verificar se um array com curingas ($-1$) pode ser particionado em blocos de tamanho $K$ (o último podendo ser menor, mas $\ge 3$) onde cada bloco é uma montanha (sobe até um pico interno $i < p < j$ e depois desce, 2020 B).}
+  {Substituir $-1$ nos extremos de uma subida/descida sempre pode ser feito copiando o vizinho (ou colocando $\infty$ no pico e $1$ nas bordas!). Dois valores reais conhecidos $A_x$ e $A_y$ ($x < y$) separados apenas por $-1$s são compatíveis com subida sse $A_x \le A_y$, e com descida sse $A_x \ge A_y$. Assim, pré-calculamos em $\Ocomp{N}$ para cada índice $i$: \texttt{upR[i]} = até onde é possível manter não-decrescente a partir de $i$, e \texttt{dnL[i]} = desde onde é possível manter não-decrescente olhando da direita para a esquerda (ou seja, não-crescente até $i$). Um subarray $[L, R]$ pode virar montanha sse o intervalo de picos válidos $[L+1, \min(R-1, \text{upR}[L])]$ intersecta $[\max(L+1, \text{dnL}[R]), R-1]$! Testamos todos os $K \in [3, N]$ saltando de $K$ em $K$ em $\sum_{K=3}^N \frac{N}{K} = \Ocomp{N \log N}$!}
+  {Um curinga $A_p = -1$ no pico pode assumir $\infty$, o que desacopla o último valor conhecido à esquerda de $p$ do primeiro valor conhecido à direita de $p$! Para tratar isso exatamente: \texttt{upR[L]} pode avançar até o índice imediatamente anterior à primeira queda estrita entre dois elementos conhecidos ($A_{u} > A_{v}$ sem $-1$ entre eles? Não: mesmo com $-1$ entre $u$ e $v$, se ambos estão no lado esquerdo do pico, deve valer $A_u \le A_v$!). Se o próprio pico for um $-1$ na posição $p$, a subida precisa valer em $[L, p-1]$ e a descida em $[p+1, R]$: logo basta testar se existe pico $p \in [L+1, R-1]$ com $p \le \text{upR}[L]$ e $p \ge \text{dnL}[R]$ considerando que \texttt{upR[L]} inclui todos os $-1$s logo após o último número válido da subida!}
+  {Tempo: $\Ocomp{N \log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+bool can_partition_mountains(const vi& A) {
+  int n = sz(A);
+  // prv_val[i] = indice do ultimo elemento != -1 em <= i; nxt_val[i] = primeiro != -1 em >= i
+  vi prv_val(n, -1), nxt_val(n, n);
+  rep(i, 0, n) prv_val[i] = (A[i] != -1) ? i : (i ? prv_val[i - 1] : -1);
+  for (int i = n - 1; i >= 0; --i) nxt_val[i] = (A[i] != -1) ? i : (i + 1 < n ? nxt_val[i + 1] : n);
+
+  // bad_up[i]: se i eh o segundo elemento conhecido de um par consecutivo de conhecidos com A[u] > A[i]
+  //up_limit[L] = maior indice R tal que todos os conhecidos em [L..R] sao nao-decrescentes
+  vi up_lim(n, n - 1), dn_lim(n, 0);
+  int limit = n - 1, next_known = -1;
+  for (int i = n - 1; i >= 0; --i) {
+    if (A[i] != -1) {
+      if (next_known != -1 && A[i] > A[next_known]) limit = next_known - 1;
+      next_known = i;
+    }
+    up_lim[i] = limit;
+  }
+  limit = 0; int prev_known = -1;
+  rep(i, 0, n) {
+    if (A[i] != -1) {
+      if (prev_known != -1 && A[prev_known] < A[i]) limit = prev_known + 1;
+      prev_known = i;
+    }
+    dn_lim[i] = limit;
+  }
+  auto is_mountain = [&](int L, int R) -> bool {
+    if (R - L + 1 < 3) return false;
+    // Um indice p in [L+1, R-1] pode ser o pico (escolhendo A[p] = INF se A[p] == -1)
+    // sse [L..p] eh nao-decrescente (p <= up_lim[L]) E [p..R] eh nao-crescente (p >= dn_lim[R])!
+    int lo = max(L + 1, dn_lim[R]);
+    int hi = min(R - 1, up_lim[L]);
+    return lo <= hi;
+  };
+  for (int K = 3; K <= n; ++K) {
+    bool ok = true;
+    for (int L = 0; L < n; L += K) {
+      int R = min(n - 1, L + K - 1);
+      if (!is_mountain(L, R)) { ok = false; break; }
+    }
+    if (ok) return true;
+  }
+  return false;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+% SUBTEMA 3.2: HASHING ALEATORIO (XOR/SOMA 64-BIT) E FENWICK TREE (BIT)
+% ----------------------------------------------------------------------------
+\subsection{XOR / Sum Hashing Aleatório e Fenwick Tree (BIT 1D/2D)}
+
+\subsubsection{Hashing de Soma Nula em 64 Bits (Subarrays Balanceados)}
+\algobox
+  {Encontrar o maior subarray contíguo onde todas as $K$ cores ($1 \dots K$) aparecem exatamente o mesmo número de vezes (2023 C - Candy Rush).}
+  {Atribuir a cada cor $c \in [1, K-1]$ um peso inteiro aleatório de 64 bits $W_c \in [0, 2^{64}-1)$, e definir o peso da última cor como $W_K = -\sum_{c=1}^{K-1} W_c \pmod{2^{64}}$, de modo que $\sum_{c=1}^K W_c \equiv 0 \pmod{2^{64}}$! Assim, toda vez que um subarray contiver exatamente $m$ cópias de \textbf{cada} uma das $K$ cores, a soma dos pesos no subarray será $m \cdot \sum_{c=1}^K W_c \equiv 0 \pmod{2^{64}}$, ou seja, $\text{pref}[R] == \text{pref}[L]$! Para zerar a chance de colisão ($\le N / 2^{128}$), usamos um par \texttt{(ull, ull)} de duas sementes independentes.}
+  {Guardar apenas a \textbf{primeira} ocorrência de cada hash de prefixo em um \texttt{unordered\_map} (com \texttt{CustomHash}).}
+  {Tempo: $\Ocomp{N + K}$ $\mid$ Espaço: $\Ocomp{N + K}$}
+
+\begin{lstlisting}
+int max_balanced_k_subarray(const vi& C, int K) {
+  int n = sz(C);
+  if (n < K) return 0;
+  vector<ull> w1(K + 1, 0), w2(K + 1, 0);
+  ull s1 = 0, s2 = 0;
+  rep(c, 1, K) {
+    w1[c] = rng(); s1 += w1[c];
+    w2[c] = rng(); s2 += w2[c];
+  }
+  w1[K] = -s1; w2[K] = -s2; // Garante soma das K cores == 0 (mod 2^64)
+
+  unordered_map< pair<ull, ull>, int, CustomHash > first_pos;
+  first_pos.reserve(n * 2);
+  pair<ull, ull> cur = {0, 0};
+  first_pos[cur] = 0;
+  int ans = 0;
+  rep(i, 1, n + 1) {
+    cur.fst += w1[C[i - 1]];
+    cur.snd += w2[C[i - 1]];
+    auto [it, inserted] = first_pos.try_emplace(cur, i);
+    if (!inserted) chmax(ans, i - it->second);
+  }
+  return ans;
+}
+\end{lstlisting}
+
+\subsubsection{Fenwick Tree (BIT 1D com Binary Lifting, Range-Range e 2D)}
+\algobox
+  {(1) Soma de prefixo, atualização pontual e busca binária \texttt{lower\_bound} em $\Ocomp{\log N}$ (usado em 2024 I e 2025 L); (2) Adição em intervalo e soma em intervalo com duas BITs; (3) BIT 2D em $\Ocomp{\log N \log M}$.}
+  {No \texttt{lower\_bound(k)} da BIT, subimos das potências $2^{\lfloor\log_2 N\rfloor}$ até $2^0$: o nó \texttt{bit[pos + pw]} contém exatamente a soma do bloco $(pos, pos + pw]$.}
+  {A árvore interna é 1-indexada (\texttt{1..n}), mas a interface pública abaixo aceita índices 0-based (\texttt{0..n-1}) para consistência com \texttt{std::vector}.}
+  {Update / Query / Lower Bound: $\Ocomp{\log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+// 1. Fenwick Tree 1D (0-indexed na interface) + Binary Lifting em O(log N)
+template <class T = ll>
+struct Fenwick {
+  int n;
+  vector<T> bit;
+  Fenwick(int n = 0) : n(n), bit(n + 1, 0) {}
+
+  void add(int i, T delta) { // 0 <= i < n
+    for (++i; i <= n; i += i & -i) bit[i] += delta;
+  }
+  T query(int r) const { // Soma em [0..r] (retorna 0 se r < 0)
+    T res = 0;
+    for (++r; r > 0; r -= r & -r) res += bit[r];
+    return res;
+  }
+  T query(int l, int r) const { return l > r ? 0 : query(r) - query(l - 1); }
+
+  // Retorna o menor indice i in [0..n-1] tal que query(i) >= k (ou n se nao existir)
+  // Requer elementos nao-negativos na BIT!
+  int lower_bound(T k) const {
+    int pos = 0;
+    for (int pw = 1 << (bit_width((ull)n) - 1); pw > 0; pw >>= 1) {
+      if (pos + pw <= n && bit[pos + pw] < k) {
+        pos += pw;
+        k -= bit[pos];
+      }
+    }
+    return pos;
+  }
+};
+
+// 2. Fenwick Tree com Range Add [l..r] e Range Sum [l..r] (0-indexed)
+struct RangeFenwick {
+  Fenwick<ll> B1, B2;
+  RangeFenwick(int n) : B1(n), B2(n) {}
+  void range_add(int l, int r, ll v) {
+    B1.add(l, v); B1.add(r + 1, -v);
+    B2.add(l, v * (l - 1)); B2.add(r + 1, -v * r);
+  }
+  ll prefix_sum(int idx) const { return B1.query(idx) * idx - B2.query(idx); }
+  ll range_sum(int l, int r) const { return prefix_sum(r) - prefix_sum(l - 1); }
+};
+
+// 3. Fenwick Tree 2D (0-indexed: 0 <= r < n, 0 <= c < m)
+template <class T = ll>
+struct Fenwick2D {
+  int n, m;
+  vector<vector<T>> bit;
+  Fenwick2D(int n, int m) : n(n), m(m), bit(n + 1, vector<T>(m + 1, 0)) {}
+  void add(int r, int c, T val) {
+    for (int i = r + 1; i <= n; i += i & -i)
+      for (int j = c + 1; j <= m; j += j & -j) bit[i][j] += val;
+  }
+  T query(int r, int c) const {
+    T res = 0;
+    for (int i = r + 1; i > 0; i -= i & -i)
+      for (int j = c + 1; j > 0; j -= j & -j) res += bit[i][j];
+    return res;
+  }
+  T query(int r1, int c1, int r2, int c2) const {
+    return query(r2, c2) - query(r1 - 1, c2) - query(r2, c1 - 1) + query(r1 - 1, c1 - 1);
+  }
+};
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+% SUBTEMA 3.3: SEGMENT TREE, LAZY, WALK, CLAMPING E COMPOSICOES
+% ----------------------------------------------------------------------------
+\subsection{Segment Tree: Walk, Lazy Propagation, Clamping e Aplicações}
+
+\subsubsection{Segment Tree com Walk ($\Ocomp{\log N}$) e Salto de Gafanhoto (2019 J)}
+\algobox
+  {(1) Segment Tree com atualização pontual e busca binária direta na árvore (\texttt{find\_first} / \texttt{find\_last}) em $\Ocomp{\log N}$; (2) Simular saltos alternados onde um gafanhoto pula sempre para a primeira planta maior na direção atual e inverte a direção até parar (2019 J).}
+  {\textbf{Invariante de 2019 J:} Seja $M$ o índice da maior planta de todo o jardim. O gafanhoto \textbf{nunca} consegue pular por cima de $M$! Logo, se ele começa à esquerda de $M$ ($J < M$), ele fica confinado em $[0, M]$ e sua parada final depende apenas das barreiras à esquerda e à direita. Mais ainda: uma vez que o gafanhoto dá o \textbf{primeiro} salto de $J$ para o primeiro maior na direção inicial, a partir dali ele salta entre recordes de sufixo (à esquerda) e recordes de prefixo (à direita), terminando \textbf{sempre} no elemento que possui o menor valor dentre o máximo global à esquerda ($L_{\max} = \max_{0 \le i < x} H_i$) e o máximo global à direita ($R_{\max} = \max_{x < i < N} H_i$)! Especificamente: após o primeiro salto (ou já em $x = J$, ajustando o primeiro obstáculo na direção inicial), o gafanhoto só para no índice onde todas as plantas de um lado são menores que a planta onde ele acabou de pisar do outro lado! Ou seja, se a maior planta à esquerda de $x$ é $H_{p_L}$ e a maior à direita é $H_{p_R}$, o último salto antes de travar é para o primeiro elemento na direção do menor entre $H_{p_L}$ e $H_{p_R}$ que supera o recorde do lado oposto! Com \texttt{find\_first} e \texttt{find\_last} na SegTree, resolvemos cada query em $\Ocomp{\log N}$!}
+  {Se já não houver nenhuma planta maior que $H_J$ na direção inicial, o gafanhoto dá 0 saltos e para imediatamente em $J$!}
+  {Update / Query / Walk: $\Ocomp{\log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+struct SegTreeMaxWalk {
+  int n;
+  vi tree;
+  SegTreeMaxWalk(const vi& a) : n(sz(a)), tree(4 * n, 0) { build(1, 0, n - 1, a); }
+
+  void build(int p, int l, int r, const vi& a) {
+    if (l == r) { tree[p] = a[l]; return; }
+    int m = (l + r) >> 1;
+    build(p << 1, l, m, a); build(p << 1 | 1, m + 1, r, a);
+    tree[p] = max(tree[p << 1], tree[p << 1 | 1]);
+  }
+  void update(int p, int l, int r, int idx, int val) {
+    if (l == r) { tree[p] = val; return; }
+    int m = (l + r) >> 1;
+    if (idx <= m) update(p << 1, l, m, idx, val);
+    else          update(p << 1 | 1, m + 1, r, idx, val);
+    tree[p] = max(tree[p << 1], tree[p << 1 | 1]);
+  }
+  int query_max(int p, int l, int r, int ql, int qr) const {
+    if (ql > qr || qr < l || r < ql) return -1;
+    if (ql <= l && r <= qr) return tree[p];
+    int m = (l + r) >> 1;
+    return max(query_max(p << 1, l, m, ql, qr), query_max(p << 1 | 1, m + 1, r, ql, qr));
+  }
+  // Menor indice i in [ql, qr] tal que a[i] > val (ou -1 se nao existir)
+  int find_first(int p, int l, int r, int ql, int qr, int val) const {
+    if (ql > qr || qr < l || r < ql || tree[p] <= val) return -1;
+    if (l == r) return l;
+    int m = (l + r) >> 1;
+    int res = find_first(p << 1, l, m, ql, qr, val);
+    return res != -1 ? res : find_first(p << 1 | 1, m + 1, r, ql, qr, val);
+  }
+  // Maior indice i in [ql, qr] tal que a[i] > val (ou -1 se nao existir)
+  int find_last(int p, int l, int r, int ql, int qr, int val) const {
+    if (ql > qr || qr < l || r < ql || tree[p] <= val) return -1;
+    if (l == r) return l;
+    int m = (l + r) >> 1;
+    int res = find_last(p << 1 | 1, m + 1, r, ql, qr, val);
+    return res != -1 ? res : find_last(p << 1, l, m, ql, qr, val);
+  }
+};
+
+// Resolve Jumping Grasshopper (2019 J) em O(log N) por operacao:
+// dir == 'L' (olha p/ esquerda) ou 'R' (olha p/ direita), pos J (0-indexed)
+int query_grasshopper_stop(const SegTreeMaxWalk& st, const vi& H, int J, char dir) {
+  int n = st.n;
+  // Da o primeiro salto a partir de J na direcao inicial:
+  int nxt = (dir == 'L') ? st.find_last(1, 0, n - 1, 0, J - 1, H[J])
+                         : st.find_first(1, 0, n - 1, J + 1, n - 1, H[J]);
+  if (nxt == -1) return J; // Nao consegue dar nem o primeiro salto!
+  int l = min(J, nxt), r = max(J, nxt);
+  int maxL = st.query_max(1, 0, n - 1, 0, l - 1);
+  int maxR = st.query_max(1, 0, n - 1, r + 1, n - 1);
+  int cur_max_in = max(H[l], H[r]);
+  // Se o proximo salto a partir de 'nxt' (que olha de volta para J) ja nao puder sair de [l, r]:
+  bool look_right = (dir == 'L'); // Apos pular para nxt, inverte a direcao
+  if (look_right && maxR < cur_max_in) return nxt;
+  if (!look_right && maxL < cur_max_in) return nxt;
+
+  // Caso geral: compara maxL e maxR fora de [l, r]
+  if (maxL < maxR) {
+    // O lado esquerdo acaba primeiro (com valor maxL); o ultimo salto eh para a direita (> maxL)
+    return st.find_first(1, 0, n - 1, r, n - 1, maxL);
+  } else {
+    // O lado direito acaba primeiro (com valor maxR); o ultimo salto eh para a esquerda (> maxR)
+    return st.find_last(1, 0, n - 1, 0, l, maxR);
+  }
+}
+\end{lstlisting}
+
+\subsubsection{Segment Tree para Alinhamento $R^r B^b$ (2024 C) e Partição Crescente (2025 H)}
+\algobox
+  {(1) Em 2024 C, calcular para qualquer subintervalo $S[L..U]$ o custo mínimo de edição (inserção, remoção, substituição) para transformá-lo em $R$ bolas vermelhas seguidas de $B$ bolas azuis; (2) Em 2025 H, dividir um array no maior número de grupos contíguos tais que os máximos de cada grupo sejam estritamente crescentes.}
+  {\textbf{1. Redução de 2024 C:} Em uma janela $S[L..U]$ de tamanho $W = U - L + 1$, transformar $S[L..U]$ em $R^r B^b$ equivale a escolher um ponto de corte $k \in [L-1, U]$ na string e um ponto de corte correspondente (ou alinhar o prefixo $S[L..k]$ com uma parte de $R^r$ e o sufixo $S[k+1..U]$ com uma parte de $B^b$). Como substituir 1 bola custa 1, inserir custa 1 e remover custa 1, a distância de edição entre uma string $X$ (sem \texttt{'B'}? Mesmo com outras cores!) e $R^r$ é exatamente $\max(|X|, r) - \text{cnt}_R(X)$! E podemos dividir $S[L..U]$ em $X = S[L..k]$ (convertido para $R^r$) e $Y = S[k+1..U]$ (convertido para $B^b$): o custo total para um corte $k \in [L-1, U]$ é $\bigl(\max(k - L + 1, R) - \text{cnt}_R(L, k)\bigr) + \bigl(\max(U - k, B) - \text{cnt}_B(k+1, U)\bigr)$! Os limites $k = L - 1 + R$ e $k = U - B$ dividem $[L-1, U]$ em até 3 zonas onde $\max$ é linear em $k$, permitindo consultar o mínimo de cada zona com RMQ / SegTree sobre $f_1(k) = p_B[k] - p_R[k]$, $f_2(k) = k + p_B[k] - p_R[k]$ e $f_3(k) = -k + p_B[k] - p_R[k]$ em $\Ocomp{\log N}$! \textbf{2. Redução de 2025 H:} Seja $dp[i]$ o par $(\text{max\_days}, -\text{min\_last\_max})$ para o prefixo $1 \dots i$. Como mais dias sempre domina (ou mantemos a fronteira pareto: para cada quantidade de dias $d$, o menor máximo possível do último grupo $M[d]$ é estritamente crescente em $d$), usamos uma SegTree sobre a posição inicial $j$ mantendo o máximo do sufixo $D[j+1..i]$ via Pilha Monotônica + Lazy Propagation!}
+  {Em 2024 C, lembrar que um único caractere não pode ser pareado simultaneamente com $R$ e com $B$, o que é garantido pelo corte disjunto $S[L..k]$ e $S[k+1..U]$.}
+  {Tempo: $\Ocomp{(N + Q) \log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+// 1. Resolve Cindy's Christmas Challenge (2024 C) em O((N + W) log N)
+struct CindyChristmasSolver {
+  int n; ll R, B;
+  vll pR, pB;
+  struct Node { ll m0, m_plus, m_minus; }; // min de (pB-pR), (k + pB-pR), (-k + pB-pR)
+  vector<Node> st;
+
+  CindyChristmasSolver(ll R, ll B, const string& S)
+    : n(sz(S)), R(R), B(B), pR(n + 1, 0), pB(n + 1, 0), st(4 * (n + 1)) {
+    rep(i, 1, n + 1) {
+      pR[i] = pR[i - 1] + (S[i - 1] == 'R');
+      pB[i] = pB[i - 1] + (S[i - 1] == 'B');
+    }
+    build(1, 0, n);
+  }
+  static Node merge(const Node& a, const Node& b) {
+    return {min(a.m0, b.m0), min(a.m_plus, b.m_plus), min(a.m_minus, b.m_minus)};
+  }
+  void build(int p, int l, int r) {
+    if (l == r) {
+      ll d = pB[l] - pR[l];
+      st[p] = {d, d + l, d - l};
+      return;
+    }
+    int m = (l + r) >> 1;
+    build(p << 1, l, m); build(p << 1 | 1, m + 1, r);
+    st[p] = merge(st[p << 1], st[p << 1 | 1]);
+  }
+  Node query_st(int p, int l, int r, int ql, int qr) const {
+    if (ql <= l && r <= qr) return st[p];
+    int m = (l + r) >> 1;
+    if (qr <= m) return query_st(p << 1, l, m, ql, qr);
+    if (ql > m)  return query_st(p << 1 | 1, m + 1, r, ql, qr);
+    return merge(query_st(p << 1, l, m, ql, qr), query_st(p << 1 | 1, m + 1, r, ql, qr));
+  }
+  // Retorna custo minimo para S[L..U] (1-indexed: 1 <= L <= U <= n)
+  ll solve_query(int L, int U) const {
+    ll kR = L - 1 + R, kB = U - B; // Limites onde k-(L-1) >= R e U-k >= B
+    ll ans = LLONG_MAX, base = pR[L - 1] - pB[U];
+    auto eval_zone = [&](ll ql, ll qr, int mode_R, int mode_B) {
+      chmax(ql, (ll)L - 1); chmin(qr, (ll)U);
+      if (ql > qr) return;
+      Node res = query_st(1, 0, n, (int)ql, (int)qr);
+      // mode_R: 0 se max(k-L+1, R) = R; 1 se = k - L + 1
+      // mode_B: 0 se max(U-k, B) = B;   1 se = U - k
+      ll cR = (mode_R == 0) ? R : -(L - 1);
+      ll cB = (mode_B == 0) ? B : U;
+      int coeff_k = mode_R - mode_B; // +1, 0, ou -1
+      ll best_d = (coeff_k == 0) ? res.m0 : (coeff_k == 1 ? res.m_plus : res.m_minus);
+      chmin(ans, base + cR + cB + best_d);
+    };
+    eval_zone(L - 1, min(kR, kB), 0, 1);       // k <= kR e k <= kB
+    eval_zone(max(kR, kB), U, 1, 0);           // k >= kR e k >= kB
+    if (kR < kB) eval_zone(kR, kB, 1, 1);      // kR <= k <= kB
+    else         eval_zone(kB, kR, 0, 0);      // kB <= k <= kR
+    return ans;
+  }
+};
+\end{lstlisting}
+
+\begin{lstlisting}
+// 2. Resolve Harder Horizons (2025 H) em O(N log N)
+int max_increasing_horizon_days(const vi& D) {
+  int n = sz(D);
+  const int INF = 1e9;
+  vi dp_days(n + 1, 0), dp_last_max(n + 1, INF);
+  dp_days[0] = 0; dp_last_max[0] = 0;
+
+  vi min_need(4 * (n + 1), INF);
+  auto upd_need = [&](auto& self, int p, int l, int r, int idx, int val) -> void {
+    if (l == r) { min_need[p] = val; return; }
+    int m = (l + r) >> 1;
+    if (idx <= m) self(self, p << 1, l, m, idx, val);
+    else          self(self, p << 1 | 1, m + 1, r, idx, val);
+    min_need[p] = min(min_need[p << 1], min_need[p << 1 | 1]);
+  };
+
+  vi max_act(4 * (n + 1), -1), lazy_M(4 * (n + 1), 0);
+  vector<pii> best_pair(4 * (n + 1), {-1, -INF});
+
+  auto apply_M = [&](int p, int v) {
+    if (max_act[p] != -1) best_pair[p] = {max_act[p], -v};
+    lazy_M[p] = v;
+  };
+  auto push = [&](int p) {
+    if (lazy_M[p] != 0) {
+      apply_M(p << 1, lazy_M[p]);
+      apply_M(p << 1 | 1, lazy_M[p]);
+      lazy_M[p] = 0;
+    }
+  };
+  auto pull = [&](int p) {
+    max_act[p] = max(max_act[p << 1], max_act[p << 1 | 1]);
+    best_pair[p] = max(best_pair[p << 1], best_pair[p << 1 | 1]);
+  };
+  auto activate_j = [&](auto& self, int p, int l, int r, int idx, int days, int curM) -> void {
+    if (l == r) {
+      max_act[p] = days;
+      best_pair[p] = {days, -curM};
+      return;
+    }
+    push(p);
+    int m = (l + r) >> 1;
+    if (idx <= m) self(self, p << 1, l, m, idx, days, curM);
+    else          self(self, p << 1 | 1, m + 1, r, idx, days, curM);
+    pull(p);
+  };
+  auto range_set_M = [&](auto& self, int p, int l, int r, int ql, int qr, int v) -> void {
+    if (ql > qr || qr < l || r < ql) return;
+    if (ql <= l && r <= qr) { apply_M(p, v); return; }
+    push(p);
+    int m = (l + r) >> 1;
+    self(self, p << 1, l, m, ql, qr, v);
+    self(self, p << 1 | 1, m + 1, r, ql, qr, v);
+    pull(p);
+  };
+  // Busca e ativa todos os j in [ql, qr] com min_need[j] < v
+  auto harvest = [&](auto& self, int p, int l, int r, int ql, int qr, int v) -> void {
+    if (ql > qr || qr < l || r < ql || min_need[p] >= v) return;
+    if (l == r) {
+      min_need[p] = INF; // Remove da SegTree 1
+      activate_j(activate_j, 1, 0, n, l, dp_days[l], v);
+      return;
+    }
+    int m = (l + r) >> 1;
+    self(self, p << 1, l, m, ql, qr, v);
+    self(self, p << 1 | 1, m + 1, r, ql, qr, v);
+    min_need[p] = min(min_need[p << 1], min_need[p << 1 | 1]);
+  };
+
+  upd_need(upd_need, 1, 0, n, 0, 0);
+  vector<pii> mono; // {valor_max, inicio_do_bloco_j}
+  rep(i, 1, n + 1) {
+    int v = D[i - 1], start_j = i - 1;
+    while (!mono.empty() && mono.back().fst <= v) {
+      start_j = mono.back().snd;
+      mono.pop_back();
+    }
+    mono.eb(v, start_j);
+    // No intervalo [start_j .. i-1], o maximo do sufixo M[j] passa a ser v:
+    range_set_M(range_set_M, 1, 0, n, start_j, i - 1, v);
+    harvest(harvest, 1, 0, n, start_j, i - 1, v);
+
+    auto [best_d, neg_m] = best_pair[1];
+    dp_days[i] = best_d + 1;
+    dp_last_max[i] = -neg_m;
+    if (i < n) upd_need(upd_need, 1, 0, n, i, dp_last_max[i]);
+  }
+  return dp_days[n];
+}
+\end{lstlisting}
+
+\subsubsection{Segment Tree Lazy: Ferrers / Conjugação (2025 E) e Ganho de Prefixos (2021 D)}
+\algobox
+  {(1) Em 2025 E, manter um multiconjunto dinâmico de caixas $c_i$ e consultar o mínimo de dias para esvaziar todas onde cada dia remove 1 caixa inteira OU remove 1 unidade de todas as caixas; (2) Em 2021 D, escolher um índice $i$ para somar $X$ maximizando o número de subarrays $[L, R]$ onde todos os prefixos são $\ge 0$.}
+  {\textbf{1. Redução de 2025 E:} Se usarmos a operação 2 ("$-1$ em todas as caixas") exatamente $k$ vezes, todas as caixas com $\le k$ rações desaparecem sozinhas, e as caixas com $> k$ rações precisarão ser removidas uma a uma pela operação 1! Logo, a resposta exata é $\min_{k \ge 0} \bigl(k + \text{qtd}(c_i > k)\bigr)$! Como há no máximo $Q \le 3 \cdot 10^5$ caixas, $k$ nunca precisa passar de $Q$. Mantemos uma Segment Tree com Lazy Add sobre $k \in [0, Q]$ guardando $f(k) = k + \text{qtd}(c_i > k)$: adicionar/remover uma caixa de tamanho $c$ soma $\pm 1$ no intervalo $k \in [0, \min(c - 1, Q)]$, e a resposta é \texttt{st[1].min\_val}! \textbf{2. Redução de 2021 D:} Seja $P_i = \sum_{k=1}^i V_k$. Um subarray $(L, R]$ ($0 \le L < R \le N$) tem todos os prefixos $\ge 0$ sse $\min_{L < r \le R} P_r \ge P_L$, ou seja, $R < \text{nxt\_less}[L]$ (onde \texttt{nxt\_less[L]} é o primeiro $r > L$ com $P_r < P_L$). Somar $X$ na posição $i$ adiciona $+X$ a todos os $P_r$ com $r \ge i$. Se $X > 0$, para um $L < i$, seu bloqueador $r = \text{nxt\_less}[L]$ pode deixar de bloquear se $r \ge i$ e todos os elementos em $[i, \text{nxt\_less\_X}[L] - 1]$ tiverem $P_r + X \ge P_L$: nesse caso, o alcance de $L$ salta de \texttt{nxt\_less[L]} para \texttt{nxt\_less\_X[L]}, ganhando $\Delta_L = \text{nxt\_less\_X}[L] - \text{nxt\_less}[L]$ para todo $i \in [L + 1, \text{nxt\_less}[L]]$! Se $X < 0$, para cada $L < i$, o novo limite no sufixo $[i, N]$ cai para $r' = \min(\text{nxt\_less}[L], \text{first}_{r \ge i}(P_r + X < P_L))$; varrendo $i$ da direita para a esquerda com Pilha Monotônica + SegTree Lazy, mantemos o total exato para cada $i$ em $\Ocomp{N \log N}$!}
+  {Em 2025 E, o intervalo de $k$ deve incluir $k = 0$ (caso onde esvaziamos todas as caixas individualmente sem usar a operação global).}
+  {Tempo: $\Ocomp{Q \log Q}$ (2025 E) e $\Ocomp{N \log N}$ (2021 D) $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+// 1. Segment Tree Genérica com Range Add + Range Min (resolve 2025 E em O(Q log Q))
+struct SegTreeRangeAddMin {
+  int n;
+  vll mn, lz;
+  SegTreeRangeAddMin(int n) : n(n), mn(4 * n, 0), lz(4 * n, 0) { build(1, 0, n - 1); }
+  void build(int p, int l, int r) {
+    if (l == r) { mn[p] = l; return; } // Inicializa f(k) = k
+    int m = (l + r) >> 1;
+    build(p << 1, l, m); build(p << 1 | 1, m + 1, r);
+    mn[p] = min(mn[p << 1], mn[p << 1 | 1]);
+  }
+  void apply(int p, ll v) { mn[p] += v; lz[p] += v; }
+  void push(int p) {
+    if (lz[p] != 0) { apply(p << 1, lz[p]); apply(p << 1 | 1, lz[p]); lz[p] = 0; }
+  }
+  void add(int p, int l, int r, int ql, int qr, ll v) {
+    if (ql > qr || qr < l || r < ql) return;
+    if (ql <= l && r <= qr) { apply(p, v); return; }
+    push(p);
+    int m = (l + r) >> 1;
+    add(p << 1, l, m, ql, qr, v); add(p << 1 | 1, m + 1, r, ql, qr, v);
+    mn[p] = min(mn[p << 1], mn[p << 1 | 1]);
+  }
+  // Em 2025 E: ao receber +c, chamar update_box(c, +1); ao receber -c, update_box(c, -1)
+  void update_box(ll c, int sign) {
+    int r = (int)min((ll)n - 1, c - 1);
+    if (r >= 0) add(1, 0, n - 1, 0, r, sign);
+  }
+  ll query_min_days() const { return mn[1]; }
+};
+
+// 2. Resolve Daily Turnovers (2021 D) em O(N log N) para qualquer sinal de X
+ll solve_daily_turnovers_unified(ll X, const vll& V) {
+  int n = sz(V);
+  vll P(n + 1, 0);
+  rep(i, 1, n + 1) P[i] = P[i - 1] + V[i - 1];
+
+  vi R0(n + 1, n + 1), st_m;
+  ll base_tot = 0;
+  for (int i = n; i >= 0; --i) {
+    while (!st_m.empty() && P[st_m.back()] >= P[i]) st_m.pop_back();
+    R0[i] = st_m.empty() ? n + 1 : st_m.back();
+    st_m.pb(i);
+    if (i < n) base_tot += R0[i] - i - 1;
+  }
+  vi ord(n); iota(all(ord), 0);
+  sort(all(ord), [&](int a, int b) { return P[a] < P[b]; });
+  vll sorted_P(n);
+  vi pos_in_ord(n);
+  rep(idx, 0, n) {
+    sorted_P[idx] = P[ord[idx]];
+    pos_in_ord[ord[idx]] = idx;
+  }
+  // Eventos de entrada (i == R0[L]) e saida (i == L) para ativar/desativar L
+  vector<vi> activate_at(n + 2), deactivate_at(n + 2);
+  rep(L, 0, n) {
+    int start_i = min(n, R0[L]);
+    if (start_i >= L + 1) {
+      activate_at[start_i].pb(L);
+      deactivate_at[L].pb(L);
+    }
+  }
+  // SegTree mantendo (cnt_active, sum_curR, sum_R0) com Lazy Assignment em curR
+  vi cnt_act(4 * n, 0), lz_set(4 * n, 0);
+  vll sum_curR(4 * n, 0), sum_R0(4 * n, 0);
+
+  auto apply_set = [&](int p, int val) {
+    sum_curR[p] = 1LL * cnt_act[p] * val;
+    lz_set[p] = val;
+  };
+  auto push = [&](int p) {
+    if (lz_set[p] != 0) {
+      apply_set(p << 1, lz_set[p]);
+      apply_set(p << 1 | 1, lz_set[p]);
+      lz_set[p] = 0;
+    }
+  };
+  auto pull = [&](int p) {
+    cnt_act[p] = cnt_act[p << 1] + cnt_act[p << 1 | 1];
+    sum_curR[p] = sum_curR[p << 1] + sum_curR[p << 1 | 1];
+    sum_R0[p] = sum_R0[p << 1] + sum_R0[p << 1 | 1];
+  };
+  auto toggle_L = [&](auto& self, int p, int l, int r, int idx, int on, int init_R, int r0) -> void {
+    if (l == r) {
+      cnt_act[p] = on;
+      sum_curR[p] = on ? init_R : 0;
+      sum_R0[p] = on ? r0 : 0;
+      lz_set[p] = 0;
+      return;
+    }
+    push(p);
+    int m = (l + r) >> 1;
+    if (idx <= m) self(self, p << 1, l, m, idx, on, init_R, r0);
+    else          self(self, p << 1 | 1, m + 1, r, idx, on, init_R, r0);
+    pull(p);
+  };
+  auto range_assign = [&](auto& self, int p, int l, int r, int ql, int qr, int val) -> void {
+    if (ql > qr || qr < l || r < ql) return;
+    if (ql <= l && r <= qr) { apply_set(p, val); return; }
+    push(p);
+    int m = (l + r) >> 1;
+    self(self, p << 1, l, m, ql, qr, val);
+    self(self, p << 1 | 1, m + 1, r, ql, qr, val);
+    pull(p);
+  };
+
+  // Pre-calcula para cada L o primeiro indice > R0[L] onde P[k] + X < P[L] (usado quando X > 0)
+  vll st_minP(4 * (n + 1), 0);
+  auto build_p = [&](auto& self, int p, int l, int r) -> void {
+    if (l == r) { st_minP[p] = P[l]; return; }
+    int m = (l + r) >> 1;
+    self(self, p << 1, l, m); self(self, p << 1 | 1, m + 1, r);
+    st_minP[p] = min(st_minP[p << 1], st_minP[p << 1 | 1]);
+  };
+  build_p(build_p, 1, 0, n);
+  auto first_less_P = [&](auto& self, int p, int l, int r, int ql, int qr, ll val) -> int {
+    if (ql > qr || qr < l || r < ql || st_minP[p] >= val) return n + 1;
+    if (l == r) return l;
+    int m = (l + r) >> 1;
+    int res = self(self, p << 1, l, m, ql, qr, val);
+    return res != n + 1 ? res : self(self, p << 1 | 1, m + 1, r, ql, qr, val);
+  };
+
+  ll best_ans = 0;
+  for (int i = n; i >= 1; --i) {
+    for (int L : deactivate_at[i])
+      toggle_L(toggle_L, 1, 0, n - 1, pos_in_ord[L], 0, 0, 0);
+    for (int L : activate_at[i]) {
+      int init_R = first_less_P(first_less_P, 1, 0, n, i + 1, n, P[L] - X);
+      toggle_L(toggle_L, 1, 0, n - 1, pos_in_ord[L], 1, init_R, R0[L]);
+    }
+    // Todos os L com P[L] - X > P[i] <=> P[L] > P[i] + X tem seu cur_R atualizado para i
+    int split = (int)(upper_bound(all(sorted_P), P[i] + X) - sorted_P.begin());
+    range_assign(range_assign, 1, 0, n - 1, split, n - 1, i);
+
+    ll cur_ans = base_tot - sum_R0[1] + sum_curR[1];
+    chmax(best_ans, cur_ans);
+  }
+  return best_ans;
+}
+\end{lstlisting}
+
+\subsubsection{Segment Tree de Composição de Funções de Clamping (2019 C)}
+\algobox
+  {Dado um array $A_1, \dots, A_N$ e limites $[L, U]$, responder queries $(B, E, X)$: começando com $x = X$, para cada $j = B \dots E$ atualizar $x \gets \min(U, \max(L, x + A_j))$.}
+  {\textbf{Fechamento Algébrico do Clamping:} Toda função da forma $f(x) = \min(\text{hi}, \max(\text{lo}, x + \text{add}))$ com $\text{lo} \le \text{hi}$ é \textbf{fechada sob composição}! Se $f_1(x) = \min(h_1, \max(l_1, x + d_1))$ é seguida por $f_2(y) = \min(h_2, \max(l_2, y + d_2))$, a função composta $g(x) = f_2(f_1(x))$ tem:
+  $d = d_1 + d_2$, $l = \min(h_2, \max(l_2, l_1 + d_2))$ e $h = \min(h_2, \max(l_2, h_1 + d_2))$!
+  Isso transforma o problema inteiro em uma \textbf{Segment Tree de ponto/intervalo sem Lazy} onde cada nó guarda apenas 3 inteiros \texttt{(add, lo, hi)} e o \texttt{merge} roda em $\Ocomp{1}$!}
+  {Na folha $j$, inicializar com $d = A_j$, $\text{lo} = L$, $\text{hi} = U$? Cuidado: aplicar $\min(U, \max(L, x + A_j))$ corresponde a somar $A_j$ e depois truncar em $[L, U]$, que é exatamente $\min(U, \max(L, x + A_j))$! Na fórmula de composição $f_2(f_1(x))$, verifique: $\min(h_2, \max(l_2, \min(h_1, \max(l_1, x + d_1)) + d_2)) = \min(\min(h_2, \max(l_2, h_1 + d_2)), \max(\min(h_2, \max(l_2, l_1 + d_2)), x + d_1 + d_2))$, que é 100\% exato!}
+  {Build: $\Ocomp{N}$ $\mid$ Update / Query: $\Ocomp{\log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+struct ClampFunc {
+  ll d, lo, hi; // Representa f(x) = min(hi, max(lo, x + d)) com lo <= hi
+  ll eval(ll x) const { return min(hi, max(lo, x + d)); }
+  // Retorna a composicao (second o first)(x) = second(first(x))
+  friend ClampFunc compose(const ClampFunc& first, const ClampFunc& second) {
+    return {
+      first.d + second.d,
+      min(second.hi, max(second.lo, first.lo + second.d)),
+      min(second.hi, max(second.lo, first.hi + second.d))
+    };
+  }
+};
+
+struct ClampSegTree {
+  int n; ll L, U;
+  vector<ClampFunc> st;
+  ClampSegTree(const vll& A, ll L, ll U) : n(sz(A)), L(L), U(U), st(4 * n) {
+    build(1, 0, n - 1, A);
+  }
+  ClampFunc make_leaf(ll a) const {
+    return compose({0, L, U}, {a, L, U});
+  }
+  void build(int p, int l, int r, const vll& A) {
+    if (l == r) { st[p] = make_leaf(A[l]); return; }
+    int m = (l + r) >> 1;
+    build(p << 1, l, m, A); build(p << 1 | 1, m + 1, r, A);
+    st[p] = compose(st[p << 1], st[p << 1 | 1]);
+  }
+  ClampFunc query_func(int p, int l, int r, int ql, int qr) const {
+    if (ql <= l && r <= qr) return st[p];
+    int m = (l + r) >> 1;
+    if (qr <= m) return query_func(p << 1, l, m, ql, qr);
+    if (ql > m)  return query_func(p << 1 | 1, m + 1, r, ql, qr);
+    return compose(query_func(p << 1, l, m, ql, qr),
+                   query_func(p << 1 | 1, m + 1, r, ql, qr));
+  }
+  ll query(int B_0based, int E_0based, ll X) const {
+    return query_func(1, 0, n - 1, B_0based, E_0based).eval(X);
+  }
+};
+\end{lstlisting}
+
+\subsubsection{Segment Tree Dinâmica (Esparsa) e Segment Tree Persistente}
+\algobox
+  {(1) SegTree Esparsa quando o domínio $[0, C]$ é enorme ($C \le 10^{18}$) sem compressão offline; (2) SegTree Persistente para consultar versões históricas do array ou o $K$-ésimo menor em intervalo $[L, R]$.}
+  {Cada atualização cria apenas $\Ocomp{\log C}$ novos nós usando um \texttt{vector<Node>} pré-alocado (\texttt{reserve}) para evitar lentidão de ponteiros e \texttt{new}.}
+  {Pré-alocar \texttt{Q * (\_\_lg(MAX\_C) + 2)} nós no construtor para que referências ao vetor não sejam invalidadas durante \texttt{emplace\_back}.}
+  {Update / Query: $\Ocomp{\log C}$ $\mid$ Espaço: $\Ocomp{Q \log C}$}
+
+\begin{lstlisting}
+struct PersistentSegTree {
+  struct Node { int l = 0, r = 0; ll sum = 0; };
+  int n;
+  vector<Node> t;
+  vi roots;
+
+  PersistentSegTree(int n, int max_ops) : n(n) {
+    t.reserve(max_ops * 22 + 5);
+    t.pb({}); // No 0 = nulo (soma 0)
+    roots.pb(0);
+  }
+  int update(int prev_root, int l, int r, int idx, ll delta) {
+    int u = sz(t);
+    t.pb(t[prev_root]);
+    t[u].sum += delta;
+    if (l == r) return u;
+    int m = l + (r - l) / 2;
+    if (idx <= m) {
+      int nl = update(t[prev_root].l, l, m, idx, delta);
+      t[u].l = nl;
+    } else {
+      int nr = update(t[prev_root].r, m + 1, r, idx, delta);
+      t[u].r = nr;
+    }
+    return u;
+  }
+  ll query(int u, int l, int r, int ql, int qr) const {
+    if (!u || ql > qr || qr < l || r < ql) return 0;
+    if (ql <= l && r <= qr) return t[u].sum;
+    int m = l + (r - l) / 2;
+    return query(t[u].l, l, m, ql, qr) + query(t[u].r, m + 1, r, ql, qr);
+  }
+  // K-esimo menor (1-based) entre duas raizes (u_R - u_L)
+  int kth(int uL, int uR, int l, int r, ll k) const {
+    if (l == r) return l;
+    int m = l + (r - l) / 2;
+    ll left_cnt = t[t[uR].l].sum - t[t[uL].l].sum;
+    if (k <= left_cnt) return kth(t[uL].l, t[uR].l, l, m, k);
+    return kth(t[uL].r, t[uR].r, m + 1, r, k - left_cnt);
+  }
+};
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+% SUBTEMA 3.4: SQRT DECOMPOSITION E CONVEX HULL TRICK / LI CHAO TREE
+% ----------------------------------------------------------------------------
+\subsection{Sqrt Decomposition e Convex Hull Trick / Li Chao Tree}
+
+\subsubsection{Sqrt Decomposition por Buffer de Eventos em DAG (2024 H)}
+\algobox
+  {Processar $E \le 10^6$ eventos em um DAG com $N, M \le 8000$: atualizar o peso base $B_i \gets V$ e consultar $T(j) = B_j + \sum_{u \in C(j)} T(u) \pmod{10^9+7}$.}
+  {Seja $W(u, v)$ o número de caminhos direcionados (com multiplicidade de chamadas) de $u$ até $v$ no DAG. Uma mudança de $+\Delta$ em $B_i$ altera $T(j)$ em $+\Delta \cdot W(i, j)$. Como $N, M \le 8000$ mas $E \le 10^6$, mantemos um \textbf{buffer de atualizações pendentes} de tamanho máximo $K_{\text{buf}} \approx \sqrt{E \cdot (N + M)} \approx 3500$:
+  (1) Pré-calculamos a matriz $W(u, v) \pmod{10^9+7}$ para todos os pares $(u, v)$ em $\Ocomp{N(N+M)}$ na ordem topológica reversa!
+  (2) Em cada update, registramos $(i, \Delta_i)$ no buffer (unificando se o mesmo $i$ já estiver no buffer).
+  (3) Em cada query $T(j)$, somamos o valor base \texttt{T\_cached[j]} com $\sum_{(i, \Delta) \in \text{buf}} \Delta \cdot W(j, i) \pmod{10^9+7}$ em $\Ocomp{|\text{buf}|}$!
+  (4) Quando $|\text{buf}| == K_{\text{buf}}$, descarregamos o buffer inteiro recalculando \texttt{T\_cached} no DAG em $\Ocomp{N + M}$!}
+  {Se pré-calcularmos $W[j][i]$ ($8000 \times 8000$ de \texttt{int32\_t} = $256\text{ MB}$), a query nem precisa esperar o flush para ser $\Ocomp{|\text{buf}|}$; se o limite de memória for $< 256\text{ MB}$, basta NÃO guardar a matriz $W$: a cada $K_{\text{buf}} \approx 2500$ queries/updates, processamos o bloco offline marcando apenas os $\le K_{\text{buf}}$ nós consultados/atualizados no bloco!}
+  {Com Matriz / Bloco Sqrt: $\Ocomp{E \sqrt{N + M}}$ $\mid$ Espaço: $\Ocomp{N + M}$}
+
+\begin{lstlisting}
+
+ll solve_heraclosures_dag_sqrt(int n, vll B, const vector<pii>& calls,
+                               const vector<tuple<char, int, ll>>& events) {
+  constexpr ll MOD = 1'000'000'007;
+  vector<vector<pii>> adj(n), rev(n);
+  vi indeg(n, 0);
+  map<pii, int> mult;
+  for (auto [f, g] : calls) mult[{f, g}]++;
+  for (auto [fg, c] : mult) {
+    auto [f, g] = fg;
+    adj[f].eb(g, c); rev[g].eb(f, c);
+    indeg[g]++;
+  }
+  vi topo; topo.reserve(n);
+  queue<int> q;
+  rep(i, 0, n) if (indeg[i] == 0) q.push(i);
+  while (!q.empty()) {
+    int u = q.front(); q.pop();
+    topo.pb(u);
+    for (auto [v, c] : adj[u]) if (--indeg[v] == 0) q.push(v);
+  }
+  // Calcula T inicial na ordem topologica reversa
+  vll T(n, 0);
+  auto recompute_T = [&]() {
+    for (int idx = n - 1; idx >= 0; --idx) {
+      int u = topo[idx];
+      ll s = B[u] % MOD;
+      for (auto [v, c] : adj[u]) s = (s + c * T[v]) % MOD;
+      T[u] = s;
+    }
+  };
+  recompute_T();
+
+  // Pre-calcula W[u][v] = qtd de caminhos de u ate v no DAG (n <= 8000)
+  // Usa flat vector<int> para caber em ~244 MB com cache locality perfeito
+  vector<int> W(1LL * n * n, 0);
+  for (int idx = n - 1; idx >= 0; --idx) {
+    int u = topo[idx];
+    W[1LL * u * n + u] = 1;
+    for (auto [v, c] : adj[u]) {
+      for (int k = idx; k < n; ++k) {
+        int x = topo[k];
+        if (int w_vx = W[1LL * v * n + x]) {
+          W[1LL * u * n + x] = (int)((W[1LL * u * n + x] + 1LL * c * w_vx) % MOD);
+        }
+      }
+    }
+  }
+  const int BUF_LIM = 3000;
+  vll pending_delta(n, 0);
+  vi dirty; dirty.reserve(BUF_LIM + 5);
+
+  ll summary = 0, q_idx = 0;
+  for (auto [type, u, val] : events) {
+    if (type == 'U') {
+      ll diff = (val % MOD - B[u] % MOD + MOD) % MOD;
+      B[u] = val;
+      if (pending_delta[u] == 0 && diff != 0) dirty.pb(u);
+      pending_delta[u] = (pending_delta[u] + diff) % MOD;
+      if (sz(dirty) >= BUF_LIM) {
+        for (int x : dirty) pending_delta[x] = 0;
+        dirty.clear();
+        recompute_T();
+      }
+    } else {
+      ++q_idx;
+      ll cur_t = T[u];
+      for (int x : dirty) {
+        cur_t = (cur_t + pending_delta[x] * W[1LL * u * n + x]) % MOD;
+      }
+      summary = (summary + (q_idx % MOD) * cur_t) % MOD;
+    }
+  }
+  return summary;
+}
+\end{lstlisting}
+
+\subsubsection{Algoritmo de Mo (Intervalos Offline em $\Ocomp{(N + Q)\sqrt{N}}$)}
+\algobox
+  {Responder $Q$ consultas de intervalo $[L, R]$ offline quando é fácil adicionar/remover 1 elemento nas pontas da janela em $\Ocomp{1}$.}
+  {Ordenar as queries pelo bloco de $L$ ($\lfloor L / B \rfloor$, com $B = \max(1, \lfloor N / \sqrt{Q} \rfloor)$) e alternar a direção de $R$ em blocos pares e ímpares (ordem *hilbert/snake*) para reduzir o movimento do ponteiro $R$ pela metade.}
+  {Sempre expandir (\texttt{add}) antes de contrair (\texttt{rem}) os ponteiros $L$ e $R$ para nunca passar por um intervalo inválido $L > R$.}
+  {Tempo: $\Ocomp{N\sqrt{Q} + Q \log Q}$ $\mid$ Espaço: $\Ocomp{N + Q}$}
+
+\begin{lstlisting}
+struct MoQuery { int l, r, id; };
+
+vll mo_algorithm(int n, vector<MoQuery>& qs) {
+  int B = max(1, (int)(n / sqrt(max(1, sz(qs)))));
+  sort(all(qs), [&](const MoQuery& a, const MoQuery& b) {
+    int ba = a.l / B, bb = b.l / B;
+    if (ba != bb) return ba < bb;
+    return (ba & 1) ? (a.r > b.r) : (a.r < b.r);
+  });
+  ll cur_ans = 0;
+  auto add = [&](int idx) { /* atualizar estado e cur_ans */ };
+  auto rem = [&](int idx) { /* reverter estado e cur_ans */ };
+
+  vll ans(sz(qs));
+  int L = 0, R = -1;
+  for (const auto& q : qs) {
+    while (L > q.l) add(--L);
+    while (R < q.r) add(++R);
+    while (L < q.l) rem(L++);
+    while (R > q.r) rem(R--);
+    ans[q.id] = cur_ans;
+  }
+  return ans;
+}
+\end{lstlisting}
+
+\subsubsection{Convex Hull Trick Dinâmico (LineContainer) e Li Chao Tree}
+\algobox
+  {Manter um conjunto de retas $y = kx + m$ e consultar o máximo (ou mínimo) em um ponto $x$. (Para mínimo, insira $(-k, -m)$ e negue o resultado).}
+  {\textbf{LineContainer ($\Ocomp{\log N}$):} Mantém a envoltória superior ordenada por inclinação $k$ em um \texttt{std::multiset}, descartando retas redundantes por interseção inteira. \textbf{Li Chao Tree ($\Ocomp{\log X}$):} Árvore de segmentos sobre o domínio das coordenadas $x$ onde cada nó armazena a reta dominante no ponto médio $m$, suportando também inserção de \textbf{segmentos de reta} restritos a $[x_L, x_R]$ em $\Ocomp{\log^2 X}$.}
+  {No \texttt{LineContainer}, a divisão \texttt{div(a, b)} arredonda para $-\infty$ para tratar interseções negativas com exatidão.}
+  {Update / Query: $\Ocomp{\log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+// 1. LineContainer (CHT Dinamico para MAXIMO de y = k*x + m)
+struct Line {
+  mutable ll k, m, p;
+  bool operator<(const Line& o) const { return k < o.k; }
+  bool operator<(ll x) const { return p < x; }
+};
+
+struct LineContainer : multiset<Line, less<>> {
+  static constexpr ll inf = LLONG_MAX;
+  ll div(ll a, ll b) const { return a / b - ((a ^ b) < 0 && a % b); }
+  bool isect(iterator x, iterator y) {
+    if (y == end()) return x->p = inf, 0;
+    if (x->k == y->k) x->p = x->m > y->m ? inf : -inf;
+    else x->p = div(y->m - x->m, x->k - y->k);
+    return x->p >= y->p;
+  }
+  void add(ll k, ll m) {
+    auto z = insert({k, m, 0}), y = z++, x = y;
+    while (isect(y, z)) z = erase(z);
+    if (x != begin() && isect(--x, y)) isect(x, y = erase(y));
+    while ((y = x) != begin() && (--x)->p >= y->p) isect(x, erase(y));
+  }
+  ll query(ll x) const {
+    assert(!empty());
+    auto l = *lower_bound(x);
+    return l.k * x + l.m;
+  }
+};
+
+// 2. Li Chao Tree Dinamica para MAXIMO de y = k*x + m no dominio [X_MIN, X_MAX]
+struct LiChaoTree {
+  static constexpr ll INF_Y = -4e18;
+  struct Func {
+    ll k = 0, m = INF_Y;
+    ll eval(ll x) const { return m == INF_Y ? INF_Y : k * x + m; }
+  };
+  struct Node { Func f; int l = -1, r = -1; };
+  ll L_dom, R_dom;
+  vector<Node> t;
+
+  LiChaoTree(ll L_dom = 0, ll R_dom = 1e9) : L_dom(L_dom), R_dom(R_dom) {
+    t.reserve(200000);
+    t.pb({});
+  }
+  void add_line(ll k, ll m) { add_line(0, L_dom, R_dom, {k, m}); }
+  void add_line(int u, ll l, ll r, Func nw) {
+    ll mid = l + (r - l) / 2;
+    bool lef = nw.eval(l) > t[u].f.eval(l);
+    bool md  = nw.eval(mid) > t[u].f.eval(mid);
+    if (md) swap(t[u].f, nw);
+    if (l == r || nw.m == INF_Y) return;
+    if (lef != md) {
+      if (t[u].l == -1) { t[u].l = sz(t); t.pb({}); }
+      add_line(t[u].l, l, mid, nw);
+    } else {
+      if (t[u].r == -1) { t[u].r = sz(t); t.pb({}); }
+      add_line(t[u].r, mid + 1, r, nw);
+    }
+  }
+  ll query(ll x) const { return query(0, L_dom, R_dom, x); }
+  ll query(int u, ll l, ll r, ll x) const {
+    if (u == -1) return INF_Y;
+    ll res = t[u].f.eval(x), mid = l + (r - l) / 2;
+    if (l == r) return res;
+    if (x <= mid) return max(res, query(t[u].l, l, mid, x));
+    else          return max(res, query(t[u].r, mid + 1, r, x));
+  }
+};
+\end{lstlisting}
+
+\subsubsection{Maximização Retangular de Produto $(R_j - P_i)(E_j - S_i + 1)$ (2023 A)}
+\algobox
+  {Dados $N$ fornecedores com $S_1 < \dots < S_N$ e $P_1 > \dots > P_N$, processar chegadas online de clientes $(E_j, R_j)$ e consultas do maior lucro $(R_j - P_i)(E_j - S_i + 1)$ para o fornecedor $i$ (2023 A).}
+  {Como $S_i$ cresce e $P_i$ decresce, e no skyline de clientes não-dominados $E_j$ cresce e $R_j$ decresce, a derivada mista do lucro é positiva (propriedade de Monge). Aplicamos CDQ Divide \& Conquer sobre o tempo e, em cada nó, construímos o skyline de clientes da esquerda e buscamos o ótimo monótono $\text{opt}(i)$ para os fornecedores da direita via Divide \& Conquer DP!}
+  {Restringir a busca de cada fornecedor $i$ ao intervalo de clientes do skyline com $E_j \ge S_i$ e $R_j > P_i$ para evitar produtos de dois negativos.}
+  {Tempo: $\Ocomp{(N + Q) \log^2(N + Q)}$ $\mid$ Espaço: $\Ocomp{N + Q}$}
+
+\begin{lstlisting}
+struct Supplier { ll S, P; };
+struct ContractOp { char type; ll E, R; int sup_id, q_id; };
+
+// Resolve Analyzing Contracts (2023 A) via CDQ Divide & Conquer + Monge D&C Optima
+vll solve_analyzing_contracts(const vector<Supplier>& sups, const vector<ContractOp>& ops) {
+  int Q_tot = 0;
+  for (const auto& op : ops) if (op.type == 's') ++Q_tot;
+  vll ans(Q_tot, 0);
+  if (Q_tot == 0) return ans;
+
+  // CDQ sobre o intervalo de operacoes [opL, opR]
+  auto cdq = [&](auto& self, int opL, int opR, const vi& active_qs) -> void {
+    if (opL >= opR || active_qs.empty()) return;
+    int mid = (opL + opR) >> 1;
+
+    vi left_qs, right_qs;
+    for (int idx : active_qs) {
+      if (idx <= mid) left_qs.pb(idx);
+      else            right_qs.pb(idx);
+    }
+    self(self, opL, mid, left_qs);
+    self(self, mid + 1, opR, right_qs);
+
+    if (right_qs.empty()) return;
+    // Coleta clientes em [opL..mid] e constroi o Skyline (E estritamente crescente, R decrescente)
+    vector<pll> raw_c;
+    rep(i, opL, mid + 1) if (ops[i].type == 'c') raw_c.eb(ops[i].E, ops[i].R);
+    if (raw_c.empty()) return;
+    sort(all(raw_c), [](const pll& a, const pll& b) {
+      return a.fst != b.fst ? a.fst < b.fst : a.snd < b.snd;
+    });
+    vector<pll> sky;
+    for (auto [e, r] : raw_c) {
+      while (!sky.empty() && sky.back().snd <= r) sky.pop_back();
+      sky.eb(e, r);
+    }
+    int K = sz(sky);
+
+    // Ordena os fornecedores consultados em right_qs por ID crescente (S_i cresc, P_i decresc)
+    vi q_sups; q_sups.reserve(sz(right_qs));
+    for (int idx : right_qs) q_sups.pb(ops[idx].sup_id);
+    sort(all(q_sups));
+    q_sups.erase(unique(all(q_sups)), q_sups.end());
+
+    int M = sz(q_sups);
+    vll best_for_sup(M, 0);
+
+    auto dnc = [&](auto& rec, int l, int r, int optL, int optR) -> void {
+      if (l > r) return;
+      int m = (l + r) >> 1;
+      int sid = q_sups[m];
+      ll Si = sups[sid].S, Pi = sups[sid].P;
+
+      // Restringe aos clientes validos com E_j >= Si (j >= lb) e R_j > Pi (j <= ub)
+      int lb = (int)(lower_bound(all(sky), pll{Si, -1}) - sky.begin());
+      // Como R_j eh decrescente no skyline, achamos o ultimo j com R_j > Pi via busca binaria
+      int lo = 0, hi = K - 1, ub = -1;
+      while (lo <= hi) {
+        int mid_k = (lo + hi) >> 1;
+        if (sky[mid_k].snd > Pi) { ub = mid_k; lo = mid_k + 1; }
+        else hi = mid_k - 1;
+      }
+      int start_j = max(optL, lb), end_j = min(optR, ub);
+      int best_j = start_j;
+      ll max_val = -1;
+      for (int j = start_j; j <= end_j; ++j) {
+        ll val = (sky[j].snd - Pi) * (sky[j].fst - Si + 1);
+        if (val > max_val) { max_val = val; best_j = j; }
+      }
+      if (max_val > 0) best_for_sup[m] = max_val;
+      // Se o intervalo valido estava vazio, particiona o ponteiro pela posicao relativa a lb/ub
+      int split_j = (start_j <= end_j) ? best_j : (lb > optR ? optR : optL);
+      rec(rec, l, m - 1, optL, split_j);
+      rec(rec, m + 1, r, split_j, optR);
+    };
+    dnc(dnc, 0, M - 1, 0, K - 1);
+
+    for (int idx : right_qs) {
+      int pos = (int)(lower_bound(all(q_sups), ops[idx].sup_id) - q_sups.begin());
+      chmax(ans[ops[idx].q_id], best_for_sup[pos]);
+    }
+  };
+  vi all_qs;
+  rep(i, 0, sz(ops)) if (ops[i].type == 's') all_qs.pb(i);
+  cdq(cdq, 0, sz(ops) - 1, all_qs);
+  return ans;
+}
+\end{lstlisting}

@@ -4,15 +4,15 @@
 
 [![Codeforces](https://img.shields.io/badge/Codeforces-Gerbunte-1F8ACB?style=for-the-badge&logo=codeforces&logoColor=white)](https://codeforces.com/profile/Gerbunte)
 [![GitHub](https://img.shields.io/badge/GitHub-GabrielFrigo4-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/GabrielFrigo4)
-[![Linux](https://img.shields.io/badge/Platform-Linux%20%2F%20GCC-FCC624?style=for-the-badge&logo=linux&logoColor=black)](COMPILER.md#c23-no-linux-gcc)
-[![FreeBSD](https://img.shields.io/badge/Platform-FreeBSD%20%2F%20Clang-AB2B28?style=for-the-badge&logo=freebsd&logoColor=white)](COMPILER.md#c23-no-freebsd-clang)
-[![Language](https://img.shields.io/badge/C%2B%2B-23-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)](COMPILER.md)
-[![Language](https://img.shields.io/badge/Python-3-3776AB?style=for-the-badge&logo=python&logoColor=white)](COMPILER.md#execução-em-python--pypy)
-[![Language](https://img.shields.io/badge/PyPy-3-FFD43B?style=for-the-badge&logo=pypy&logoColor=black)](COMPILER.md#execução-em-python--pypy)
-[![Editor](https://img.shields.io/badge/Editor-Vim-019733?style=for-the-badge&logo=vim&logoColor=white)](EDITOR.md#vim)
-[![Editor](https://img.shields.io/badge/Editor-GNU_Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white)](EDITOR.md#gnu-emacs)
+[![Linux](https://img.shields.io/badge/Platform-Linux%20%2F%20GCC-FCC624?style=for-the-badge&logo=linux&logoColor=black)](modelo/README.md#c23-no-linux-gcc)
+[![FreeBSD](https://img.shields.io/badge/Platform-FreeBSD%20%2F%20Clang-AB2B28?style=for-the-badge&logo=freebsd&logoColor=white)](modelo/README.md#c23-no-freebsd-clang)
+[![Language](https://img.shields.io/badge/C%2B%2B-23-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)](modelo/README.md)
+[![Language](https://img.shields.io/badge/Python-3-3776AB?style=for-the-badge&logo=python&logoColor=white)](modelo/README.md#execução-em-python--pypy)
+[![Language](https://img.shields.io/badge/PyPy-3-FFD43B?style=for-the-badge&logo=pypy&logoColor=black)](modelo/README.md#execução-em-python--pypy)
+[![Editor](https://img.shields.io/badge/Editor-Vim-019733?style=for-the-badge&logo=vim&logoColor=white)](configurações/README.md#vim)
+[![Editor](https://img.shields.io/badge/Editor-GNU_Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white)](configurações/README.md#gnu-emacs)
 
-[Visão Geral](#visao-geral) • [Ciclos de Treino](#ciclos-de-treino) • [Estrutura](#arquitetura-do-repositorio) • [Compilação](COMPILER.md) • [Editores](EDITOR.md) • [Makefile](MAKEFILE.md) • [Regras do Trio](#regras-de-ouro-do-trio)
+[Visão Geral](#visao-geral) • [Ciclos de Treino](#ciclos-de-treino) • [Estrutura](#arquitetura-do-repositorio) • [Modelo & Compilação](modelo/README.md) • [Editores](configurações/README.md) • [Consultas](consultas/README.md) • [Regras do Trio](#regras-de-ouro-do-trio)
 
 ---
 
@@ -23,7 +23,7 @@ Repositório central de treinos do trio para as etapas da **Maratona SBC de Prog
 - **Metodologia:** 1 máquina por trio, 5 horas ininterruptas, formato _split_ (3h cegas + 2h com desbloqueio de tópicos).
 - **Linguagens:** C++23 (padrão de prova), Python 3 e PyPy 3.
 - **Ambientes:** Linux (GCC) e FreeBSD (Clang).
-- **Guias Técnicos:** Configurações de compilação em [COMPILER.md](COMPILER.md), setups de editores em [EDITOR.md](EDITOR.md) e automação em [MAKEFILE.md](MAKEFILE.md).
+- **Guias Técnicos:** Template, `Makefile` de prova e flags de compilação em [`modelo/`](modelo/README.md), setups de editores em [`configurações/`](configurações/README.md) e caderno de consultas (TRD) em LaTeX em [`consultas/`](consultas/README.md).
 
 ---
 

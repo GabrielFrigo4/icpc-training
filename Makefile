@@ -22,7 +22,7 @@ all: help
 ### HELP & DOCUMENTATION
 ### ================================
 help:
-	_e=$$'\e'; \
+	_e=$$(awk 'BEGIN { printf "%c", 27 }'); \
 	cmd() { printf "    $${_e}[36mmake %-22s$${_e}[0m %s\n" "$$1" "$$2"; }; \
 	sec() { printf "\n  $${_e}[1;33m%s$${_e}[0m\n" "$$1"; }; \
 	printf "\n  $${_e}[1;37mMaratona SBC de Programação (ICPC) — Treinos & Automação$${_e}[0m\n"; \

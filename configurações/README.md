@@ -2,19 +2,27 @@
 
 Configurações mínimas e atalhos rápidos para máquinas virgens no Warmup da prova.
 
+| Arquivo                | Destino na Máquina de Prova                            |
+| :--------------------- | :----------------------------------------------------- |
+| [`init.vim`](init.vim) | `~/.vimrc` (Vim) ou `~/.config/nvim/init.vim` (Neovim) |
+| [`init.el`](init.el)   | `~/.emacs` ou buffer `*scratch*` (`M-x eval-buffer`)   |
+
+> [!TIP]
+> O autocomando do Vim lê o template de `~/.template.cpp`: copie [`../modelo/main.cpp`](../modelo/main.cpp) para esse caminho no Warmup.
+
 ---
 
 ## 🟢 Vim
 
 ### Configuração Mínima para Digitar no Warmup (4 linhas)
 
-Adicione ao `~/.vimrc`:
+Conteúdo de [`init.vim`](init.vim), a ser copiado para o `~/.vimrc`:
 
 ```vim
 syn on|se nu rnu cin noet ts=4 sw=4 sts=4 bs=2 is hls ww+=<,>,h,l,[,]
 let &t_SI="\<Esc>[5 q"|let &t_EI="\<Esc>[1 q"
 au BufNewFile *.cpp 0r ~/.template.cpp
-map <F5> :w<CR>:!c++ -O3 -std=c++23 % -o %:r && ./%:r < in<CR>
+map <F5> :w<CR>:!c++ -O3 -std=c++23 % -o %:r && ./%:r < input.txt<CR>
 ```
 
 ### Explicação dos Parâmetros
@@ -34,12 +42,12 @@ map <F5> :w<CR>:!c++ -O3 -std=c++23 % -o %:r && ./%:r < in<CR>
 
 - **Automação de Prova:**
 - `au BufNewFile *.cpp 0r ~/.template.cpp`: Copia automaticamente o template da _home_ sempre que criar um arquivo `.cpp` novo.
-- `map <F5>`: Salva o código, compila em C++23 e executa lendo a entrada do arquivo `in` em um único toque.
+- `map <F5>`: Salva o código, compila em C++23 e executa lendo a entrada do arquivo `input.txt` em um único toque.
 
 ### Atalho de Compilação Manual
 
 ```vim
-:!c++ -O3 -std=c++23 % -o %:r && ./%:r < in
+:!c++ -O3 -std=c++23 % -o %:r && ./%:r < input.txt
 ```
 
 - `%`: Expande para o nome do arquivo atual (ex: `A.cpp`).
@@ -51,7 +59,7 @@ map <F5> :w<CR>:!c++ -O3 -std=c++23 % -o %:r && ./%:r < in<CR>
 
 ### Configuração Rápida
 
-Cole no `~/.emacs` ou avalie no buffer `*scratch*` com `M-x eval-buffer`:
+Conteúdo de [`init.el`](init.el), a ser colado no `~/.emacs` ou avaliado no buffer `*scratch*` com `M-x eval-buffer`:
 
 ```elisp
 (global-display-line-numbers-mode 1)
@@ -74,7 +82,7 @@ Cole no `~/.emacs` ou avalie no buffer `*scratch*` com `M-x eval-buffer`:
 1. Pressione `<F5>` (ou execute `M-x compile`) e digite o comando:
 
 ```text
-c++ -O3 -Wall -Wextra -std=c++23 solution.cpp -o solution && ./solution < in
+c++ -O3 -Wall -Wextra -std=c++23 solution.cpp -o solution && ./solution < input.txt
 ```
 
 2. O Emacs divide a tela e exibe o buffer assíncrono `*compilation*`.

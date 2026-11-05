@@ -1,0 +1,597 @@
+% ============================================================================
+% CAPITULO 1: GULOSOS, AD-HOC, SIMULACAO MODULAR E CONSTRUTIVOS
+% ============================================================================
+\section{Gulosos, Ad-Hoc, Simulação e Construtivos}
+
+% ----------------------------------------------------------------------------
+% SUBTEMA 1.1: AD-HOC, IMPLEMENTACAO PURA E SIMULACAO MODULAR
+% ----------------------------------------------------------------------------
+\subsection{Simulação Modular, Ponto Fixo e Multiconjuntos}
+
+\subsubsection{Segmentos Adjacentes e Ponto Fixo Exato (Sem Float)}
+\algobox
+  {Varreduras de blocos contíguos válidos ($A_{i+1} - A_i \le X$) e leitura exata de valores decimais/monetários sem erro de precisão de IEEE-754.}
+  {Converter números com $d$ casas decimais diretamente de \texttt{string} para inteiros multiplicados por $10^d$ (ex.: centavos $\bmod 100$). Em janelas monótonas, resetar o contador ao violar a condição local.}
+  {\texttt{double} falha em números como \texttt{0.29 * 100 = 28.999999999999996}. Sempre faça o parse como texto ou some $+0.5$ antes do cast se for positivo.}
+  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{1}$}
+
+\begin{lstlisting}
+// Maior bloco contiguo com A[i] - A[i-1] <= X
+int max_valid_run(const vi& a, int X) {
+  int n = sz(a), ans = (n > 0), cur = (n > 0);
+  rep(i, 1, n) {
+    cur = (a[i] - a[i - 1] <= X) ? cur + 1 : 1;
+    chmax(ans, cur);
+  }
+  return ans;
+}
+
+// Parser exato de string decimal/monetaria (ex: "$98.76" ou "-12.345") para int64
+// Escala para 10^dec_places (ex: dec_places = 2 para centavos)
+ll parse_fixed_point(const string& s, int dec_places = 2) {
+  ll sign = 1, whole = 0, frac = 0;
+  int i = 0, n = sz(s);
+  while (i < n && !isdigit(s[i]) && s[i] != '-') ++i;
+  if (i < n && s[i] == '-') sign = -1, ++i;
+  while (i < n && isdigit(s[i])) whole = whole * 10 + (s[i++] - '0');
+  if (i < n && s[i] == '.') ++i;
+  rep(d, 0, dec_places) {
+    frac = frac * 10 + (i < n && isdigit(s[i]) ? (s[i++] - '0') : 0);
+  }
+  rep(d, 0, dec_places) whole *= 10;
+  return sign * (whole + frac);
+}
+\end{lstlisting}
+
+\subsubsection{Aritmética Modular de Calendários e Ciclos com Salto}
+\algobox
+  {Simulação de renovações periódicas (ex.: $+30$ dias pulando fins de semana) quando o tempo decorrido $D_i \le 10^9$ é grande.}
+  {O estado depende apenas do dia da semana $w \in [0, 6]$ (0 = Seg, $\dots$, 5 = Sáb, 6 = Dom). Se uma renovação de $+L$ dias cai em Sáb/Dom, avança para Seg ($+2$ ou $+1$ dias). Como há apenas 5 dias úteis, a sequência de durações entra em ciclo curto (ou para $L=30$, se $D_i > 0$, após no máximo 5 passos o ciclo tem período exato ou estaciona em Seg $\to$ Qua $\to$ Sex $\to$ Seg de $30+30+31=91$ dias).}
+  {Tratar $D_i = 0$ separadamente (renovação futura pura, sem histórico passado). Sempre normalizar módulo com \texttt{(x \% M + M) \% M}.}
+  {Tempo: $\Ocomp{1}$ por item $\mid$ Espaço: $\Ocomp{1}$}
+
+\begin{lstlisting}
+ll days_until_renewal(int today_w, ll D) {
+  auto step_len = [](int w) -> ll {
+    int nw = (w + 30) % 7;
+    if (nw == 5) return 32; // Caiu no Sabado -> Segunda (+2)
+    if (nw == 6) return 31; // Caiu no Domingo -> Segunda (+1)
+    return 30;
+  };
+  int w = (int)((today_w - (D % 7) + 7) % 7); // Dia da semana da criacao
+  if (D == 0) return step_len(w);
+  // Simula os primeiros passos ate entrar no ciclo Mon(0)->Wed(2)->Fri(4)->Mon(0) de 91 dias
+  rep(iter, 0, 5) {
+    ll len = step_len(w);
+    if (D <= len) return len - D;
+    D -= len;
+    w = (int)((w + len) % 7);
+  }
+  D %= 91; // Ciclo estavel: 0 (30d) -> 2 (30d) -> 4 (31d) -> 0 (soma = 91)
+  if (D == 0) return 0;
+  while (true) {
+    ll len = step_len(w);
+    if (D <= len) return len - D;
+    D -= len;
+    w = (int)((w + len) % 7);
+  }
+}
+\end{lstlisting}
+
+\subsubsection{Conflitos Periódicos em Intervalos ($\bmod X$)}
+\algobox
+  {Dado um evento periódico nos instantes $T + k \cdot X$ ($k \ge 0$) e intervalos disjuntos $[S_i, S_i + D_i]$, encontrar $T \in [0, T_{\max}]$ que minimiza o total de interseções.}
+  {\textbf{Abordagem 1 (Direta):} Para um $T$ fixo, o número de pontos $T + kX \in [L, R]$ (com $L = \max(T, S_i)$ e $R = S_i + D_i$) é $\lfloor \frac{R-T}{X} \rfloor - \lfloor \frac{L-1-T}{X} \rfloor$ se $L \le R$. \textbf{Abordagem 2 (Geral $\Ocomp{N + X}$):} Cada intervalo $[L, R]$ adiciona $\lfloor \frac{R-L+1}{X} \rfloor$ a todos os restos $\bmod X$ e $+1$ ao arco circular $[L \bmod X, R \bmod X]$ via array de diferenças circular.}
+  {Cuidado quando $T > S_i + D_i$ (a atividade termina antes do primeiro evento $T$).}
+  {Tempo: $\Ocomp{N \cdot T_{\max}}$ ou $\Ocomp{N + X}$ $\mid$ Espaço: $\Ocomp{N + X}$}
+
+\begin{lstlisting}
+// Abordagem 1: Conta conflitos em [S_i, S_i + D_i] para T in [0, maxT]
+// Ideal quando maxT <= 480 e N <= 1e4 (O(N * maxT) ultra-rapido)
+pll best_periodic_start(const vector<pll>& act, ll X, ll maxT = 480) {
+  ll best_t = 0, min_conf = LLONG_MAX;
+  for (ll t = 0; t <= maxT; ++t) {
+    ll conf = 0;
+    for (auto [s, d] : act) {
+      ll L = max(t, s), R = s + d;
+      if (L <= R) conf += (R - t) / X - (L - t + X - 1) / X + 1;
+    }
+    if (chmin(min_conf, conf)) best_t = t;
+  }
+  return {best_t, min_conf};
+}
+
+// Abordagem 2: Array de Diferencas Circular mod X em O(N + X)
+// Conta para cada resto r in [0, X-1] quantos intervalos [L_i, R_i] cobrem congruentes a r
+vll periodic_conflicts_mod_X(const vector<pll>& segs, int X) {
+  vll diff(X + 1, 0);
+  for (auto [L, R] : segs) {
+    if (L > R) continue;
+    ll len = R - L + 1, full = len / X, rem = len % X;
+    diff[0] += full; diff[X] -= full;
+    if (rem > 0) {
+      int a = (int)(L % X), b = (int)((L + rem - 1) % X);
+      if (a <= b) { diff[a] += 1; diff[b + 1] -= 1; }
+      else { diff[a] += 1; diff[X] -= 1; diff[0] += 1; diff[b + 1] -= 1; }
+    }
+  }
+  vll ans(X, 0);
+  ll cur = 0;
+  rep(r, 0, X) { cur += diff[r]; ans[r] = cur; }
+  return ans;
+}
+\end{lstlisting}
+
+\subsubsection{Indexação e Hashing de Multiconjuntos Pequenos}
+\algobox
+  {Manter coleção dinâmica de itens que possuem até $R \le 8$ recursos de $K \le 8$ tipos e consultar quantos itens ativos possuem um sub-multiconjunto exigido.}
+  {O número de multiconjuntos de tamanho $\le R$ sobre $K$ tipos é $\binom{K+R}{R}$ (para $K=R=8$, apenas $12\,870$). Ao conectar/desconectar uma máquina com vetor de frequências $c[0..K-1]$ ($\sum c_i \le 8$), geramos recursivamente todos os $\prod (c_i + 1) \le 3^4 = 81$ sub-multiconjuntos distintos, codificando cada um em um inteiro base $(R+1)$ ou hash, e atualizamos a tabela de contagem em $\Ocomp{1}$ por sub-multiconjunto.}
+  {Ordenar ou converter a lista de recursos em um array de frequências $c[0..K-1]$ para evitar gerar subconjuntos duplicados do mesmo multiconjunto.}
+  {Update: $\Ocomp{3^{R/2}}$ $\mid$ Query: $\Ocomp{K}$}
+
+\begin{lstlisting}
+struct SmallMultisetAllocator {
+  int K, B; // K tipos (0..K-1), base B = R_max + 1 (ex: 9)
+  unordered_map<ull, int, CustomHash> cnt;
+  vector<vi> active;
+
+  SmallMultisetAllocator(int k, int max_r = 8) : K(k), B(max_r + 1) {
+    cnt.reserve(1 << 15);
+  }
+  ull encode(const vi& f) const {
+    ull h = 0;
+    for (int x : f) h = h * B + x;
+    return h;
+  }
+  void dfs_upd(int idx, const vi& f, ull cur_h, int delta) {
+    if (idx == K) { cnt[cur_h] += delta; return; }
+    for (int v = 0; v <= f[idx]; ++v)
+      dfs_upd(idx + 1, f, cur_h * B + v, delta);
+  }
+  int connect(const vi& resources) { // resources: 0-indexed types
+    vi f(K, 0);
+    for (int t : resources) f[t]++;
+    active.pb(f);
+    dfs_upd(0, f, 0, +1);
+    return sz(active); // 1-based ID
+  }
+  void disconnect(int id_1based) {
+    dfs_upd(0, active[id_1based - 1], 0, -1);
+  }
+  int query(const vi& req) const {
+    vi f(K, 0);
+    for (int t : req) f[t]++;
+    auto it = cnt.find(encode(f));
+    return it == cnt.end() ? 0 : it->second;
+  }
+};
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+% SUBTEMA 1.2: TWO POINTERS, PREFIX SUM (1D/2D) E ARRAYS CIRCULARES
+% ----------------------------------------------------------------------------
+\subsection{Prefix Sum (1D/2D), Anéis Circulares, Two Pointers e Sweep Racional}
+
+\subsubsection{Soma de Prefixos 2D e Array de Diferenças 2D}
+\algobox
+  {Consultas de soma em retângulos $[r_1, r_2] \times [c_1, c_2]$ em $\Ocomp{1}$ e adição estática de constantes em submatrizes em $\Ocomp{1}$ por operação.}
+  {Inclusão-Exclusão 2D. Para diferenças 2D, acumular prefixos duas vezes (ou uma vez após todas as adições) recupera a matriz final.}
+  {Usar indexação 1-based nas matrizes internas para eliminar checagens de borda $r_1 = 0$ ou $c_1 = 0$.}
+  {Build: $\Ocomp{NM}$ $\mid$ Update/Query: $\Ocomp{1}$}
+
+\begin{lstlisting}
+struct PrefixDiff2D {
+  int n, m;
+  vector<vll> p;
+  PrefixDiff2D(int n, int m) : n(n), m(m), p(n + 2, vll(m + 2, 0)) {}
+
+  // MODO 1: Adicionar 'v' na submatriz [r1..r2][c1..c2] (0-indexed, inclusivo)
+  void add_rect(int r1, int c1, int r2, int c2, ll v) {
+    ++r1; ++c1; ++r2; ++c2;
+    p[r1][c1] += v;     p[r1][c2 + 1] -= v;
+    p[r2 + 1][c1] -= v; p[r2 + 1][c2 + 1] += v;
+  }
+  // Converte matriz de diferencas (ou valores brutos em p[1..n][1..m]) em Prefix Sum
+  void build() {
+    rep(i, 1, n + 1) rep(j, 1, m + 1)
+      p[i][j] += p[i - 1][j] + p[i][j - 1] - p[i - 1][j - 1];
+  }
+  // Soma da submatriz [r1..r2][c1..c2] (0-indexed, inclusivo) apos build()
+  ll query(int r1, int c1, int r2, int c2) const {
+    ++r1; ++c1; ++r2; ++c2;
+    return p[r2][c2] - p[r1 - 1][c2] - p[r2][c1 - 1] + p[r1 - 1][c1 - 1];
+  }
+};
+\end{lstlisting}
+
+\subsubsection{Arrays Circulares: Janela Deslizante e Balanceamento em Anel}
+\algobox
+  {Problemas em anel (string circular, mesas em redor de lagoa). Cobre: (1) contagem de janelas de tamanho $\le S$ contendo um caractere alvo; (2) transporte de carga em sentido único (horário/anti-horário); (3) transporte bidirecional em anel.}
+  {Duplicar o vetor ($A[i + N] = A[i]$) transforma ciclos em segmentos de tamanho $\le N$. No transporte unidirecional com $\sum G_i = N \cdot \text{avg}$, simular duas voltas ($2N$ passos) garante que na segunda volta o excesso carregado \texttt{cur} é exatamente o fluxo ótimo de cada aresta. No caso bidirecional, o fluxo $x_0$ na aresta $N \to 1$ que minimiza $\sum |x_0 + \text{pref}_i|$ é $x_0 = -\text{mediana}(\text{pref})$.}
+  {Se nenhum elemento alvo existir na string circular, a distância até o próximo é $\infty$. No transporte unidirecional, testar o vetor original e o vetor revertido.}
+  {Tempo: $\Ocomp{N}$ (unidirecional) ou $\Ocomp{N \log N}$ (bidirecional) $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+// 1. Fatias de tamanho <= S em string circular B contendo pelo menos um 'E'
+ll circular_slices_with_target(const string& B, int S, char target = 'E') {
+  int n = sz(B);
+  string s = B + B;
+  int nxt = 2 * n;
+  ll ans = 0;
+  for (int i = 2 * n - 1; i >= 0; --i) {
+    if (s[i] == target) nxt = i;
+    if (i < n && nxt - i < S) ans += S - (nxt - i);
+  }
+  return ans;
+}
+
+// 2. Balanceamento em Anel UNIDIRECIONAL (so horario ou so anti-horario)
+ll ring_balance_unidirectional(vll g) {
+  int n = sz(g);
+  ll sum = accumulate(all(g), 0LL), avg = sum / n;
+  auto solve_dir = [&](const vll& a) -> ll {
+    ll cur = 0, cost = 0;
+    rep(pass, 0, 2) rep(i, 0, n) {
+      if (pass == 1) cost += cur;
+      cur = max(0LL, cur + a[i] - avg);
+    }
+    return cost;
+  };
+  ll ans = solve_dir(g);
+  reverse(all(g));
+  return min(ans, solve_dir(g));
+}
+
+// 3. Balanceamento em Anel BIDIRECIONAL (pode mover para ambos os lados)
+ll ring_balance_bidirectional(const vll& g) {
+  int n = sz(g);
+  ll avg = accumulate(all(g), 0LL) / n;
+  vll pref(n, 0);
+  rep(i, 0, n) pref[i] = (i ? pref[i - 1] : 0) + (g[i] - avg);
+  nth_element(pref.begin(), pref.begin() + n / 2, pref.end());
+  ll med = pref[n / 2], cost = 0;
+  for (ll x : pref) cost += abs(x - med);
+  return cost;
+}
+\end{lstlisting}
+
+\subsubsection{Two Pointers para Reconstrução de Sequência Unimodal}
+\algobox
+  {Completar elementos faltantes ($A_i = 0$) de uma permutação de $1 \dots N$ para que ela seja unimodal (uma única subida seguida de uma única descida).}
+  {Em uma permutação unimodal, o menor elemento ($1$) deve obrigatoriamente estar em uma das duas extremidades atuais ($L$ ou $R$). Por indução, preenchemos os valores $v = 1, 2, \dots, N$ mantendo dois ponteiros $L = 0$ e $R = N - 1$: se $v$ já aparece no array, ele deve estar em $A[L]$ ou $A[R]$; se $v$ está faltando, olhamos o próximo valor fixo não-zero à direita de $L$ (\texttt{nxtL[L]}) e à esquerda de $R$ (\texttt{prvR[R]}) e colocamos $v$ no lado cujo próximo valor fixo é menor.}
+  {Se $v$ já existe no array original mas não está na ponta $L$ nem na ponta $R$ no momento da sua vez, a reconstrução é impossível (retornar vazio).}
+  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+vi reconstruct_unimodal(vi a) {
+  int n = sz(a);
+  vi pos(n + 1, -1), nxtL(n, n), prvR(n, -1);
+  rep(i, 0, n) if (a[i] > 0) pos[a[i]] = i;
+  for (int i = n - 1, last = n; i >= 0; --i) {
+    if (a[i] > 0) last = i;
+    nxtL[i] = last;
+  }
+  for (int i = 0, last = -1; i < n; ++i) {
+    if (a[i] > 0) last = i;
+    prvR[i] = last;
+  }
+  int L = 0, R = n - 1;
+  rep(v, 1, n + 1) {
+    if (pos[v] != -1) {
+      if (pos[v] == L) ++L;
+      else if (pos[v] == R) --R;
+      else return {}; // Impossivel
+    } else {
+      if (a[L] == 0 && a[R] == 0) {
+        int vL = (nxtL[L] <= R) ? a[nxtL[L]] : n + 1;
+        int vR = (prvR[R] >= L) ? a[prvR[R]] : n + 1;
+        if (vL <= vR) a[L++] = v;
+        else a[R--] = v;
+      } else if (a[L] == 0) a[L++] = v;
+      else if (a[R] == 0) a[R--] = v;
+      else return {};
+    }
+  }
+  return a;
+}
+\end{lstlisting}
+
+\subsubsection{Aritmética de Frações Exatas e Sweep Line sobre Razões}
+\algobox
+  {Otimização onde cada item $i$ ativo em um intervalo de razão $w \in [\frac{L_i}{H_i}, \frac{U_i}{H_i}]$ contribui com capacidade $\text{cap}_i = \lfloor \frac{K}{H_i} \rfloor$ e custo linear em $w$, exigindo soma total $S$ com pagamento mínimo.}
+  {Para que todos os contratados recebam a mesma taxa horária $w = \frac{p_i}{H_i}$, $w$ deve pertencer a $\bigcap_{i \in \mathcal{C}} [\frac{L_i}{H_i}, \frac{U_i}{H_i}]$. Para um conjunto ativo em $w$, contratamos apenas aqueles que serão usados ($s_i \ge 1$): o custo mínimo para um subconjunto é $w \cdot \min \sum s_i H_i$, onde damos $s_i = \text{cap}_i$ aos menores $H_i$ (já que toda rua extra dada ao menor $H_i$ custa menos e se $s_i \ge 2$ podemos até dispensar outros limpadores). Logo, em qualquer conjunto ativo ordenado por $H_i$, sempre pegamos um prefixo dos menores $H_i$ até somar $\ge S$ ruas! Como $H_i \le U_i \le 100$, mantemos a frequência de cada $H \in [1, 100]$ ativo durante o Sweep Line de eventos racionais.}
+  {Um limpador com $\lfloor K/H_i \rfloor = 0$ nunca pode ser contratado (pois $s_i \ge 1$ exigiria $H_i \le K$). Reduzir frações com \texttt{std::gcd} no final.}
+  {Tempo: $\Ocomp{N \log N + N \cdot H_{\max}}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+struct Frac {
+  i128 num, den;
+  Frac(i128 n = 0, i128 d = 1) {
+    if (d < 0) n = -n, d = -d;
+    i128 g = std::gcd(abs128(n), d);
+    num = n / g; den = d / g;
+  }
+  bool operator<(const Frac& o) const { return num * o.den < o.num * den; }
+  bool operator==(const Frac& o) const { return num * o.den == o.num * den; }
+  bool operator<=(const Frac& o) const { return *this < o || *this == o; }
+};
+
+// Resolve o problema de contratacao com taxa horaria comum w = p_i / H_i
+// H_i, L_i, U_i <= 100; S <= 1e5; K <= 1e9. Retorna {num, den} ou {-1, -1}.
+pll min_fair_hiring_cost(int N, ll S, ll K, const vi& H, const vi& L, const vi& U) {
+  struct Ev { Frac w; int type, h; }; // type: 0 = add (L_i/H_i), 1 = rem (U_i/H_i)
+  vector<Ev> evs;
+  rep(i, 0, N) if (H[i] <= K) {
+    evs.pb({Frac(L[i], H[i]), 0, H[i]});
+    evs.pb({Frac(U[i], H[i]), 1, H[i]});
+  }
+  sort(all(evs), [](const Ev& a, const Ev& b) {
+    if (!(a.w == b.w)) return a.w < b.w;
+    return a.type < b.type; // Processa entradas antes de saidas no mesmo w
+  });
+  vi cnt(101, 0);
+  ll tot_cap = 0;
+  Frac best(1, 0); // Infinito
+  bool ok = false;
+
+  for (int i = 0; i < sz(evs); ) {
+    Frac w = evs[i].w;
+    while (i < sz(evs) && evs[i].w == w && evs[i].type == 0) {
+      int h = evs[i++].h;
+      cnt[h]++; tot_cap += K / h;
+    }
+    if (tot_cap >= S) {
+      // Escolhe gulosamente os limpadores de menor H_i ate cobrir S ruas
+      ll rem = S, hours = 0;
+      rep(h, 1, 101) if (cnt[h] > 0 && rem > 0) {
+        ll cap = K / h, take = min(rem, (ll)cnt[h] * cap);
+        hours += take * h;
+        rem -= take;
+      }
+      Frac cand(w.num * hours, w.den);
+      if (!ok || cand < best) best = cand, ok = true;
+    }
+    while (i < sz(evs) && evs[i].w == w && evs[i].type == 1) {
+      int h = evs[i++].h;
+      cnt[h]--; tot_cap -= K / h;
+    }
+  }
+  if (!ok) return {-1, -1};
+  return {(ll)best.num, (ll)best.den};
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+% SUBTEMA 1.3: GULOSOS, POTENCIAS DE 2 E ESCALONAMENTO COM DEADLINES
+% ----------------------------------------------------------------------------
+\subsection{Dominância de Potências de 2, Bounding Box e Escalonamento}
+
+\subsubsection{Soma e Transporte de Potências de 2 (Carry em Base 2)}
+\algobox
+  {Comprimir somas $\sum 2^{A_i}$ onde $A_i \le 10^5$ e decidir se os elementos podem ser particionados em dois subconjuntos não-vazios cujas somas são potências de 2.}
+  {Usar a identidade $2^x + 2^x = 2^{x+1}$ da menor para a maior potência. Como todas as parcelas originais são potências de 2, se a soma total $\sum 2^{A_i}$ tiver exatamente 2 bits ligados ($2^a + 2^b$) ou 1 bit ligado ($2^{a+1} = 2^a + 2^a$) e $N \ge 2$, é sempre possível separar as caixas originais que formaram uma das metades!}
+  {Para $N = 1$, é impossível dividir em duas partes não-vazias. Dimensionar o vetor de frequências para $\max(A_i) + \log_2 N + 5$.}
+  {Tempo: $\Ocomp{N + \max A_i}$ $\mid$ Espaço: $\Ocomp{\max A_i}$}
+
+\begin{lstlisting}
+bool can_split_into_two_powers_of_2(const vi& A) {
+  if (sz(A) < 2) return false;
+  int max_b = *max_element(all(A)) + 25;
+  vi cnt(max_b, 0);
+  for (int x : A) cnt[x]++;
+  int ones = 0;
+  rep(b, 0, max_b - 1) {
+    cnt[b + 1] += cnt[b] / 2;
+    cnt[b] %= 2;
+    ones += cnt[b];
+  }
+  return ones == 1 || ones == 2;
+}
+\end{lstlisting}
+
+\subsubsection{Expansão Gulosa de Bounding Box 2D sob $K$ Movimentos de Rei}
+\algobox
+  {Dados $N$ reis em coordenadas distintas $(R_i, C_i)$ e $K$ movimentos em 8 direções, maximizar a área $(\Delta R + 1)(\Delta C + 1)$ da caixa delimitadora.}
+  {Em 1 movimento, podemos aumentar $\Delta R$ em $+1$, ou $\Delta C$ em $+1$, ou \textbf{ambos} em $+1$ se o rei movido já estiver (ou chegar) simultaneamente em uma borda horizontal e uma vertical (um dos 4 cantos da Bounding Box). Assim, há 2 estratégias: (1) usar reis distintos para expandir $\Delta R + \Delta C$ em $+K$ no total, equilibrando os dois lados; (2) escolher um rei $i$ e um dos 4 cantos, gastar $d = \max(0, \text{dist}_R) + \max(0, \text{dist}_C)$ movimentos apenas nas coordenadas que ainda não alcançaram a borda para levá-lo ao canto, e nos passos restantes ganhar $+1$ em \textbf{ambas} as dimensões!}
+  {Para $N = 1$, a área é sempre $1$ (o único rei apenas translada a caixa $1 \times 1$). Usar \texttt{long long} ou \texttt{\_\_int128} no produto final.}
+  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{1}$}
+
+\begin{lstlisting}
+ll max_kings_bounding_box(const vector<pll>& pts, ll K) {
+  int n = sz(pts);
+  if (n <= 1) return n;
+  ll minR = LLONG_MAX, maxR = LLONG_MIN, minC = LLONG_MAX, maxC = LLONG_MIN;
+  for (auto [r, c] : pts) {
+    chmin(minR, r); chmax(maxR, r);
+    chmin(minC, c); chmax(maxC, c);
+  }
+  ll H = maxR - minR + 1, W = maxC - minC + 1;
+  // Funcao que distribui 'rem' passos de soma (dH + dW = rem) maximizando H * W
+  auto best_split = [](ll h, ll w, ll rem) -> ll {
+    if (h > w) swap(h, w);
+    ll d = min(rem, w - h);
+    h += d; rem -= d;
+    h += rem / 2; w += rem - rem / 2;
+    return h * w;
+  };
+  ll ans = best_split(H, W, K); // Estrategia 1: expandir lados independentemente
+  // Estrategia 2: promover o rei (r, c) para um dos 4 cantos e puxar na diagonal
+  for (auto [r, c] : pts) {
+    ll dR[2] = {r - minR, maxR - r};
+    ll dC[2] = {c - minC, maxC - c};
+    rep(ur, 0, 2) rep(uc, 0, 2) {
+      ll needR = dR[ur], needC = dC[uc];
+      if (needR + needC <= K) {
+        // Nos primeiros max(needR, needC) passos do rei ate o canto, ele ja avanca
+        // uma das bordas apos max(needR, needC) - abs(needR - needC) passos
+        ll diag_after_corner = K - (needR + needC);
+        chmax(ans, best_split(H + diag_after_corner, W + diag_after_corner,
+                              abs(needR - needC)));
+      }
+    }
+  }
+  return ans;
+}
+\end{lstlisting}
+
+\subsubsection{Escalonamento em Máquina Única: EDD, Moore-Hodgson e Ordem Lexicográfica}
+\algobox
+  {Três problemas clássicos de tarefas com duração $T_i$ e deadline $D_i$: (1) decidir se todas cabem no prazo; (2) maximizar a quantidade de tarefas no prazo; (3) achar a permutação lexicograficamente mínima que conclui todas no prazo.}
+  {\textbf{1. EDD:} Ordenar por $D_i$ crescente minimiza o atraso máximo. \textbf{2. Moore-Hodgson:} Processar por $D_i$ crescente; se $\sum T > D_i$, remover do conjunto ativo a tarefa de maior duração $T_j$. \textbf{3. Permutação Lexicográfica ($\Ocomp{N^2}$):} Para fixar a próxima tarefa no início das restantes, ordenamos as restantes por $D_j$ crescente e calculamos a folga $\text{slack}_j = D_j - \text{pref}_j$. Uma tarefa na posição $p$ (da ordem de deadlines) pode ir para a frente sse $\forall j < p, \text{slack}_j \ge T_{pos[p]}$. Logo, encontramos o primeiro $j$ onde a condição falha (ou seja, olhando da esquerda para a direita manteniendo $M = \min_{k < p} \text{slack}_k$, toda tarefa $p$ com $T_{pos[p]} \le M$ é candidata válida!).}
+  {Se em qualquer momento $\min_j \text{slack}_j < 0$, nenhuma solução completa existe.}
+  {Moore-Hodgson: $\Ocomp{N \log N}$ $\mid$ Lexicográfico: $\Ocomp{N^2}$}
+
+\begin{lstlisting}
+// 1. Algoritmo de Moore-Hodgson: Retorna os IDs (0-based) do maior subconjunto valido
+vi moore_hodgson(const vll& T, const vll& D) {
+  int n = sz(T);
+  vi ord(n); iota(all(ord), 0);
+  sort(all(ord), [&](int i, int j) { return D[i] < D[j]; });
+  priority_queue<pll> pq; // {T[i], i}
+  ll cur_time = 0;
+  for (int i : ord) {
+    cur_time += T[i];
+    pq.push({T[i], i});
+    if (cur_time > D[i]) { cur_time -= pq.top().fst; pq.pop(); }
+  }
+  vi res;
+  while (!pq.empty()) { res.pb((int)pq.top().snd); pq.pop(); }
+  sort(all(res), [&](int i, int j) { return D[i] < D[j]; });
+  return res;
+}
+
+// 2. Permutacao Lexicograficamente Minima para completar TODAS as tarefas (1-based IDs)
+// Complexidade: O(N^2) - resolve N <= 5000 em ~0.05s. Retorna {} se impossivel.
+vi lexicographically_smallest_schedule(const vll& T, const vll& D) {
+  int n = sz(T);
+  vi ord(n); iota(all(ord), 0);
+  sort(all(ord), [&](int i, int j) {
+    return D[i] != D[j] ? D[i] < D[j] : i < j;
+  });
+  // Verifica viabilidade inicial via EDD
+  ll t_elapsed = 0;
+  for (int id : ord) {
+    t_elapsed += T[id];
+    if (t_elapsed > D[id]) return {};
+  }
+  vi ans; ans.reserve(n);
+  ll cur_start = 0;
+  rep(step, 0, n) {
+    ll pref = cur_start, min_slack = LLONG_MAX;
+    int best_pos = -1, best_id = n + 1;
+    rep(p, 0, sz(ord)) {
+      int id = ord[p];
+      if (T[id] <= min_slack && id < best_id) {
+        best_id = id; best_pos = p;
+      }
+      pref += T[id];
+      chmin(min_slack, D[id] - pref);
+    }
+    ans.pb(best_id + 1);
+    cur_start += T[best_id];
+    ord.erase(ord.begin() + best_pos);
+  }
+  return ans;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+% SUBTEMA 1.4: CONSTRUTIVOS E TEORIA DOS JOGOS GULOSA / SIMETRICA
+% ----------------------------------------------------------------------------
+\subsection{Construtivos em Linha/Grid e Teoria dos Jogos}
+
+\subsubsection{Conjunto Independente Maximal de Tamanho $K$ em Caminho $P_N$}
+\algobox
+  {Posicionar $K$ marcas \texttt{'X'} em $N$ posições em linha sem adjacências (\texttt{"XX"} proibido) de modo que nenhuma posição livre adicional possa receber \texttt{'X'} (\texttt{"---"} interno e \texttt{"--"} nas bordas são proibidos).}
+  {Todo conjunto independente maximal em $P_N$ é formado concatenando blocos de tamanho 2 e 3. Se colocarmos o último \texttt{'X'} na posição $N-1$ ou $N-2$, podemos particionar $N$ (ou $N+1$) em exatamente $K$ blocos de tamanhos $b_i \in \{2, 3\}$: especificamente, se $2K - 1 \le N \le 3K$, sempre existe solução! Se $N = 2K - 1$, alternamos \texttt{"X-X-...-X"}; se $2K \le N \le 3K$, usamos blocos \texttt{"-X-"} (tamanho 3) e \texttt{"X-"} (tamanho 2), ajustando o último bloco se restar 1 casa.}
+  {Checar os limites exatos: o menor $K$ válido é $\lceil N/3 \rceil$ e o maior é $\lceil (N+1)/2 \rceil$.}
+  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+
+\begin{lstlisting}
+// Retorna string de tamanho N com K caracteres 'X' (maximal) ou "*" se impossivel
+string maximal_independent_path(int K, int N) {
+  if (N < 2 * K - 1 || N > 3 * K) return "*";
+  if (N == 2 * K - 1) {
+    string s(N, '-');
+    for (int i = 0; i < N; i += 2) s[i] = 'X';
+    return s;
+  }
+  // N in [2K, 3K]: particiona N em K blocos de tamanhos 2 ou 3
+  int num3 = (N - 2 * K), num2 = K - num3;
+  string res; res.reserve(N);
+  // Se usarmos apenas blocos "-X-" (tam 3) e "-X" (tam 2), dois blocos "-X" seguidos
+  // geram "-X-X" (valido), e "-X-" seguido de "-X" gera "-X--X" (valido!).
+  rep(i, 0, num3) res += "-X-";
+  rep(i, 0, num2) res += (res.empty() || res.back() == '-') ? "X-" : "-X";
+  return res;
+}
+\end{lstlisting}
+
+\subsubsection{Teoria dos Jogos: Pareamento de Soma e Sprague-Grundy (Mex)}
+\algobox
+  {(1) Jogos de soma zero onde o 2º jogador quer igualar duas somas escolhendo elementos em grupos de 3; (2) Jogos Imparciais em DAG resolvidos pelo Teorema de Sprague-Grundy.}
+  {\textbf{1. Jogo das Triplas:} Com $3N$ números onde a cada turno J1 pega 1 para $A$ e J2 pega 1 para $B$ e descarta 1, J2 garante $\sum A = \sum B$ sse toda frequência de valor for múltipla de 3 (pois J2 pareia idênticos em $B$ e no lixo). \textbf{2. Grundy (Nim):} $g(u) = \text{mex}(\{g(v) : u \to v\})$. Estado de múltiplos jogos independentes é vencedor para o 1º jogador sse $g(u_1) \oplus \dots \oplus g(u_k) \neq 0$.}
+  {O cálculo de \texttt{mex} de grau $d$ deve rodar em $\Ocomp{d}$ usando marcação por timestamp, nunca \texttt{std::set}.}
+  {Frequências: $\Ocomp{N \log N}$ $\mid$ Grundy DAG: $\Ocomp{V + E}$}
+
+\begin{lstlisting}
+// 1. Verifica se o 1o jogador vence o jogo de soma das 3N cartas (Blackboard Game)
+bool first_player_wins_triplets(vi b) {
+  sort(all(b));
+  for (int i = 0; i < sz(b); i += 3)
+    if (b[i] != b[i + 1] || b[i + 1] != b[i + 2]) return true;
+  return false;
+}
+
+// 2. Calculo de Grundy (Mex) em DAG arbitrario
+vi compute_grundy_dag(int n, const vector<vi>& adj) {
+  vi g(n, -1), seen(n + 2, -1);
+  int timer = 0;
+  auto dfs = [&](auto& self, int u) -> int {
+    if (g[u] != -1) return g[u];
+    for (int v : adj[u]) self(self, v);
+    ++timer;
+    for (int v : adj[u]) if (g[v] <= n + 1) seen[g[v]] = timer;
+    int mex = 0;
+    while (seen[mex] == timer) ++mex;
+    return g[u] = mex;
+  };
+  rep(i, 0, n) if (g[i] == -1) dfs(dfs, i);
+  return g;
+}
+\end{lstlisting}
+
+\subsubsection{Construtivo em Grid 2D: Camadas Conexas em Pente ("Comb Layout")}
+\algobox
+  {Gerar exatamente $K$ combinações distintas de coberturas em um grid $100 \times 100$ aplicando o número mínimo $T = \lceil \log_2 K \rceil$ de subconjuntos 4-conexos.}
+  {Para $K = 1$, $T = 0$ (nenhuma operação). Para $K > 1$, seja $T = \lceil \log_2 K \rceil \le 12$. Precisamos que toda camada $b \in [0, T-1]$ seja 4-conexa e que exatamente $K$ subconjuntos distintos apareçam no grid (incluindo o vazio $\emptyset$). Criamos uma "espinha dorsal" comum para todas as $T$ camadas: todas as camadas contêm a coluna $c = 1$ (linhas $1 \dots 100$) e todas as linhas ímpares $r \in \{1, 3, 5, \dots, 99\}$ nas colunas $1 \dots 100$ (formato de pente que recebe todas as $T$ coberturas, gerando a máscara $(1 \ll T) - 1$). As células nas linhas pares $(2k, c)$ com $c \ge 2$ são folhas independentes adjacentes à linha ímpar $2k-1$: para cada máscara desejada $m \in [1, K-2]$ (e $K-1$ se não for $(1 \ll T)-1$), basta anexar uma célula $(2k, c)$ exclusivamente às camadas $b$ onde o bit $b$ de $m$ é $1$!}
+  {O "pente" base já gera a máscara cheia $M_{\text{full}} = 2^T - 1$, e o resto não pintado do grid (ex.: linha 100, coluna 100) gera a máscara $0$ ($\emptyset$). Portanto, as folhas nas linhas pares precisam gerar apenas $K - 2$ máscaras adicionais distintas de $0$ e de $M_{\text{full}}$!}
+  {Tempo: $\Ocomp{T \cdot K}$ $\mid$ Espaço: $\Ocomp{T \cdot K}$}
+
+\begin{lstlisting}
+// Retorna T camadas 4-conexas no grid 100x100 gerando exatamente K tipos de celulas
+vector<vector<pii>> build_connected_layers(int K) {
+  if (K == 1) return {};
+  int T = 0;
+  while ((1 << T) < K) ++T;
+  vector<vector<pii>> layers(T);
+  // 1. Espinha dorsal (Pente): Coluna 1 (linhas 1..99) + Linhas impares 1, 3..99 (cols 2..99)
+  // Nota: (100, 100) fica sempre vazio (mascara 0), e o pente tem mascara (1<<T)-1.
+  vector<pii> spine;
+  for (int r = 1; r <= 99; ++r) spine.eb(r, 1);
+  for (int r = 1; r <= 99; r += 2)
+    for (int c = 2; c <= 99; ++c) spine.eb(r, c);
+  rep(b, 0, T) layers[b] = spine;
+
+  // 2. Folhas nas linhas pares (r = 2, 4, ..., 98; c = 2..99) -> 49 * 98 = 4802 vagas!
+  // Cada folha (2k, c) toca (2k-1, c) que pertence ao pente de TODAS as camadas.
+  int need = K - 2, full_mask = (1 << T) - 1;
+  int r = 2, c = 2;
+  for (int mask = 1; mask < full_mask && need > 0; ++mask) {
+    rep(b, 0, T) if ((mask >> b) & 1) layers[b].eb(r, c);
+    --need;
+    if (++c > 99) { c = 2; r += 2; }
+  }
+  return layers;
+}
+\end{lstlisting}

@@ -6,12 +6,12 @@
 
 ## 📊 Status do Projeto
 
-| Área                         |     Status      | Cobertura / Estado                                           |
-| :--------------------------- | :-------------: | :----------------------------------------------------------- |
-| **Ciclo Nacional 2026**      | 🟡 Em andamento | Resoluções de prova, simulados semanais e upsolving          |
-| **Ambientes de Prova**       |   🟢 Estável    | Guias de compilação C++23 para Linux (GCC) e FreeBSD (Clang) |
-| **Configuração de Editores** |   🟢 Estável    | Setups de Warmup de 30s para GNU Emacs e Vim (`EDITOR.md`)   |
-| **Automação & Makefile**     |   🟢 Estável    | Execução e compilação rápida de submissões (`MAKEFILE.md`)   |
+| Área                         |   Status   | Cobertura / Estado                                           |
+| :--------------------------- | :--------: | :----------------------------------------------------------- |
+| **Ciclo Nacional 2026**      | 🟢 Estável | Resoluções de prova, simulados semanais e upsolving          |
+| **Ambientes de Prova**       | 🟢 Estável | Guias de compilação C++23 para Linux (GCC) e FreeBSD (Clang) |
+| **Configuração de Editores** | 🟢 Estável | Setups de Warmup de 30s para GNU Emacs e Vim (`EDITOR.md`)   |
+| **Automação & Makefile**     | 🟢 Estável | Execução e compilação rápida de submissões (`MAKEFILE.md`)   |
 
 ---
 

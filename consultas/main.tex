@@ -1,0 +1,358 @@
+\documentclass[8pt,a4paper,landscape]{extarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil,shorthands=off]{babel}
+\usepackage{lmodern}
+\usepackage[scaled=0.82]{beramono}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+
+\usepackage[
+  a4paper,
+  landscape,
+  left=0.55cm,
+  right=0.55cm,
+  top=1.05cm,
+  bottom=0.55cm,
+  headheight=11pt,
+  headsep=0.22cm
+]{geometry}
+
+\usepackage{multicol}
+\usepackage{amsmath,amssymb,amsfonts,amsthm,mathtools}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{microtype}
+\usepackage[hidelinks,bookmarks=false,pdfencoding=auto]{hyperref}
+
+% Paleta de cores limpa estilo KACTL
+\definecolor{dkgreen}{rgb}{0.0,0.40,0.16}
+\definecolor{dkblue}{rgb}{0.04,0.18,0.62}
+\definecolor{dkred}{rgb}{0.58,0.06,0.06}
+\definecolor{dkpurple}{rgb}{0.42,0.06,0.48}
+\definecolor{codebg}{rgb}{0.985,0.988,0.992}
+\definecolor{boxbg}{rgb}{0.945,0.955,0.972}
+\definecolor{rulecolor}{rgb}{0.72,0.75,0.80}
+\definecolor{secblue}{rgb}{0.06,0.20,0.42}
+
+\lstdefinestyle{icpccpp}{
+  language=C++,
+  basicstyle=\ttfamily\fontsize{6.2pt}{7.0pt}\selectfont,
+  keywordstyle=\color{dkblue}\bfseries,
+  keywordstyle=[2]\color{dkpurple}\bfseries,
+  commentstyle=\color{dkgreen}\itshape,
+  stringstyle=\color{dkred},
+  numbers=none,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{rulecolor},
+  framesep=1.5pt,
+  xleftmargin=2pt,
+  xrightmargin=2pt,
+  aboveskip=2pt,
+  belowskip=2pt,
+  tabsize=2,
+  breaklines=true,
+  breakatwhitespace=false,
+  showstringspaces=false,
+  keepspaces=true,
+  columns=fixed,
+  basewidth=0.50em,
+  morekeywords={
+    constexpr,decltype,noexcept,nullptr,static_assert,
+    concept,requires,__int128,__int128_t,__uint128_t,
+    ll,ull,i128,u128,ld,pii,pll,vi,vll
+  },
+  morekeywords=[2]{
+    rep,all,sz,pb,eb,fst,snd,chmin,chmax
+  },
+  literate=
+    {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+    {à}{{\`a}}1 {ã}{{\~a}}1 {õ}{{\~o}}1 {ç}{{\c{c}}}1 {Ç}{{\c{C}}}1
+    {â}{{\^a}}1 {ê}{{\^e}}1 {ô}{{\^o}}1
+}
+
+\lstdefinestyle{icpcplain}{
+  basicstyle=\ttfamily\fontsize{6.2pt}{7.0pt}\selectfont,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{rulecolor},
+  framesep=1.5pt,
+  xleftmargin=2pt,
+  xrightmargin=2pt,
+  aboveskip=2pt,
+  belowskip=2pt,
+  tabsize=4,
+  breaklines=true,
+  showstringspaces=false,
+  keepspaces=true,
+  columns=fixed,
+  basewidth=0.50em
+}
+
+\lstset{style=icpccpp}
+
+\setlength{\columnsep}{0.42cm}
+\setlength{\columnseprule}{0.3pt}
+\def\columnseprulecolor{\color{rulecolor}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1.2pt}
+
+\setlist[itemize]{leftmargin=9pt,itemsep=0.4pt,topsep=1pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=11pt,itemsep=0.4pt,topsep=1pt,parsep=0pt}
+
+\titleformat{\section}
+  {\normalfont\fontsize{9.0pt}{10.5pt}\selectfont\bfseries\color{secblue}}
+  {\thesection.}{0.35em}{}[\vspace{-1pt}\titlerule]
+\titlespacing*{\section}{0pt}{3.5pt}{1.8pt}
+
+\titleformat{\subsection}
+  {\normalfont\fontsize{7.8pt}{9.0pt}\selectfont\bfseries\color{black}}
+  {\thesubsection}{0.35em}{}
+\titlespacing*{\subsection}{0pt}{2.8pt}{1pt}
+
+\titleformat{\subsubsection}
+  {\normalfont\fontsize{7.2pt}{8.2pt}\selectfont\bfseries\color{secblue!85!black}}
+  {\thesubsubsection}{0.3em}{}
+\titlespacing*{\subsubsection}{0pt}{2pt}{0.5pt}
+
+% Cabecalho sem colisao: Esquerda = Titulo curto | Direita = Secao atual + Pagina
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\sectionmark}[1]{\markboth{\thesection.\ #1}{}}
+\fancyhead[L]{\footnotesize\textbf{UFABC — Team Reference Document (TRD)} $\mid$ \textit{ICPC 2026}}
+\fancyhead[R]{\footnotesize\textit{\nouppercase{\leftmark}} \quad \textbf{Pág.\ \thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\newcommand{\Ocomp}[1]{\mathcal{O}(#1)}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\MOD}{10^9+7}
+\newcommand{\NTTMOD}{998244353}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\RR}{\mathbb{R}}
+
+% Caixa teorica enxuta com \raggedright (elimina 100% dos Underfull \hbox)
+\newcommand{\algobox}[4]{%
+  \vspace{1pt}%
+  \noindent\colorbox{boxbg}{%
+    \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+      \raggedright\fontsize{6.5pt}{7.6pt}\selectfont%
+      \textbf{\color{secblue}Uso:} #1 \par%
+      \textbf{\color{secblue}Ideia:} #2 \par%
+      \textbf{\color{dkred}Armadilhas:} #3 $\mid$ \textbf{\color{secblue}Complexidade:} #4%
+    }%
+  }%
+  \vspace{1pt}\par%
+}
+
+\begin{document}
+\begin{multicols*}{3}
+
+\begin{center}
+  {\large\bfseries\color{secblue} UFABC — ICPC Team Reference Document}\\[1pt]
+  {\scriptsize\textbf{C++23 \& Python 3 Competitive Programming Handbook — Fase Nacional 2026}}
+\end{center}
+\vspace{-3pt}
+{\scriptsize\tableofcontents}
+\vspace{2pt}
+\hrule
+\vspace{2pt}
+
+% ============================================================================
+% SECAO 0: AMBIENTE, TEMPLATES, MAKEFILE POSIX, COMPILACAO E EDITORES
+% ============================================================================
+\section*{0. Ambiente, Templates, Makefile e Editores}
+\addcontentsline{toc}{section}{0. Ambiente, Templates, Makefile e Editores}
+\markboth{0.\ Ambiente, Templates, Makefile e Editores}{}
+
+\subsection*{0.1 Templates Oficiais (C++23 \& Python 3)}
+
+\textbf{Template C++ (\texttt{\textasciitilde/.template.cpp}):}
+\begin{lstlisting}
+#include <bits/stdc++.h>
+typedef long long ll;
+using namespace std;
+
+void task() {
+
+}
+
+int main() {
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(NULL);
+
+    ll t = 1;
+    // cin >> t;
+    while (t--) {
+        task();
+    }
+    return 0;
+}
+\end{lstlisting}
+
+\textbf{Template Python (\texttt{solution.py}):}
+\begin{lstlisting}[style=icpcplain]
+import sys
+sys.setrecursionlimit(2**32)
+
+def main():
+    pass
+
+main()
+\end{lstlisting}
+
+\subsection*{0.2 Automação com Makefile POSIX}
+\algobox
+  {Automação portável compatível com GNU Make (\texttt{gmake}), BSD Make (\texttt{bmake}), BusyBox Make e POSIX Make.}
+  {\texttt{.POSIX:} força conformidade estrita via \texttt{/bin/sh}. \texttt{.SUFFIXES:} vazio limpa regras legadas e registra apenas \texttt{.cpp} e \texttt{.debug}. \texttt{[A-Z]} no \texttt{clean} apaga só os binários das questões.}
+  {Usar caractere \texttt{TAB} real na indentação das regras. \texttt{make A} gera binário rápido (\texttt{-O3}); \texttt{make A.debug} gera binário com Sanitizers.}
+  {Uso: \texttt{make A \&\& ./A < in}}
+
+\begin{lstlisting}[style=icpcplain]
+.POSIX:
+
+CXX      = c++
+CXXFLAGS = -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23
+DBGFLAGS = -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23
+
+.SUFFIXES:
+.SUFFIXES: .cpp .debug
+
+.cpp:
+	$(CXX) $(CXXFLAGS) $< -o $@
+
+.cpp.debug:
+	$(CXX) $(DBGFLAGS) $< -o $@
+
+clean:
+	rm -f [A-Z] *.debug
+\end{lstlisting}
+
+\subsection*{0.3 Guia de Compilação \& Execução}
+\begin{itemize}
+  \item \textbf{Flags Essenciais C++23:}
+    \texttt{-O3} (otimização máxima), \texttt{-Wall -Wextra} (avisos e UB), \texttt{-Wconversion} (alerta conversão implícita como \texttt{ll} $\to$ \texttt{int}), \texttt{-Wshadow} (variável local mascarando global), \texttt{-std=c++23}.
+  \item \textbf{Linux (GCC):}
+\begin{lstlisting}[style=icpcplain]
+g++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol
+c++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol
+\end{lstlisting}
+  \item \textbf{FreeBSD (Clang):}
+\begin{lstlisting}[style=icpcplain]
+clang++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol
+c++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol
+CC  -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol
+\end{lstlisting}
+  \item \textbf{Python 3 \& PyPy 3 (JIT — até 10x mais rápido contra TLE):}
+\begin{lstlisting}[style=icpcplain]
+python3 solution.py < in
+pypy3   solution.py < in
+\end{lstlisting}
+  \item \textbf{Depuração Local com Sanitizers (Out-of-bounds / UB / Leak):}
+\begin{lstlisting}[style=icpcplain]
+c++ -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23 sol.cpp -o debug
+./debug < in
+\end{lstlisting}
+\end{itemize}
+
+\subsection*{0.4 Configuração de Editores no Warmup}
+
+\textbf{Vim (\texttt{\textasciitilde/.vimrc} — 4 linhas):}
+\begin{lstlisting}[style=icpcplain]
+syn on|se nu rnu cin noet ts=4 sw=4 sts=4 bs=2 is hls ww+=<,>,h,l,[,]
+let &t_SI="\<Esc>[5 q"|let &t_EI="\<Esc>[1 q"
+au BufNewFile *.cpp 0r ~/.template.cpp
+map <F5> :w<CR>:!c++ -O3 -std=c++23 % -o %:r && ./%:r < in<CR>
+\end{lstlisting}
+\begin{itemize}
+  \item \texttt{nu rnu}: linha absoluta na atual e relativa nas demais; \texttt{cin noet ts=4 sw=4 sts=4}: indentação C/C++ com tab de 4 colunas; \texttt{t\_SI/t\_EI}: cursor barra (\texttt{|}) no Insert e bloco no Normal.
+  \item \textbf{Compilação manual no Vim:} \texttt{:!c++ -O3 -std=c++23 \% -o \%:r \&\& ./\%:r < in}
+\end{itemize}
+
+\textbf{GNU Emacs (\texttt{\textasciitilde/.emacs} ou \texttt{*scratch*} com \texttt{M-x eval-buffer}):}
+\begin{lstlisting}[style=icpcplain]
+(global-display-line-numbers-mode 1)
+(setq-default indent-tabs-mode nil)
+(setq-default c-basic-offset 4)
+(setq compilation-scroll-output t)
+(global-set-key (kbd "<f5>") 'compile)
+\end{lstlisting}
+\begin{itemize}
+  \item \textbf{Fluxo \texttt{<F5>} (\texttt{M-x compile}):} \texttt{c++ -O3 -Wall -Wextra -std=c++23 sol.cpp -o sol \&\& ./sol < in}
+  \item \textbf{Navegação de Erros:} \texttt{C-x `} ou \texttt{M-g n} (próximo erro), \texttt{M-g p} (erro anterior), \texttt{g} no buffer \texttt{*compilation*} (recompilar).
+\end{itemize}
+
+\subsection*{0.5 Macros dos Capítulos, \texttt{\_\_int128}, Hash e Bits}
+\begin{lstlisting}
+using ll = long long;
+using ull = unsigned long long;
+using i128 = __int128_t;
+using u128 = __uint128_t;
+using ld = long double;
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+using vi = vector<int>;
+using vll = vector<ll>;
+
+#define rep(i, a, b) for (int i = (a); i < (int)(b); ++i)
+#define all(x) begin(x), end(x)
+#define sz(x) (int)size(x)
+#define pb push_back
+#define eb emplace_back
+#define fst first
+#define snd second
+
+template <class T> bool chmin(T &a, const T &b) { return b < a ? a = b, 1 : 0; }
+template <class T> bool chmax(T &a, const T &b) { return a < b ? a = b, 1 : 0; }
+inline i128 abs128(i128 x) { return x < 0 ? -x : x; }
+
+ll floor_div(ll a, ll b) {
+  if (b < 0) a = -a, b = -b;
+  return a / b - (a % b < 0);
+}
+ll ceil_div(ll a, ll b) {
+  if (b < 0) a = -a, b = -b;
+  return a / b + (a % b > 0);
+}
+
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+struct CustomHash {
+  static ull splitmix64(ull x) {
+    x += 0x9e3779b97f4a7c15ULL;
+    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
+    return x ^ (x >> 31);
+  }
+  size_t operator()(ull x) const {
+    static const ull FIXED_RANDOM = rng();
+    return splitmix64(x + FIXED_RANDOM);
+  }
+  template <class A, class B>
+  size_t operator()(const pair<A, B>& p) const {
+    ull h1 = (*this)(p.first), h2 = (*this)(p.second);
+    return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL + (h1 << 6) + (h1 >> 2));
+  }
+};
+\end{lstlisting}
+
+% ============================================================================
+% INCLUSAO MODULAR DOS CAPITULOS
+% ============================================================================
+\InputIfFileExists{cap1.tex}{}{}
+\InputIfFileExists{cap2.tex}{}{}
+\InputIfFileExists{cap3.tex}{}{}
+\InputIfFileExists{cap4.tex}{}{}
+\InputIfFileExists{cap5.tex}{}{}
+\InputIfFileExists{cap6.tex}{}{}
+\InputIfFileExists{cap7.tex}{}{}
+\InputIfFileExists{cap8.tex}{}{}
+
+\end{multicols*}
+\end{document}
