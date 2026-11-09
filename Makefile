@@ -117,8 +117,12 @@ ci: lint
 ### CLEANUP
 ### ================================
 clean:
-	echo "🧹 Removendo binários e arquivos intermediários..."
+	echo "🧹 Removendo binários, arquivos intermediários, caches e .venv..."
+	rm -rf .venv
 	rm -f [A-Z] [A-Z].exe [A-Z].debug *.debug *.out a.out
 	find . -type f \( -name "*.o" -o -name "*.obj" -o -name "in" -o -name "out" \) -exec rm -f {} + 2> "/dev/null" || true
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2> "/dev/null" || true
+	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2> "/dev/null" || true
+	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2> "/dev/null" || true
+	find . -type d -name ".mypy_cache" -exec rm -rf {} + 2> "/dev/null" || true
 	echo "✅ Limpeza concluída."
