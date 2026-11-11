@@ -31,9 +31,9 @@ Repositório central de treinos do trio para as etapas da **Maratona SBC de Prog
 
 Cada diretório corresponde ao ciclo de preparação para um evento da temporada:
 
-| Diretório                          | Evento-Alvo           | Sede / Formato        |      Janela de Treino      |     Status      |
-| :--------------------------------- | :-------------------- | :-------------------- | :------------------------: | :-------------: |
-| [`nacional-2026/`](nacional-2026/) | Final Brasileira 2026 | Uberlândia - MG (UFU) | Finais LatAm (2019 a 2025) | 🟡 Em andamento |
+| Diretório                                  | Evento-Alvo           | Sede / Formato        |      Janela de Treino      |     Status      |
+| :----------------------------------------- | :-------------------- | :-------------------- | :------------------------: | :-------------: |
+| [`maratona/nacional/`](maratona/nacional/) | Final Brasileira 2026 | Uberlândia - MG (UFU) | Finais LatAm (2019 a 2025) | 🟡 Em andamento |
 
 ---
 
@@ -41,24 +41,26 @@ Cada diretório corresponde ao ciclo de preparação para um evento da temporada
 
 ```text
 maratona-sbc/
-├── nacional-2026/
-│   ├── README.md
-│   ├── 2019/
-│   ├── 2020/
-│   └── ...
-├── COMPILER.md
-├── EDITOR.md
-├── MAKEFILE.md
+├── maratona/
+│   ├── nacional/
+│   ├── regional/
+│   ├── latino/
+│   └── mundial/
+├── modelo/
+│   ├── Makefile
+│   ├── template.cpp
+│   └── README.md
+├── configurações/
+│   └── README.md
+├── consultas/
+│   └── README.md
 └── README.md
 ```
 
-- **`nacional-2026/`**: Diretório do ciclo ativo focado na Final Brasileira 2026, reunindo o cronograma semanal e as resoluções de prova.
-- **`README.md`**: Cronograma com links diretos do Codeforces Gym, divisão de prova (3h cegas + 2h com tópicos) e tracking de upsolving.
-- **`AAAA/`** (`2019/`, `2020/`, ...): Pasta de cada edição simulada com as soluções aceitas (`A.cpp`, `B.py`), guia de estudo pré-prova sem spoiler (`TEMAS.md`) e gabarito de técnicas por problema (`EXERCICIOS.md`).
-
-- **`COMPILER.md`**: Comandos e flags de compilação para GCC (Linux), Clang (FreeBSD) e execução em Python/PyPy.
-- **`EDITOR.md`**: Configurações mínimas de 30 segundos para Vim e Emacs em máquinas zeradas de Warmup.
-- **`MAKEFILE.md`**: Referência de automação POSIX para compilar com flags de prova e modo depuração com sanitizers.
+- **`maratona/`**: Diretório dos ciclos de treino divididos por fase (nacional, regional, latino, mundial), reunindo o cronograma semanal e resoluções de prova.
+- **`modelo/`**: Template oficial de prova C++ (`template.cpp`), `Makefile` de bancada e flags de compilação.
+- **`configurações/`**: Configurações de 30 segundos para Vim, Emacs e editores de prova.
+- **`consultas/`**: Caderno de consultas (TRD) impresso em LaTeX com algoritmos e teoremas de referência.
 - **`README.md`**: Visão geral da equipe, índice de ciclos de treino e protocolos de prova do trio.
 
 ---

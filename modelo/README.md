@@ -119,7 +119,7 @@ O [`Makefile`](Makefile) é portável e compatível com GNU Make (`gmake`) no Li
 
 ### 🔍 Detalhamento das Diretivas
 
-- **`.POSIX:`**: Instrui o `make` a seguir estritamente a especificação padrão POSIX (desativando extensões proprietárias e garantindo execução via `/bin/sh`), assegurando comportamento idêntico e portável entre ambientes Linux e BSD.
+- **`.POSIX:`**: Instrui o `make` a seguir estritamente a especificação padrão POSIX (desativando extensões proprietárias e garantindo execução via `sh`), assegurando comportamento idêntico e portável entre ambientes Linux e BSD.
 
 - **`CXXFLAGS` vs `DBGFLAGS`**:
     - `CXXFLAGS`: Otimizações agressivas (`-O3`) para medição realista de tempo e submissão final no juiz online.

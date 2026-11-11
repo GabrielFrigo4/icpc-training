@@ -25,7 +25,7 @@ default: main
 ### HELP & DOCUMENTATION
 ### ================================
 help:
-	_e=$$(awk 'BEGIN { printf "%c", 27 }'); \
+	_e=$$'\e'; \
 	cmd() { printf "    $${_e}[36mmake %-20s$${_e}[0m %s\n" "$$1" "$$2"; }; \
 	sec() { printf "\n  $${_e}[1;33m%s$${_e}[0m\n" "$$1"; }; \
 	printf "\n  $${_e}[1;37mICPC TRD LaTeX — Caderno de Consultas da Maratona$${_e}[0m\n"; \

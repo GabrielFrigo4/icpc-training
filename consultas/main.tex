@@ -227,7 +227,7 @@ main()
 \subsection*{0.2 Automação com Makefile POSIX}
 \algobox
   {Automação portável compatível com GNU Make (\texttt{gmake}), BSD Make (\texttt{bmake}), BusyBox Make e POSIX Make.}
-  {\texttt{.POSIX:} força conformidade estrita via \texttt{/bin/sh}. \texttt{.SUFFIXES:} vazio limpa regras legadas e registra apenas \texttt{.cpp} e \texttt{.debug}. \texttt{[A-Z]} no \texttt{clean} apaga só os binários das questões.}
+  {\texttt{.POSIX:} força conformidade estrita via \texttt{sh}. \texttt{.SUFFIXES:} vazio limpa regras legadas e registra apenas \texttt{.cpp} e \texttt{.debug}. \texttt{[A-Z]} no \texttt{clean} apaga só os binários das questões.}
   {Usar caractere \texttt{TAB} real na indentação. \texttt{-Wconversion} fica em \texttt{DBGFLAGS} para não poluir compilação rápida \texttt{make A}.}
   {Uso: \texttt{make A \&\& ./A < in}}
 
