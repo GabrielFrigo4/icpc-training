@@ -14,7 +14,7 @@ DBGFLAGS   ?= -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23
 .SUFFIXES:
 .SUFFIXES: .cpp .debug
 
-.PHONY: all help setup setup-hooks lint format prettier clang-format clean check-binaries ci
+.PHONY: all help setup setup-hooks lint format prettier clang-format build-latex release-map clean check-binaries ci
 
 all: help
 
@@ -114,11 +114,23 @@ ci: lint
 	echo "🚀 Repositório 100% pronto para commit e push!"
 
 ### ================================
+### LATEX SUITE
+### ================================
+build-latex:
+	(cd "consultas" && $(MAKE) all)
+	mkdir -p dist
+	cp consultas/main.pdf dist/caderno-consultas-icpc.pdf
+
+release-map:
+	printf "consultas/main.tex\tcaderno-consultas-icpc.pdf\n"
+
+### ================================
 ### CLEANUP
 ### ================================
 clean:
 	echo "🧹 Removendo binários, arquivos intermediários, caches e .venv..."
-	rm -rf .venv
+	(cd "consultas" && $(MAKE) distclean)
+	rm -rf .venv dist
 	rm -f [A-Z] [A-Z].exe [A-Z].debug *.debug *.out a.out
 	find . -type f \( -name "*.o" -o -name "*.obj" -o -name "in" -o -name "out" \) -exec rm -f {} + 2> "/dev/null" || true
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2> "/dev/null" || true
