@@ -12,7 +12,7 @@ PDFLATEX   = pdflatex
 
 TARGETS    = main.pdf
 
-CHAPTERS   != find . -maxdepth 1 -name "cap*.tex" 2> "/dev/null" || true
+CHAPTERS   = cap1.tex cap2.tex cap3.tex cap4.tex cap5.tex cap6.tex cap7.tex cap8.tex
 
 .PHONY: default help all main clean clear distclean format format-md
 
@@ -66,12 +66,20 @@ main.pdf: main.tex $(CHAPTERS)
 	mkdir -p build
 	printf "%s" "-> Compilando $@... "
 	if command -v $(LATEXMK) > "/dev/null" 2>&1; then \
-		$(LATEXMK) -pdf -silent -interaction=nonstopmode -outdir=build $< > "/dev/null" 2>&1; \
+		if ! $(LATEXMK) -pdf -silent -interaction=nonstopmode -outdir=build $< > "/dev/null" 2>&1; then \
+			printf "%s\n" "[ERRO]"; \
+			printf "Falha ao compilar %s. Consulte o log em build/\n" "$<" >&2; \
+			exit 1; \
+		fi; \
 	else \
-		$(PDFLATEX) -interaction=batchmode -output-directory=build $< > "/dev/null" 2>&1 || true; \
-		$(PDFLATEX) -interaction=batchmode -output-directory=build $< > "/dev/null" 2>&1 || true; \
+		if ! $(PDFLATEX) -interaction=batchmode -output-directory=build $< > "/dev/null" 2>&1 || \
+		   ! $(PDFLATEX) -interaction=batchmode -output-directory=build $< > "/dev/null" 2>&1; then \
+			printf "%s\n" "[ERRO]"; \
+			printf "Falha ao compilar %s. Consulte o log em build/\n" "$<" >&2; \
+			exit 1; \
+		fi; \
 	fi
-	cp build/$@ $@ 2> "/dev/null" || true
+	cp "build/$@" "$@"
 	printf "%s\n" "[OK]"
 
 ### ================================

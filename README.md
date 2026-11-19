@@ -4,15 +4,15 @@
 
 [![Codeforces](https://img.shields.io/badge/Codeforces-Gerbunte-1F8ACB?style=for-the-badge&logo=codeforces&logoColor=white)](https://codeforces.com/profile/Gerbunte)
 [![GitHub](https://img.shields.io/badge/GitHub-GabrielFrigo4-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/GabrielFrigo4)
-[![Linux](https://img.shields.io/badge/Platform-Linux%20%2F%20GCC-FCC624?style=for-the-badge&logo=linux&logoColor=black)](modelo/README.md#c23-no-linux-gcc)
-[![FreeBSD](https://img.shields.io/badge/Platform-FreeBSD%20%2F%20Clang-AB2B28?style=for-the-badge&logo=freebsd&logoColor=white)](modelo/README.md#c23-no-freebsd-clang)
+[![Linux](https://img.shields.io/badge/Platform-Linux%20%2F%20GCC-FCC624?style=for-the-badge&logo=linux&logoColor=black)](modelo/README.md#-c23-no-linux-gcc)
+[![FreeBSD](https://img.shields.io/badge/Platform-FreeBSD%20%2F%20Clang-AB2B28?style=for-the-badge&logo=freebsd&logoColor=white)](modelo/README.md#-c23-no-freebsd-clang)
 [![Language](https://img.shields.io/badge/C%2B%2B-23-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)](modelo/README.md)
-[![Language](https://img.shields.io/badge/Python-3-3776AB?style=for-the-badge&logo=python&logoColor=white)](modelo/README.md#execução-em-python--pypy)
-[![Language](https://img.shields.io/badge/PyPy-3-FFD43B?style=for-the-badge&logo=pypy&logoColor=black)](modelo/README.md#execução-em-python--pypy)
-[![Editor](https://img.shields.io/badge/Editor-Vim-019733?style=for-the-badge&logo=vim&logoColor=white)](configurações/README.md#vim)
-[![Editor](https://img.shields.io/badge/Editor-GNU_Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white)](configurações/README.md#gnu-emacs)
+[![Language](https://img.shields.io/badge/Python-3-3776AB?style=for-the-badge&logo=python&logoColor=white)](modelo/README.md#-execução-em-python--pypy)
+[![Language](https://img.shields.io/badge/PyPy-3-FFD43B?style=for-the-badge&logo=pypy&logoColor=black)](modelo/README.md#-execução-em-python--pypy)
+[![Editor](https://img.shields.io/badge/Editor-Vim-019733?style=for-the-badge&logo=vim&logoColor=white)](configurações/README.md#-vim)
+[![Editor](https://img.shields.io/badge/Editor-GNU_Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white)](configurações/README.md#-gnu-emacs)
 
-[Visão Geral](#visao-geral) • [Ciclos de Treino](#ciclos-de-treino) • [Estrutura](#arquitetura-do-repositorio) • [Modelo & Compilação](modelo/README.md) • [Editores](configurações/README.md) • [Consultas](consultas/README.md) • [Regras do Trio](#regras-de-ouro-do-trio)
+[Visão Geral](#visão-geral) • [Ciclos de Treino](#ciclos-de-treino) • [Estrutura](#arquitetura-do-repositório) • [Modelo & Compilação](modelo/README.md) • [Editores](configurações/README.md) • [Consultas](consultas/README.md) • [Regras do Trio](#-regras-de-ouro-do-trio)
 
 ---
 
@@ -31,9 +31,9 @@ Repositório central de treinos do trio para as etapas da **Maratona SBC de Prog
 
 Cada diretório corresponde ao ciclo de preparação para um evento da temporada:
 
-| Diretório                                  | Evento-Alvo           | Sede / Formato        |      Janela de Treino      |     Status      |
-| :----------------------------------------- | :-------------------- | :-------------------- | :------------------------: | :-------------: |
-| [`maratona/nacional/`](maratona/nacional/) | Final Brasileira 2026 | Uberlândia - MG (UFU) | Finais LatAm (2019 a 2025) | 🟡 Em andamento |
+| Diretório                                  | Evento-Alvo           | Sede / Formato                             |      Janela de Treino      |     Status      |
+| :----------------------------------------- | :-------------------- | :----------------------------------------- | :------------------------: | :-------------: |
+| [`maratona/nacional/`](maratona/nacional/) | Final Brasileira 2027 | Etapa Nacional (última maratona do ciclo!) | Finais LatAm (2019 a 2026) | 🟡 Em andamento |
 
 ---
 
@@ -48,18 +48,24 @@ maratona-sbc/
 │   └── mundial/
 ├── modelo/
 │   ├── Makefile
-│   ├── template.cpp
+│   ├── input.txt
+│   ├── main.cpp
 │   └── README.md
 ├── configurações/
+│   ├── init.el
+│   ├── init.vim
 │   └── README.md
 ├── consultas/
+│   ├── Makefile
+│   ├── main.tex
+│   ├── cap1..8.tex
 │   └── README.md
 └── README.md
 ```
 
 - **`maratona/`**: Diretório dos ciclos de treino divididos por fase (nacional, regional, latino, mundial), reunindo o cronograma semanal e resoluções de prova.
-- **`modelo/`**: Template oficial de prova C++ (`template.cpp`), `Makefile` de bancada e flags de compilação.
-- **`configurações/`**: Configurações de 30 segundos para Vim, Emacs e editores de prova.
+- **`modelo/`**: Template oficial de prova C++ (`main.cpp`), arquivo de entrada local (`input.txt`), `Makefile` de bancada e flags de compilação.
+- **`configurações/`**: Configurações de 30 segundos (`init.vim`, `init.el`) para Vim, Emacs e editores de prova.
 - **`consultas/`**: Caderno de consultas (TRD) impresso em LaTeX com algoritmos e teoremas de referência.
 - **`README.md`**: Visão geral da equipe, índice de ciclos de treino e protocolos de prova do trio.
 

@@ -1,6 +1,6 @@
-# 📊 Raio-X da Regional Latino-Americana do ICPC (2019–2025)
+# 📊 Raio-X da Regional Latino-Americana do ICPC (2019–2026)
 
-**Escopo:** 7 edições completas (2019, 2020, 2021, 2022, 2023, 2024 e 2025) — **90 Problemas Analisados**
+**Escopo:** 8 edições completas (2019, 2020, 2021, 2022, 2023, 2024, 2025 e 2026) — **103 Problemas Analisados**
 
 ---
 
@@ -9,8 +9,8 @@
 ### 🔹 Caiu Matroide ou Interseção de Matroides?
 
 1. **Algoritmo Genérico de Interseção de Matroides (Grafo de Trocas): 0 questões.**
-    - Nenhuma das 90 questões exigiu implementar o algoritmo geral de interseção de matroides (como Árvore Geradora Colorida ou Floresta + Base de XOR).
-2. **Emparelhamento Bipartido, Algoritmo Húngaro e Fluxo em Redes (Interseção de 2 Matroides de Partição): 7 questões principais (~1 por ano, 8 contando `2024 L`).**
+    - Nenhuma das 103 questões exigiu implementar o algoritmo geral de interseção de matroides (como Árvore Geradora Colorida ou Floresta + Base de XOR).
+2. **Emparelhamento Bipartido, Algoritmo Húngaro e Fluxo em Redes (Interseção de 2 Matroides de Partição): 7 questões principais (~0.9 por ano, 8 contando `2024 L`).**
     - Com a inclusão de **2021**, fica evidente que além de **Max Flow / Hopcroft-Karp** (`2019 A`, `2020 H`, `2022 F`, `2022 H`, `2024 D`), a banca também cobra **Emparelhamento Bipartido de Custo Mínimo (Algoritmo Húngaro / Assignment Problem)**, que caiu de forma direta em **`2021 H` (Hamilton The Musical)**.
     - **Mudança de padrão:** Até 2022 o fluxo/matching era mais direto (`2019 A`, `2020 H`, `2021 H`, `2022 F`, `2022 H`). Nos anos recentes (`2024 D`, `2025 G`), o fluxo apareceu **camuflado**: em `2024 D` escondido na matriz de adjacência de um Grafo de Linha Bipartido, e em `2025 G` como Corte Mínimo Paramétrico resolvido via Caminho Mínimo no Grafo Dual Planar + Busca Ternária.
 3. **Teoria de Sistemas Independentes, Dominância Binária, Circuitos e Troca Gulosa:**
@@ -22,40 +22,40 @@
 
 ---
 
-## 📈 2. Estatísticas Gerais por Tópico Principal (2019–2025 • 90 Questões)
+## 📈 2. Estatísticas Gerais por Tópico Principal (2019–2026 • 103 Questões)
 
-Cada uma das 90 questões foi classificada no seu tema principal (com indicação das questões híbridas nas notas):
+Cada uma das 103 questões foi classificada no seu tema principal (com indicação das questões híbridas nas notas):
 
 | Ordem de Frequência / Tema Principal                                     | Qtd. Principal | % da Prova | Média por Ano | Total c/ Híbridas | Nível Típico                |
 | :----------------------------------------------------------------------- | :------------: | :--------: | :-----------: | :---------------: | :-------------------------- |
-| **1. Gulosos, Ad-Hoc, Simulação e Construtivos**                         |     **16**     | **17.8%**  |      2.3      |        19         | Fácil a Médio-Difícil       |
-| **2. Grafos e Árvores (DFS, BFS, Dijkstra, DAG, Centroid, Euler, Hash)** |     **15**     | **16.7%**  |      2.1      |        17         | Fácil-Médio a Muito Difícil |
-| **3. Estruturas de Dados (SegTree, BIT, Monotonic Stack, Sqrt, CHT)**    |     **13**     | **14.4%**  |      1.9      |        16         | Fácil-Médio a Muito Difícil |
-| **4. Programação Dinâmica (DP) e Probabilidade**                         |     **11**     | **12.2%**  |      1.6      |        14         | Médio a Muito Difícil       |
-| **5. Geometria Computacional**                                           |     **11**     | **12.2%**  |      1.6      |        15         | Fácil a Muito Difícil       |
-| **6. Strings (Básicas, Hashing, Z-Function, Parsing e Autômatos)**       |     **9**      | **10.0%**  |      1.3      |        11         | Fácil a Muito Difícil       |
-| **7. Matemática, Teoria dos Números, Combinatória e FFT**                |     **8**      |  **8.9%**  |      1.1      |        12         | Médio a Muito Difícil       |
-| **8. Fluxo em Redes e Emparelhamento (Dinic, Húngaro, König, Dual)**     |     **7**      |  **7.8%**  |      1.0      |         8         | Médio a Muito Difícil       |
-| **TOTAL GERAL (7 Edições: 2019–2025)**                                   |     **90**     | **100.0%** |   **12.9**    |         —         | —                           |
+| **1. Gulosos, Ad-Hoc, Simulação e Construtivos**                         |     **20**     | **19.4%**  |      2.5      |        26         | Fácil a Médio-Difícil       |
+| **2. Grafos e Árvores (DFS, BFS, Dijkstra, DAG, Centroid, Euler, Hash)** |     **17**     | **16.5%**  |      2.1      |        20         | Fácil-Médio a Muito Difícil |
+| **3. Estruturas de Dados (SegTree, BIT, Monotonic Stack, Sqrt, CHT)**    |     **15**     | **14.6%**  |      1.9      |        18         | Fácil-Médio a Muito Difícil |
+| **4. Programação Dinâmica (DP) e Probabilidade**                         |     **13**     | **12.6%**  |      1.6      |        18         | Médio a Muito Difícil       |
+| **5. Geometria Computacional**                                           |     **12**     | **11.7%**  |      1.5      |        17         | Fácil a Muito Difícil       |
+| **6. Strings (Básicas, Hashing, Z-Function, Parsing e Autômatos)**       |     **9**      |  **8.7%**  |      1.1      |        11         | Fácil a Muito Difícil       |
+| **7. Matemática, Teoria dos Números, Combinatória e FFT**                |     **10**     |  **9.7%**  |      1.3      |        14         | Médio a Muito Difícil       |
+| **8. Fluxo em Redes e Emparelhamento (Dinic, Húngaro, König, Dual)**     |     **7**      |  **6.8%**  |      0.9      |         8         | Médio a Muito Difícil       |
+| **TOTAL GERAL (8 Edições: 2019–2026)**                                   |    **103**     | **100.0%** |   **12.9**    |         —         | —                           |
 
 ---
 
-## 🔄 3. Evolução da Prova: Passado (2019–2022) vs. Recente (2023–2025)
+## 🔄 3. Evolução da Prova: Passado (2019–2022) vs. Recente (2023–2026)
 
 A inclusão de **2021** revela conexões importantes entre anos consecutivos (como **Isomorfismo de Árvores** caindo em `2021 G` e repetindo em `2022 F`):
 
-| Aspecto                  | Passado: 2019, 2020, 2021, 2022 (53 questões)                                                                                                                                                          | Recente: 2023, 2024, 2025 (37 questões)                                                                                                                                                                                                   |
-| :----------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Grafos e Árvores**     | **Isomorfismo de Árvores em dose dupla** (`2021 G`, `2022 F`), BFS no Espaço-Tempo (`2021 C`), Grid BFS (`2022 M`, `2022 I`), Componentes (`2021 F`) e DAG (`2019 I`).                                 | **Explosão de Árvores e Grafos Estruturais:** _Centroid Decomposition_ (`2023 J`), _Rerooting + Binary Lifting_ (`2024 G`), _Ciclo sem Pontes_ (`2024 B`), _Caminho Euleriano_ (`2025 A`), _DSU + Greedy em Árvore_ (`2023 E`).           |
-| **Estruturas de Dados**  | **Foco em Pilha Monotônica + SegTree:** `2019 C`, `2019 J`, `2019 L`, `2020 E`, `2021 D` (Pilha Monotônica + SegTree Lazy) e `2021 J` (Pilha no perímetro).                                            | **Diversificação de EDs:** _Convex Hull Trick / Li Chao_ (`2023 A`), _XOR Hashing_ (`2023 C`), _Sqrt Decomposition em DAG_ (`2024 H`), _SegTree Lazy + Busca_ (`2025 E`, `2025 H`), _BIT + Parábola_ (`2025 L`).                          |
-| **Geometria**            | **Polígonos, Ordenação Radial e Visibilidade:** _Quadriláteros via Sweep Radial_ (`2021 A`), _Soma de Minkowski_ (`2022 G`), _DP Radial_ (`2020 I`), _Rotação/Ângulos_ (`2019 B`, `2019 D`, `2022 J`). | **Geometria Analítica + ED:** _CHT_ (`2023 A`), _Distância de Manhattan $45^\circ$_ (`2023 G`), _Círculo + Semiplanos_ (`2023 H`), _Sombras 1D_ (`2024 J`) e _Parábola + BIT_ (`2025 L`).                                                 |
-| **Matemática, FFT e TN** | **Polinômios, FFT e Potências de 2:** _Polinômios_ (`2019 K`), _FFT/NTT + Guloso_ (`2021 B`), _Valor Esperado Combinatório_ (`2021 L`), _Base 2_ (`2020 D`, `2022 C`).                                 | **Teoria dos Números Pesada e Combinatória:** _Pollard's Rho / Miller-Rabin_ (`2025 F`), _Ordem Multiplicativa / Totiente_ (`2025 D`), _DP de Divisibilidade_ (`2025 B`), _Inversões_ (`2023 I`, `2024 I`), _Divisores/Bases_ (`2023 F`). |
-| **Fluxo e Matching**     | **Modelagem Direta:** _Dilworth_ (`2019 A`), _Dinic_ (`2020 H`), _Algoritmo Húngaro / Custo Mínimo_ (`2021 H`), _Matching em Árvore_ (`2022 F`), _Hopcroft-Karp_ (`2022 H`).                           | **Reduções Camufladas:** _Grafo de Linha Bipartido_ (`2024 D`), _Ciclos de Permutação / König_ (`2024 L`) e _Corte Mínimo no Dual Planar + Busca Ternária_ (`2025 G`).                                                                    |
-| **Strings**              | **Extremamente Pesadas (2019–2022):** _Suffix Automaton / Array_ (`2019 G`, `2020 M`), _Z-Function_ (`2022 L`) e 1 warm-up (`2021 K`).                                                                 | **Mais Acessíveis (2023–2025):** Muitos warm-ups (`2023 D`, `2024 A`, `2024 K`, `2025 J`), _XOR Hashing_ (`2023 C`) e _Parsing_ (`2023 L`).                                                                                               |
+| Aspecto                  | Passado: 2019, 2020, 2021, 2022 (53 questões)                                                                                                                                                          | Recente: 2023, 2024, 2025, 2026 (50 questões)                                                                                                                                                                                                                                                                                           |
+| :----------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Grafos e Árvores**     | **Isomorfismo de Árvores em dose dupla** (`2021 G`, `2022 F`), BFS no Espaço-Tempo (`2021 C`), Grid BFS (`2022 M`, `2022 I`), Componentes (`2021 F`) e DAG (`2019 I`).                                 | **Explosão de Árvores e Grafos Estruturais:** _Centroid Decomposition_ (`2023 J`), _Rerooting + Binary Lifting_ (`2024 G`), _Ciclo sem Pontes_ (`2024 B`), _Caminho Euleriano_ (`2025 A`), _DSU + Greedy em Árvore_ (`2023 E`), _Emparelhamento Guloso em Árvore_ (`2026 E`) e _Tree DP / BFS Multi-fonte_ (`2026 L`).                  |
+| **Estruturas de Dados**  | **Foco em Pilha Monotônica + SegTree:** `2019 C`, `2019 J`, `2019 L`, `2020 E`, `2021 D` (Pilha Monotônica + SegTree Lazy) e `2021 J` (Pilha no perímetro).                                            | **Diversificação de EDs:** _Convex Hull Trick / Li Chao_ (`2023 A`), _XOR Hashing_ (`2023 C`), _Sqrt Decomposition em DAG_ (`2024 H`), _SegTree Lazy + Busca_ (`2025 E`, `2025 H`), _BIT + Parábola_ (`2025 L`), _BIT c/ Inversões Ponderadas_ (`2026 B`) e _Sweep-line + Busca Binária_ (`2026 H`).                                    |
+| **Geometria**            | **Polígonos, Ordenação Radial e Visibilidade:** _Quadriláteros via Sweep Radial_ (`2021 A`), _Soma de Minkowski_ (`2022 G`), _DP Radial_ (`2020 I`), _Rotação/Ângulos_ (`2019 B`, `2019 D`, `2022 J`). | **Geometria Analítica + ED:** _CHT_ (`2023 A`), _Distância de Manhattan $45^\circ$_ (`2023 G`), _Círculo + Semiplanos_ (`2023 H`), _Sombras 1D_ (`2024 J`), _Parábola + BIT_ (`2025 L`) e _Árvore de Contenção Laminar + LCA_ (`2026 I`).                                                                                               |
+| **Matemática, FFT e TN** | **Polinômios, FFT e Potências de 2:** _Polinômios_ (`2019 K`), _FFT/NTT + Guloso_ (`2021 B`), _Valor Esperado Combinatório_ (`2021 L`), _Base 2_ (`2020 D`, `2022 C`).                                 | **Teoria dos Números Pesada e Combinatória:** _Pollard's Rho / Miller-Rabin_ (`2025 F`), _Ordem Multiplicativa / Totiente_ (`2025 D`), _DP de Divisibilidade_ (`2025 B`), _Inversões_ (`2023 I`, `2024 I`), _Divisores/Bases_ (`2023 F`), _Princípio da Reflexão c/ Duas Barreiras_ (`2026 C`) e _Análise Algébrica $O(1)$_ (`2026 J`). |
+| **Fluxo e Matching**     | **Modelagem Direta:** _Dilworth_ (`2019 A`), _Dinic_ (`2020 H`), _Algoritmo Húngaro / Custo Mínimo_ (`2021 H`), _Matching em Árvore_ (`2022 F`), _Hopcroft-Karp_ (`2022 H`).                           | **Reduções Camufladas:** _Grafo de Linha Bipartido_ (`2024 D`), _Ciclos de Permutação / König_ (`2024 L`) e _Corte Mínimo no Dual Planar + Busca Ternária_ (`2025 G`).                                                                                                                                                                  |
+| **Strings**              | **Extremamente Pesadas (2019–2022):** _Suffix Automaton / Array_ (`2019 G`, `2020 M`), _Z-Function_ (`2022 L`) e 1 warm-up (`2021 K`).                                                                 | **Mais Acessíveis (2023–2026):** Muitos warm-ups (`2023 D`, `2024 A`, `2024 K`, `2025 J`), _XOR Hashing_ (`2023 C`) e _Parsing_ (`2023 L`).                                                                                                                                                                                             |
 
 ---
 
-## 🗂️ 4. Catálogo Completo das 90 Questões por Ano (2019–2025)
+## 🗂️ 4. Catálogo Completo das 103 Questões por Ano (2019–2026)
 
 ### 📅 ICPC Regional 2019 (13 Questões)
 
@@ -167,6 +167,22 @@ A inclusão de **2021** revela conexões importantes entre anos consecutivos (co
 - **2025 J - Judgmental Crowd:** Strings Básicas / Ad-Hoc (Contagem de substrings — Warm-up).
 - **2025 K - Kings Conquest:** Guloso / Matemática (Expansão ótima de Bounding Box em Grid).
 - **2025 L - Lonely Creatures:** Geometria Analítica + Estruturas de Dados (Interseção Reta-Parábola reduzida a contagem de inversões com BIT).
+
+### 📅 ICPC Regional 2026 (13 Questões)
+
+- **2026 A - Antonia's Ants:** Ad-Hoc / Construtivos Interativo (Coloração periódica $K=2$ + reconstrução linear determinística).
+- **2026 B - Between Two Cameras:** Estruturas de Dados + Geometria (Ordenação angular por produto vetorial + inversões ponderadas com BIT).
+- **2026 C - Clumsy Courier:** Combinatória + DP (Independência de eixos, intercalação binomial e Princípio da Reflexão com duas barreiras $\bmod 998\,244\,353$).
+- **2026 D - Divine Lights:** Ad-Hoc / Simulação (Manutenção de paridade global / lazy flip em $O(N)$).
+- **2026 E - Escape Plan:** Grafos / Árvores + Guloso (DFS bottom-up com emparelhamento guloso de folhas a ancestrais).
+- **2026 F - Father's Footsteps:** Ad-Hoc / Guloso (Compressão RLE + cálculo de contribuição/delta por elemento).
+- **2026 G - Gratitude Loop:** Ad-Hoc / Simulação (Simulação direta com vetores de estado em $O(N+M)$).
+- **2026 H - Hazel's Harvest:** Estruturas de Dados (Sweep-line offline + BIT/SegTree + busca binária para $K$-ésimo menor).
+- **2026 I - Imprecise Location:** Geometria Computacional + Árvores (Sweep-line com `std::set` para árvore de contenção laminar + LCA Binary Lifting).
+- **2026 J - Just Four Pieces:** Matemática / Ad-Hoc (Análise algébrica de restrições e busca em vizinhança constante $O(1)$).
+- **2026 K - Kayaking:** Programação Dinâmica (Broken Profile DP por coluna em grade $2 \times N$ com conectividade/ciclos em $O(N^2)$).
+- **2026 L - Lookout Towers:** Árvores + DP (Tree DP para distância mínima e contagem de pares de torres / BFS multi-fonte).
+- **2026 M - Moving Mountains:** Programação Dinâmica / Guloso (Transformação de caminho de Dyck em sequência não-decrescente + DP/guloso da direita para a esquerda).
 
 ---
 

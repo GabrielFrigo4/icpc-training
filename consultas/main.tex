@@ -190,22 +190,19 @@
 
 \subsection*{0.1 Templates Oficiais (C++23 \& Python 3)}
 
-\textbf{Template C++ (\texttt{\string~/.template.cpp}):}
+\textbf{Template C++ (\texttt{modelo/main.cpp}):}
 \begin{lstlisting}
 #include <bits/stdc++.h>
-typedef long long ll;
 using namespace std;
+using ll = long long;
 
-void task() {
-
-}
+void task() {}
 
 int main() {
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(NULL);
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
 
     ll t = 1;
-    /* cin >> t; */
     while (t--) {
         task();
     }
@@ -228,14 +225,14 @@ main()
 \algobox
   {Automação portável compatível com GNU Make (\texttt{gmake}), BSD Make (\texttt{bmake}), BusyBox Make e POSIX Make.}
   {\texttt{.POSIX:} força conformidade estrita via \texttt{sh}. \texttt{.SUFFIXES:} vazio limpa regras legadas e registra apenas \texttt{.cpp} e \texttt{.debug}. \texttt{[A-Z]} no \texttt{clean} apaga só os binários das questões.}
-  {Usar caractere \texttt{TAB} real na indentação. \texttt{-Wconversion} fica em \texttt{DBGFLAGS} para não poluir compilação rápida \texttt{make A}.}
-  {Uso: \texttt{make A \&\& ./A < in}}
+  {Usar caractere \texttt{TAB} real na indentação. \texttt{CXXFLAGS} e \texttt{DBGFLAGS} unificam \texttt{-Wall -Wextra -Wconversion -Wshadow -std=c++23}.}
+  {Uso: \texttt{make A \&\& ./A < input.txt}}
 
 \begin{lstlisting}[style=icpcplain]
 .POSIX:
 
 CXX      = c++
-CXXFLAGS = -O3 -Wall -Wextra -Wshadow -std=c++23
+CXXFLAGS = -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23
 DBGFLAGS = -fsanitize=address,undefined -g -Wall -Wextra -Wconversion -Wshadow -std=c++23
 
 .SUFFIXES:
@@ -254,10 +251,10 @@ clean:
 \subsection*{0.3 Guia de Compilação \& Execução}
 \begin{itemize}
   \item \textbf{Flags C++23:} \texttt{-O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23}
-  \item \textbf{Linux (GCC):} \texttt{g++} ou \texttt{c++ -O3 -Wall -Wextra -Wshadow -std=c++23 sol.cpp -o sol}
-  \item \textbf{FreeBSD (Clang):} \texttt{clang++}, \texttt{c++} ou \texttt{CC -O3 -Wall -Wextra -Wshadow -std=c++23 sol.cpp -o sol}
-  \item \textbf{Python 3 \& PyPy 3 (JIT — 10x mais rápido contra TLE):} \texttt{pypy3 solution.py < in}
-  \item \textbf{Sanitizers (Out-of-bounds / UB):} \texttt{c++ -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23 sol.cpp -o debug \&\& ./debug < in}
+  \item \textbf{Linux (GCC):} \texttt{g++} ou \texttt{c++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol}
+  \item \textbf{FreeBSD (Clang):} \texttt{clang++}, \texttt{c++} ou \texttt{CC -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o sol}
+  \item \textbf{Python 3 \& PyPy 3 (JIT — 10x mais rápido contra TLE):} \texttt{pypy3 solution.py < input.txt}
+  \item \textbf{Sanitizers (Out-of-bounds / UB):} \texttt{c++ -fsanitize=address,undefined -g -Wall -Wextra -Wconversion -Wshadow -std=c++23 sol.cpp -o debug \&\& ./debug < input.txt}
 \end{itemize}
 
 \subsection*{0.4 Configuração de Editores no Warmup}
@@ -266,8 +263,8 @@ clean:
 \begin{lstlisting}[style=icpcplain]
 syn on|se nu rnu cin noet ts=4 sw=4 sts=4 bs=2 is hls ww+=<,>,h,l,[,]
 let &t_SI="\<Esc>[5 q"|let &t_EI="\<Esc>[1 q"
-au BufNewFile *.cpp 0r ~/.template.cpp
-map <F5> :w<CR>:!c++ -O3 -std=c++23 % -o %:r && ./%:r < in<CR>
+au BufNewFile *.cpp silent! 0r main.cpp
+map <F5> :w<CR>:!c++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 % -o %:r && ./%:r < input.txt<CR>
 \end{lstlisting}
 
 \textbf{GNU Emacs (\texttt{\string~/.emacs} ou \texttt{*scratch*} com \texttt{M-x eval-buffer}):}

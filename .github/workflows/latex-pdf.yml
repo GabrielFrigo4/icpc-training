@@ -16,6 +16,9 @@ on:
             - ".prettierrc"
             - ".agents/**"
             - ".githooks/**"
+            - "maratona/**"
+            - "modelo/**"
+            - "configurações/**"
     pull_request:
         branches: [main, master]
         paths-ignore:
@@ -31,6 +34,9 @@ on:
             - ".prettierrc"
             - ".agents/**"
             - ".githooks/**"
+            - "maratona/**"
+            - "modelo/**"
+            - "configurações/**"
     workflow_call:
     workflow_dispatch:
 

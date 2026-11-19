@@ -23,6 +23,27 @@ make A
 ./A < input.txt
 ```
 
+### 📄 Template Base (`main.cpp`)
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+void task() {}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(nullptr);
+
+	ll t = 1;
+	while (t--) {
+		task();
+	}
+	return 0;
+}
+```
+
 ---
 
 ## 🛡️ Flags Essenciais de Compilação (C++)
@@ -116,6 +137,26 @@ c++ -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23 solution.cpp -o de
 ## 🛠️ Automação com Makefile POSIX
 
 O [`Makefile`](Makefile) é portável e compatível com GNU Make (`gmake`) no Linux, BSD Make (`bmake`) no FreeBSD/OpenBSD/NetBSD, o BusyBox Make (`busybox make`) e o POSIX Make (`make`), sem extensões proprietárias.
+
+```makefile
+.POSIX:
+
+CXX      = c++
+CXXFLAGS = -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23
+DBGFLAGS = -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23
+
+.SUFFIXES:
+.SUFFIXES: .cpp .debug
+
+.cpp:
+	$(CXX) $(CXXFLAGS) $< -o $@
+
+.cpp.debug:
+	$(CXX) $(DBGFLAGS) $< -o $@
+
+clean:
+	rm -f [A-Z] *.debug
+```
 
 ### 🔍 Detalhamento das Diretivas
 

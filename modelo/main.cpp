@@ -1,18 +1,15 @@
 #include <bits/stdc++.h>
-typedef long long ll;
 using namespace std;
+using ll = long long;
 
 void task() {}
 
-int main()
-{
-	std::ios_base::sync_with_stdio(false);
-	std::cin.tie(NULL);
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(nullptr);
 
 	ll t = 1;
-	// cin >> t;
-	while (t--)
-	{
+	while (t--) {
 		task();
 	}
 	return 0;

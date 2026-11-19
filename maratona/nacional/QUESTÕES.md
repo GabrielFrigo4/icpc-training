@@ -1,6 +1,6 @@
-# 🎯 Guia de Questões por Tema (Zero Troca de Contexto Mental) — ICPC LatAm (2019–2025)
+# 🎯 Guia de Questões por Tema (Zero Troca de Contexto Mental) — ICPC LatAm (2019–2026)
 
-Este guia agrupa todas as **90 questões** das 7 edições (2019, 2020, 2021, 2022, 2023, 2024 e 2025) para você estudar **um tema por vez do começo ao fim**, sem trocar de contexto mental.
+Este guia agrupa todas as **103 questões** das 8 edições (2019, 2020, 2021, 2022, 2023, 2024, 2025 e 2026) para você estudar **um tema por vez do começo ao fim**, sem trocar de contexto mental.
 
 ### 🧭 Como este arquivo está ordenado:
 
@@ -25,7 +25,7 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
 
 ---
 
-## 1️⃣ BLOCO 1: Gulosos, Ad-Hoc, Simulação e Construtivos (16 Questões — 17.8%)
+## 1️⃣ BLOCO 1: Gulosos, Ad-Hoc, Simulação e Construtivos (20 Questões Principais + 6 Híbridas — 19.4%)
 
 > **Foco Mental:** Invariantes, ordenação, dois ponteiros, somas de prefixo, aritmética modular de ciclos e escolhas gulosas.
 > **Referência Base:** [https://cp-algorithms.com/schedules/schedule_one_machine.html](https://cp-algorithms.com/schedules/schedule_one_machine.html)
@@ -37,12 +37,15 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
     - **2020 N - Non-Integer Donuts** (`🟢 Fácil`) — _Subtema:_ Leitura de strings monetárias, soma de centavos módulo $100$.
     - **2022 D - Daily Trips** (`🟢 Fácil`) — _Subtema:_ Simulação direta de estado (estoque de guarda-chuvas em dois locais).
     - **2021 I - Invested Money** (`🟢 Fácil`) — _Subtema:_ Aritmética modular de dias da semana ($\bmod 7$), simulação de ciclos de renovação de 30 dias.
+    - **2026 G - Gratitude Loop** (`🟢 Fácil`) — _Subtema:_ Simulação direta do estado do último remetente por pessoa ($N, M \le 1000$) e contagem de mensagens recebidas.
+    - **2026 F - Father's Footsteps** (`🟢 Fácil`) — _Subtema:_ Compressão de blocos iguais consecutivos (_Run-Length_) + contagem de transições removidas e fundidas ao excluir uma habilidade em $O(N)$.
     - **2020 L - Lola's Schedule** (`🟢 Fácil-Médio`) — _Subtema:_ Aritmética modular de intervalos ($\bmod X$), contagem de conflitos em janela de 480 minutos.
     - **2020 J - Job Allocator** (`🟡 Médio`) — _Subtema:_ Geração de multiconjuntos pequenos ($R, K \le 8$), tabela hash / contagem de frequência de máscaras.
 
 ### 🔹 Subtema 1.2: Two Pointers, Janela Deslizante e Soma de Prefixos (`🟢 Fácil` $\to$ `🟡 Médio`)
 
 - **Referência CP-Algorithms:** [Search the subsegment with the maximum/minimum sum](https://cp-algorithms.com/others/maximum_average_segment.html) | [Binary Search](https://cp-algorithms.com/num_methods/binary_search.html)
+    - **2026 D - Divine Lights** (`🟢 Fácil`) — _Subtema:_ Paridade acumulada de alternâncias (dia $i$ alterna todas as lâmpadas exceto a $i$) + soma de prefixos para contar lâmpadas acesas em $O(N)$.
     - **2019 E - Eggfruit Cake** (`🟢 Fácil-Médio`) — _Subtema:_ String circular (duplicação de array), distância até o próximo caractere `'E'` / Two Pointers.
     - **2020 C - Crisis at the Wedding** (`🟡 Médio`) — _Subtema:_ Array circular, soma de prefixos de excessos, execução em duas passadas no anel.
     - **2024 E - Evereth Expedition** (`🟡 Médio`) — _Subtema:_ Two Pointers das extremidades para o pico ($1 \dots N$), preenchimento guloso de sequência unimodal.
@@ -54,17 +57,21 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
     - **2020 D - Dividing Candy** (`🟡 Médio`) — _Subtema:_ Propriedade de transporte de potências de 2 ($2^x + 2^x = 2^{x+1}$), contagem de bits na soma total.
     - **2025 K - Kings Conquest** (`🟡 Médio`) — _Subtema:_ Expansão gulosa de _Bounding Box_ 2D usando $K$ movimentos de Rei (análise de casos para $N=1, 2$ vs $N \ge 3$).
     - **2021 M - Most Ordered Way** (`🟡 Médio`) — _Subtema:_ Escalonamento por Deadline (EDD — _Earliest Deadline First_), cálculo de folga mínima $\min_j (D_j - \text{pref}_j)$ para escolha gulosa lexicográfica em $O(N^2)$.
+    - _(Híbrida)_ **2026 M - Moving Mountains** (`🟡 Médio-Difícil`) — _Subtema:_ Transformação gulosa / invariante de altura em caminhos de Dyck (`D U^k D` $\to$ `U^k D D`) (ver no Bloco 4).
 
 ### 🔹 Subtema 1.4: Construtivos e Teoria dos Jogos Gulosa (`🟡 Médio` $\to$ `🟠 Difícil`)
 
 - **Referência CP-Algorithms:** [Games on arbitrary graphs](https://cp-algorithms.com/game_theory/games_on_graphs.html) | [Bit Manipulation](https://cp-algorithms.com/algebra/bit-manipulation.html)
     - **2024 F - Finding Privacy** (`🟡 Médio`) — _Subtema:_ Construtivo em linha, partição em blocos de espaços de tamanho $2$ (`X-`) e $3$ (`X--`), conjunto independente maximal.
     - **2023 B - Blackboard Game** (`🟡 Médio`) — _Subtema:_ Teoria dos jogos de soma, pareamento simétrico, verificação se todas as frequências são múltiplas de $3$.
+    - **2026 A - Antonia's Ants** (`🟡 Médio-Difícil`) — _Subtema:_ Interativo construtivo de coloração periódica em caminho ($K = 2$ cores, $C_{i-1} \ne C_{i+1}$) + reconstrução linear determinística do passeio pela visita a todos os $N$ doces.
     - **2022 K - Kind Baker** (`🟠 Difícil`) — _Subtema:_ Construtivo em Grid $100 \times 100$, representação binária com $\lceil \log_2 K \rceil$ camadas conectadas em formato de "pente".
+    - _(Híbrida)_ **2026 J - Just Four Pieces** (`🟢 Fácil`) — _Subtema:_ Construtivo de corte $(r, c)$ com análise de casos pequenos $R, C \le 4$ (ver no Bloco 7).
+    - _(Híbrida)_ **2026 E - Escape Plan** (`🟡 Médio`) — _Subtema:_ Atribuição construtiva e gulosa de túneis de escape injetivos das folhas para ancestrais na árvore (ver no Bloco 2).
 
 ---
 
-## 2️⃣ BLOCO 2: Grafos e Árvores (15 Questões Principais + 2 Híbridas — 16.7%)
+## 2️⃣ BLOCO 2: Grafos e Árvores (17 Questões Principais + 3 Híbridas — 16.5%)
 
 > **Foco Mental:** Travessias (DFS/BFS), caminhos mínimos (Dijkstra), componentes conexas, pontes, ciclos eulerianos e algoritmos estruturais em árvores.
 > **Referência Base:** [https://cp-algorithms.com/graph/depth-first-search.html](https://cp-algorithms.com/graph/depth-first-search.html)
@@ -76,6 +83,8 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
     - **2019 I - Improve SPAM** (`🟡 Médio`) — _Subtema:_ Ordenação Topológica / DP de contagem de caminhos em DAG + DFS de visitados. ([Topological Sort](https://cp-algorithms.com/graph/topological-sort.html))
     - **2021 F - Fields Division** (`🟡 Médio`) — _Subtema:_ Componentes conexas sem o vértice $N$, dominância da potência $2^N > \sum_{i < N} 2^i$, alcançabilidade de $N-1$.
     - **2022 M - Maze in Bolt** (`🟡 Médio`) — _Subtema:_ BFS/DFS em Grid Cilíndrico ($R \times C$), pré-cálculo de rotações válidas da string da porca (normal e invertida).
+    - **2026 L - Lookout Towers** (`🟡 Médio`) — _Subtema:_ BFS multi-fonte / DP em Árvore em $O(N)$ mantendo a menor distância até uma torre por subárvore e contando pares na distância mínima global.
+    - **2026 E - Escape Plan** (`🟡 Médio`) — _Subtema:_ DFS em Árvore enraizada + atribuição gulosa de túneis de retorno (folha $\to$ ancestral) garantindo conectividade até a raiz e grau de entrada $\le 1$.
     - **2020 A - Almost Origami** (`🟠 Difícil`) — _Subtema:_ Busca em Largura (BFS) / IDA\* com poda matemática no espaço de estados de pares de frações $(L, R)$.
     - **2021 C - Cyclists versus Clouds** (`🟠 Difícil`) — _Subtema:_ BFS no Espaço-Tempo $(x, y, t)$ com $x, y \le 100$ e $t \le 300$, pré-processamento da ocupação de polígonos ortogonais móveis.
     - **2025 I - Infiltration Route** (`🟠 Difícil`) — _Subtema:_ BFS / DP em DAG no espaço de estados de pares $(u, v)$ (avançando sempre o menor índice para respeitar a restrição de sensores $i$ e $i+N$).
@@ -101,10 +110,11 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
     - **2021 G - Generator Tree** (`🔴 Muito Difícil`) — _Subtema:_ Isomorfismo de Árvores (_Tree Hashing_ canônico) + teste de partição da árvore em blocos de tamanho divisor $d \mid K$.
     - _(Híbrida)_ **2022 F - Favorite Tree** (`🟠 Difícil`) — _Subtema:_ DP de Isomorfismo de Subárvore combinada com Emparelhamento Bipartido (ver também no Bloco 8).
     - _(Híbrida)_ **2024 H - Heraclosures** (`🟠 Difícil`) — _Subtema:_ DP em DAG combinada com Sqrt Decomposition (ver no Bloco 3).
+    - _(Híbrida)_ **2026 I - Imprecise Location** (`🟠 Difícil`) — _Subtema:_ Árvore de contenção de retângulos disjuntos/aninhados + LCA (Binary Lifting) entre os cantos opostos do quadrado de consulta (ver no Bloco 5).
 
 ---
 
-## 3️⃣ BLOCO 3: Estruturas de Dados (13 Questões Principais + 3 Híbridas — 14.4%)
+## 3️⃣ BLOCO 3: Estruturas de Dados (15 Questões Principais + 3 Híbridas — 14.6%)
 
 > **Foco Mental:** Pilhas monotônicas, somas/XOR de prefixo, Fenwick Tree (BIT), Segment Tree (com e sem Lazy Propagation), Sqrt Decomposition e estruturas geométricas (CHT / Li Chao).
 > **Referência Base:** [https://cp-algorithms.com/data_structures/segment_tree.html](https://cp-algorithms.com/data_structures/segment_tree.html)
@@ -121,12 +131,14 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
 
 - **Referência CP-Algorithms:** [Fenwick Tree](https://cp-algorithms.com/data_structures/fenwick.html) | [String Hashing](https://cp-algorithms.com/string/string-hashing.html)
     - **2023 C - Candy Rush** (`🟡 Médio`) — _Subtema:_ _XOR Hashing_ / Soma de vetores aleatórios de 64 bits onde a soma dos $K$ pesos é $0$, buscando o primeiro prefixo repetido em um `map`/hash table.
+    - **2026 B - Between Two Cameras** (`🟡 Médio`) — _Subtema:_ Ordenação angular por produto vetorial + contagem de inversões ponderadas ($W_A \cdot W_B$) com Fenwick Tree (BIT).
     - _(Híbrida)_ **2024 I - Inversion Insight** (`🟠 Difícil`) — _Subtema:_ Fenwick Tree (BIT) + Busca Binária na BIT para reconstruir a $K$-ésima permutação (ver no Bloco 4).
     - _(Híbrida)_ **2025 L - Lonely Creatures** (`🟠 Difícil`) — _Subtema:_ Fenwick Tree (BIT) para contar pares de intervalos/cordas que se cruzam na parábola (ver no Bloco 5).
 
 ### 🔹 Subtema 3.3: Segment Tree, Lazy Propagation e Walk na SegTree (`🟠 Difícil` $\to$ `🔴 Muito Difícil`)
 
 - **Referência CP-Algorithms:** [Segment Tree (and Lazy Propagation)](https://cp-algorithms.com/data_structures/segment_tree.html)
+    - **2026 H - Hazel's Harvest** (`🟡 Médio-Difícil`) — _Subtema:_ Sweep Line offline por altura requisitada $V$ + Walk / Busca Binária em Segment Trees (ou BITs) para encontrar o $K$-ésimo menor ano $\max(Y_i, V + Y_i - H_i)$.
     - **2024 C - Cindy's Christmas Challenge** (`🟠 Difícil`) — _Subtema:_ Soma de Prefixos + Segment Tree (RMQ) para minimizar custo de edição para uma sequência $R^r B^b$ em subintervalos $[L, U]$.
     - **2025 H - Harder Horizons** (`🟠 Difícil`) — _Subtema:_ DP otimizada com Segment Tree / Pilha Monotônica mantendo o menor máximo possível do último grupo para maximizar o número de divisões.
     - **2019 J - Jumping Grasshopper** (`🟠 Difícil`) — _Subtema:_ Segment Tree com atualização pontual e busca binária na árvore para achar o próximo maior à esquerda/direita e o topo do salto.
@@ -142,7 +154,7 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
 
 ---
 
-## 4️⃣ BLOCO 4: Programação Dinâmica (DP) e Probabilidade (11 Questões Principais + 3 Híbridas — 12.2%)
+## 4️⃣ BLOCO 4: Programação Dinâmica (DP) e Probabilidade (13 Questões Principais + 5 Híbridas — 12.6%)
 
 > **Foco Mental:** Transições de estados, otimização com somas de prefixo, DP com máscaras de bits, DP em intervalos, árvore cartesiana e valor esperado.
 > **Referência Base:** [https://cp-algorithms.com/dynamic_programming/divide-and-conquer-dp.html](https://cp-algorithms.com/dynamic_programming/divide-and-conquer-dp.html)
@@ -155,10 +167,14 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
     - **2019 F - Fabricating Sculptures** (`🟡 Médio`) — _Subtema:_ DP de partições piramidais em $O(S \cdot B)$ otimizada mantendo soma de prefixos simples e soma de prefixos ponderada.
     - **2023 K - Keen on Order** (`🟠 Difícil`) — _Subtema:_ Poda pelo princípio da casa dos pombos (se $K > 20$, sempre falta uma permutação; construir gulosamente pelo elemento mais tardio) + DP com Bitmask ($2^K$) para $K \le 20$.
     - **2025 B - Balanced Balloons** (`🟠 Difícil`) — _Subtema:_ DP sobre a média inteira no passo $i$ (explorando que as transições reduzem o espaço de estados possíveis rapidamente para $\min(N, K)$ passos).
+    - **2026 K - Kayaking** (`🟠 Difícil`) — _Subtema:_ DP de Perfil (_Broken Profile DP_) em grid $2 \times N$ rastreando dependências laterais e ciclos entre colunas para contar configurações com exatamente $k$ células seguras ($\bmod 998244353$).
+    - _(Híbrida)_ **2026 C - Clumsy Courier** (`🟡 Médio`) — _Subtema:_ Decomposição independente dos eixos com DP 1D para contagem de caminhos limitados em $[1, R]$ e $[1, C]$ (ver no Bloco 7).
+    - _(Híbrida)_ **2026 L - Lookout Towers** (`🟡 Médio`) — _Subtema:_ DP em Árvore em $O(N)$ mantendo distância mínima e contagem de torres mais próximas entre subárvores (ver no Bloco 2).
 
 ### 🔹 Subtema 4.2: DP de Intervalos, Combinatória e Árvore Cartesiana (`🟠 Difícil` $\to$ `🔴 Muito Difícil`)
 
 - **Referência CP-Algorithms:** [Knuth's Optimization](https://cp-algorithms.com/dynamic_programming/knuth-optimization.html) | [Divide and Conquer DP](https://cp-algorithms.com/dynamic_programming/divide-and-conquer-dp.html)
+    - **2026 M - Moving Mountains** (`🟡 Médio-Difícil`) — _Subtema:_ DP em árvore de parênteses / caminhos de Dyck calculando o menor custo de fusão (`D U^k D` $\to$ `U^k D D`) até o perfil comum mínimo de $P$ e $Q$.
     - **2024 I - Inversion Insight** (`🟠 Difícil`) — _Subtema:_ DP de contagem de permutações de tamanho $n$ com $k$ inversões (limitado a $n \le 20$ pois $20! > 4 \cdot 10^{18}$) + reconstrução dígito a dígito com BIT.
     - **2021 E - Expedition Plans** (`🔴 Muito Difícil`) — _Subtema:_ DP de Intervalos $O(N^2)$ para árvore de decisão ótima, separando o custo de ir para a esquerda ou direita do ponto de divisão $k$ e usando Two Pointers / Deque monotônico.
     - **2020 F - Fascinating Partitions** (`🔴 Muito Difícil`) — _Subtema:_ DP de partição em $k$ subarrays minimizando/maximizando soma dos máximos via Árvore Cartesiana / Pilha Monotônica em $O(N^2)$.
@@ -173,7 +189,7 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
 
 ---
 
-## 5️⃣ BLOCO 5: Geometria Computacional (11 Questões Principais + 4 Híbridas — 12.2%)
+## 5️⃣ BLOCO 5: Geometria Computacional (12 Questões Principais + 5 Híbridas — 11.7%)
 
 > **Foco Mental:** Produto escalar e vetorial, trigonometria, rotação de eixos ($45^\circ$), ordenação radial (`atan2` / cross product), envoltória de retas, interseção de semiplanos e soma de Minkowski.
 > **Referência Base:** [https://cp-algorithms.com/geometry/basic-geometry.html](https://cp-algorithms.com/geometry/basic-geometry.html)
@@ -190,11 +206,13 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
     - **2023 G - GPS on a Flat Earth** (`🟠 Difícil`) — _Subtema:_ Rotação de coordenadas em $45^\circ$ ($u = x + y$, $v = x - y$) transformando círculos de Manhattan em bordas de quadrados paralelos aos eixos; interseção de segmentos.
     - **2025 L - Lonely Creatures** (`🟠 Difícil`) — _Subtema:_ Interseção de reta $y = M_i x + C_i$ com a parábola $y = A x^2 + B$, reduzindo a condição de encontro interno ao cruzamento de cordas $[x_{i,1}, x_{i,2}]$ contado com Fenwick Tree (BIT).
     - **2022 J - Joining a Marathon** (`🟠 Difícil`) — _Subtema:_ Dualidade Ponto-Reta / Intervalos de inclinação angular no plano $(t, x)$ para identificar fotos sem corredores.
+    - **2026 I - Imprecise Location** (`🟠 Difícil`) — _Subtema:_ Sweep Line 2D em retângulos alinhados aos eixos para construir a árvore de contenção e localizar os cantos $(X-R, Y-R)$ e $(X+R, Y+R)$ para consulta via LCA.
     - **2022 B - Board Game** (`🔴 Muito Difícil`) — _Subtema:_ Busca Binária Paralela + Envoltória Convexa Dinâmica / _Convex Hull Trick_ (CHT) para encontrar o primeiro jogador cuja reta passa acima de cada ponto.
 
 ### 🔹 Subtema 5.3: Ordenação Polar (Sweep Radial), Semiplanos, Círculos e Soma de Minkowski (`🟠 Difícil` $\to$ `🔴 Muito Difícil`)
 
 - **Referência CP-Algorithms:** [Half-plane intersection](https://cp-algorithms.com/geometry/halfplane-intersection.html) | [Circle-Line Intersection](https://cp-algorithms.com/geometry/circle-line-intersection.html) | [Minkowski sum of convex polygons](https://cp-algorithms.com/geometry/minkowski.html) | [Check if point belongs to the convex polygon in $O(\log N)$](https://cp-algorithms.com/geometry/point-in-convex-polygon.html)
+    - _(Híbrida)_ **2026 B - Between Two Cameras** (`🟡 Médio`) — _Subtema:_ Ordenação radial de pontos a partir de duas câmeras em $(0,0)$ e $(D,0)$ via produto vetorial + contagem de inversões ponderadas (ver no Bloco 3).
     - **2019 D - Dazzling Stars** (`🟡 Médio-Difícil`) — _Subtema:_ Produto vetorial, interseção de semiplanos angulares (direções de rotação válidas no círculo unitário) para cada par de estrelas com $B_i > B_j$.
     - **2019 B - Build the Perfect House** (`🟠 Difícil`) — _Subtema:_ Simetria de $\frac{\pi}{2}$ (rotacionar pontos para o 1º quadrante) + Busca Binária no raio $R$ + União de intervalos angulares proibidos (Sweep Angular).
     - **2020 I - Impenetrable Wall** (`🟠 Difícil`) — _Subtema:_ Ordenação Radial em torno da casa $H$ (`atan2` / produto vetorial) + DP Poligonal em $O(N^3)$ ou $O(N^2)$ garantindo ângulos $< 180^\circ$.
@@ -204,7 +222,7 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
 
 ---
 
-## 6️⃣ BLOCO 6: Strings — Do Básico aos Autômatos (9 Questões Principais + 2 Híbridas — 10.0%)
+## 6️⃣ BLOCO 6: Strings — Do Básico aos Autômatos (9 Questões Principais + 2 Híbridas — 8.7%)
 
 > **Foco Mental:** Manipulação de caracteres, janelas de frequência, Z-Function, KMP, String Hashing, Parsing de expressões e Autômato de Sufixos (SAM).
 > **Referência Base:** [https://cp-algorithms.com/string/string-hashing.html](https://cp-algorithms.com/string/string-hashing.html)
@@ -232,7 +250,7 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
 
 ---
 
-## 7️⃣ BLOCO 7: Matemática, Teoria dos Números, Combinatória e FFT (8 Questões Principais + 4 Híbridas — 8.9%)
+## 7️⃣ BLOCO 7: Matemática, Teoria dos Números, Combinatória e FFT (10 Questões Principais + 4 Híbridas — 9.7%)
 
 > **Foco Mental:** Divisores, aritmética modular, função totiente de Euler ($\phi$), ordem multiplicativa, testes de primalidade (Miller-Rabin), fatoração (Pollard's Rho), polinômios e FFT/NTT.
 > **Referência Base:** [https://cp-algorithms.com/algebra/factorization.html](https://cp-algorithms.com/algebra/factorization.html)
@@ -240,6 +258,7 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
 ### 🔹 Subtema 7.1: Manipulação de Bits, Recursão Binária e Divisores em $O(\sqrt{N})$ (`🟡 Médio`)
 
 - **Referência CP-Algorithms:** [Bit Manipulation](https://cp-algorithms.com/algebra/bit-manipulation.html) | [Integer factorization / Trial division](https://cp-algorithms.com/algebra/factorization.html)
+    - **2026 J - Just Four Pieces** (`🟢 Fácil`) — _Subtema:_ Equações de proporcionalidade $\frac{r}{R} \ne \frac{c}{C}$ e $\frac{r}{R} + \frac{c}{C} \ne 1$ para áreas distintas em corte retangular + análise de casos $R, C \le 4$.
     - **2022 C - City Folding** (`🟡 Médio`) — _Subtema:_ Rastreamento reverso dos bits de $P-1$ e $H-1$ ao longo de $N \le 60$ dobras em uma tira de tamanho $2^N$.
     - **2023 F - Forward and Backward** (`🟡 Médio`) — _Subtema:_ Teste direto de palíndromos para bases $b \le \sqrt{N}$ + enumeração de divisores de $N$ para bases $b > \sqrt{N}$ (onde $N = d \cdot b + d \implies b = \frac{N}{d} - 1$).
 
@@ -248,6 +267,7 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
 - **Referência CP-Algorithms:** [Binomial Coefficients](https://cp-algorithms.com/combinatorics/binomial-coefficients.html) | [Modular Inverse](https://cp-algorithms.com/algebra/module-inverse.html)
     - **2019 K - Know your Aliens** (`🟡 Médio`) — _Subtema:_ Construção de raízes ímpares $2i+1$ sempre que há troca entre `'H'` e `'A'`, seguida de multiplicação polinomial $\prod (x - r_k)$ em $O(D^2)$.
     - **2023 I - Inversions** (`🟡 Médio`) — _Subtema:_ Contagem de inversões internas em $S$ + pares $(c_1, c_2)$ entre cópias distintas multiplicados pela progressão aritmética $\binom{N}{2} \pmod{10^9+7}$.
+    - **2026 C - Clumsy Courier** (`🟡 Médio`) — _Subtema:_ Independência vertical/horizontal ($\binom{V+H}{V}$) + contagem de passeios 1D limitados em $[1, R]$ via Princípio da Reflexão / Coeficientes Binomiais ($\bmod 998244353$).
     - **2024 L - Latin Squares** (`🟠 Difícil`) — _Subtema:_ Decomposição das permutações de linhas e colunas em ciclos disjuntos; verificação de se os comprimentos dos ciclos de linhas e colunas coincidem para construir o Quadrado Latino invariante.
 
 ### 🔹 Subtema 7.3: FFT / NTT, Ordem Multiplicativa, Totiente e Pollard's Rho (`🔴 Muito Difícil`)
@@ -259,7 +279,7 @@ Se você preferir fazer primeiro **todos os subtemas fáceis** da prova antes de
 
 ---
 
-## 8️⃣ BLOCO 8: Fluxo em Redes e Emparelhamento Bipartido (7 Questões Principais + 1 Híbrida — 7.8%)
+## 8️⃣ BLOCO 8: Fluxo em Redes e Emparelhamento Bipartido (7 Questões Principais + 1 Híbrida — 6.8%)
 
 > **Foco Mental:** Emparelhamento bipartido máximo (Kuhn / Hopcroft-Karp / Dinic), emparelhamento perfeito de custo mínimo (Algoritmo Húngaro), Teorema de Dilworth, Fluxo Máximo (Dinic) e dualidade Max-Flow Min-Cut em grafos planares.
 > **Referência Base:** [https://cp-algorithms.com/graph/dinic.html](https://cp-algorithms.com/graph/dinic.html)

@@ -13,8 +13,8 @@ Este repositório é dedicado ao treinamento intensivo e simulações para compe
 ## 2. Restrições Técnicas Críticas
 
 - **Performance**: O código não deve desperdiçar ciclos de CPU ou memória. Em C++, evite `std::endl`, prefira `\n` e o uso de fast I/O (`cin.tie(NULL)`).
-- **Compilação**: Use estritamente C++23. Invariante principal: todo código C++ deve compilar com `-std=c++23 -O2 -Wall -Wextra`.
-- **Organização**: Respeite a estrutura baseada em diretórios por ano/contest. Nada de arquivos soltos.
+- **Compilação**: Use estritamente C++23. Invariante principal: todo código C++ deve compilar com `-std=c++23 -O3 -Wall -Wextra -Wconversion -Wshadow`.
+- **Organização**: Respeite a estrutura canônica de diretórios do repositório (`maratona/` para acervos e simulados por fase/edição, `modelo/` para template C++23 e `Makefile` de prova, `configurações/` para setups rápidos de editores e `consultas/` para o caderno TRD em LaTeX). Nada de arquivos soltos.
 - **Limpeza**: NUNCA comite binários ou arquivos temporários.
 
 ## 3. Qualidade e Formatação

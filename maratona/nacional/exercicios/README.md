@@ -11,8 +11,9 @@ Gabaritos de técnicas por problema, nomeados pelo ano da prova (`AAAA.md`). Cad
 | **2021** | [Gym 103640 (LatAm 2021)](https://codeforces.com/gym/103640) | [`2021.md`](2021.md) (13 problemas) |
 | **2022** | [Gym 104252 (LatAm 2022)](https://codeforces.com/gym/104252) | [`2022.md`](2022.md) (13 problemas) |
 | **2023** | [Gym 104736 (LatAm 2023)](https://codeforces.com/gym/104736) | [`2023.md`](2023.md) (13 problemas) |
-| **2024** | [Gym 105505 (LatAm 2024)](https://codeforces.com/gym/105505) | [`2024.md`](2024.md) (13 problemas) |
-| **2025** | [Gym 106178 (LatAm 2025)](https://codeforces.com/gym/106178) | [`2025.md`](2025.md) (13 problemas) |
+| **2024** | [Gym 105505 (LatAm 2024)](https://codeforces.com/gym/105505) | [`2024.md`](2024.md) (12 problemas) |
+| **2025** | [Gym 106178 (LatAm 2025)](https://codeforces.com/gym/106178) | [`2025.md`](2025.md) (12 problemas) |
+| **2026** | ICPC LatAm 2026                                              | [`2026.md`](2026.md) (13 problemas) |
 
 ---
 

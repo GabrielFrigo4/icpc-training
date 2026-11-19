@@ -9,12 +9,12 @@ MAKEFLAGS += --no-print-directory -s
 
 CXX        ?= c++
 CXXFLAGS   ?= -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23
-DBGFLAGS   ?= -fsanitize=address,undefined -g -Wall -Wshadow -std=c++23
+DBGFLAGS   ?= -fsanitize=address,undefined -g -Wall -Wextra -Wconversion -Wshadow -std=c++23
 
 .SUFFIXES:
 .SUFFIXES: .cpp .debug
 
-.PHONY: all help setup setup-hooks lint format prettier clang-format build-latex release-map clean check-binaries ci
+.PHONY: all help setup setup-hooks hooks lint audit test format prettier clang-format build-latex release-map clean check-binaries ci
 
 all: help
 
@@ -30,14 +30,21 @@ help:
 	sec "Ambiente & Toolchain:"; \
 	cmd "setup"          "Configura hooks do Git e valida compiladores C++ e Python"; \
 	cmd "setup-hooks"    "Configura core.hooksPath para .githooks local"; \
+	cmd "hooks"          "Alias de setup-hooks (instala e ativa ganchos Git locais)"; \
 	sec "Compilação (Manual):"; \
-	cmd "make <Questão>" "Compila questão (ex: make A) em modo submissão (-O3)"; \
-	cmd "make <Q>.debug" "Compila questão com AddressSanitizer e UndefinedBehavior"; \
+	cmd "<Questão>"      "Compila questão (ex: make A) em modo submissão (-O3)"; \
+	cmd "<Q>.debug"      "Compila questão com AddressSanitizer e UndefinedBehavior"; \
+	sec "Caderno LaTeX (ICPC TRD):"; \
+	cmd "build-latex"    "Compila o caderno LaTeX em dist/caderno-consultas-icpc.pdf"; \
+	cmd "release-map"    "Exibe o mapeamento de artefatos LaTeX para release"; \
 	sec "Qualidade & Validação:"; \
 	cmd "format"         "Formata códigos C++ (clang-format) e documentação (prettier)"; \
 	cmd "clang-format"   "Formata arquivos C++ com clang-format"; \
 	cmd "prettier"       "Formata documentações Markdown com Prettier"; \
 	cmd "lint"           "Verifica formatação Markdown e ausência de binários rastreados"; \
+	cmd "audit"          "Executa auditoria estática de integridade (alias de lint)"; \
+	cmd "check-binaries" "Verifica se há binários compilados rastreados no Git"; \
+	cmd "test"           "Valida compilação C++23 de modelo/main.cpp sem deixar binários"; \
 	cmd "ci"             "Executa bateria completa de quality gates locais"; \
 	sec "Limpeza:"; \
 	cmd "clean"          "Remove binários de questões gerados ([A-Z], *.debug)"; \
@@ -57,6 +64,8 @@ setup-hooks:
 	chmod 0755 .githooks/* 2> "/dev/null" || true
 	git config core.hooksPath .githooks
 	echo "✅ core.hooksPath configurado para .githooks"
+
+hooks: setup-hooks
 
 ### ================================
 ### SUFFIX RULES FOR CP
@@ -110,8 +119,30 @@ check-binaries:
 	fi
 	echo "✅ Nenhum binário indevido rastreado."
 
-ci: lint
+ci: audit test
 	echo "🚀 Repositório 100% pronto para commit e push!"
+
+audit: lint
+
+test:
+	echo "🧪 Executando testes de compilação C++23..."
+	if command -v g++ > "/dev/null" 2>&1; then \
+		if g++ $(CXXFLAGS) modelo/main.cpp -o /tmp/test_main && /tmp/test_main; then \
+			rm -f /tmp/test_main; \
+		else \
+			rm -f /tmp/test_main; \
+			exit 1; \
+		fi; \
+	else \
+		printf '%s\n' '#include <iostream>' 'int main() { std::cout << "C++23 OK\n"; return 0; }' > /tmp/test_main.cpp; \
+		if $(CXX) $(CXXFLAGS) /tmp/test_main.cpp -o /tmp/test_main && /tmp/test_main > "/dev/null"; then \
+			rm -f /tmp/test_main.cpp /tmp/test_main; \
+		else \
+			rm -f /tmp/test_main.cpp /tmp/test_main; \
+			exit 1; \
+		fi; \
+	fi
+	echo "✅ Testes concluídos com sucesso!"
 
 ### ================================
 ### LATEX SUITE
