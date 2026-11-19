@@ -10,10 +10,12 @@
 
 \subsubsection{Ordenação Topológica, DP de Caminhos e Alcançabilidade em DAG}
 \algobox
-  {Ordenação topológica de grafos direcionados acíclicos (DAG), contagem de caminhos módulo $M$ entre vértices e alcançabilidade de todos os pares via compressão de bits.}
-  {O algoritmo de Kahn extrai iterativamente vértices com grau de entrada nulo; o grafo é acíclico sse todos os $n$ vértices são processados. Em ordem topológica, a contagem de caminhos satisfaz $dp[v] = \sum_{(u,v)\in E} dp[u] \pmod M$. Para alcançabilidade de múltiplos destinos (sem dupla contagem), propaga-se $\text{reach}[u] \mid= \text{reach}[v]$ em ordem topológica reversa utilizando \texttt{std::bitset<MAXN>}.}
-  {Em multigrafos, múltiplas arestas $(u,v)$ contribuem separadamente para a contagem de caminhos, mas são idempotentes no operador bit-a-bit de alcançabilidade. Verificar \texttt{sz(ord) == n} antes de assumir aciclicidade.}
-  {Kahn / DP: $\Ocomp{V + E}$ $\mid$ Bitset: $\Ocomp{(V + E)V / 64}$}
+  {Obter uma ordenação topológica de um grafo direcionado ou detectar a existência de ciclo.}
+  {O algoritmo de Kahn inicializa uma fila com os vértices de grau de entrada zero; ao remover $u$, decrementa \texttt{indeg[v]} dos vizinhos e enfileira os que atingem zero.}
+  {Qualquer vértice sem predecessores pendentes pode aparecer em seguida; se restar vértice não processado, todo remanescente tem grau de entrada $\ge 1$ no subgrafo residual, o que garante um ciclo.}
+  {Resolução de dependências, ordem de avaliação de DP em grafo direcionado, detecção de ciclo em DAG.}
+  {Sempre checar \texttt{sz(ord) == n} antes de assumir aciclicidade. Para ordem lexicográfica mínima, trocar \texttt{queue} por \texttt{priority\_queue} min-heap.}
+  {$\Ocomp{V + E}$ tempo, $\Ocomp{V}$ espaço}
 
 \begin{lstlisting}
 vi kahn_toposort(int n, const vector<vi>& adj) {
@@ -28,7 +30,17 @@ vi kahn_toposort(int n, const vector<vi>& adj) {
   }
   return sz(ord) == n ? ord : vi{};
 }
+\end{lstlisting}
 
+\algobox
+  {Contar o número de caminhos módulo $M$ de uma fonte \texttt{src} até cada vértice de um DAG.}
+  {Percorrem-se os vértices na ordem topológica propagando $dp[v] \leftarrow (dp[v] + dp[u]) \bmod M$ para toda aresta $(u, v) \in E$, com $dp[\text{src}] = 1$.}
+  {A ordem topológica garante que, ao processar $u$, todos os caminhos que entram em $u$ já foram contabilizados, eliminando ciclos de dependência.}
+  {Contagem de rotas em grafos acíclicos, DP de caminhos mínimos após construir o DAG de arestas apertadas.}
+  {Arestas paralelas $(u, v)$ contribuem separadamente para a contagem. Retorna vetor nulo se o grafo contiver ciclo.}
+  {$\Ocomp{V + E}$ tempo, $\Ocomp{V}$ espaço}
+
+\begin{lstlisting}
 vll dag_count_paths(int n, int src, const vector<vi>& adj, ll mod = 1000000007) {
   vi ord = kahn_toposort(n, adj);
   vll dp(n, 0);
@@ -43,7 +55,17 @@ vll dag_count_paths(int n, int src, const vector<vi>& adj, ll mod = 1000000007) 
   }
   return dp;
 }
+\end{lstlisting}
 
+\algobox
+  {Calcular a alcançabilidade de todos os pares $(u, v)$ em um DAG usando compressão de bits.}
+  {Em ordem topológica reversa, inicializa-se \texttt{reach[u].set(u)} e agrega-se \texttt{reach[u] |= reach[v]} para cada vizinho $v$ de $u$.}
+  {O operador bit-a-bit \texttt{|} calcula a união de conjuntos sem dupla contagem, paralelizando 64 vértices por instrução de máquina.}
+  {Fecho transitivo em DAG (ou no DAG de condensação de SCCs), contagem de vértices alcançáveis a partir de cada nó.}
+  {\texttt{MAXN} deve ser constante de compilação $\ge n$; para $N$ grande ($N \approx 5 \cdot 10^4$), processar os destinos em blocos de $B$ bits para limitar memória.}
+  {$\Ocomp{(V + E)V / 64}$ tempo, $\Ocomp{V^2 / 64}$ espaço}
+
+\begin{lstlisting}
 template <int MAXN>
 vector<bitset<MAXN>> dag_reachability(int n, const vector<vi>& adj) {
   vi ord = kahn_toposort(n, adj);
@@ -59,10 +81,12 @@ vector<bitset<MAXN>> dag_reachability(int n, const vector<vi>& adj) {
 
 \subsubsection{BFS 0-1, BFS Multi-Fonte e Busca em Espaço de Estados}
 \algobox
-  {Caminhos mínimos em grafos com pesos em $\{0, 1\}$ (BFS 0-1), distâncias mínimas a partir de um conjunto de fontes $S$ (BFS multi-fonte) e busca de menor número de transições em grids ou espaços de estados $(v, \text{estado})$.}
-  {Na BFS 0-1, relaxamentos de peso $0$ inserem no início da \texttt{deque} e de peso $1$ no final, preservando a invariante monotônica das distâncias na fila sem custo logarítmico. Na BFS multi-fonte, inicializa-se a fila com todos $s \in S$ em distância $0$ e origem $s$, particionando $V$ em regiões de Voronoi discretas. Em espaços de estados (grids, máscaras, tempo discreto), cada estado válido corresponde a um vértice do grafo implícito.}
-  {Na BFS 0-1, ignorar estados obsoletos na retirada da fila se o mesmo vértice for inserido mais de uma vez. Em grids $R \times C$, validar limites antes de indexar e utilizar vetores lineares ou matrizes alocadas dinamicamente no heap.}
-  {Tempo: $\Ocomp{V + E}$ $\mid$ Espaço: $\Ocomp{V}$}
+  {Calcular caminhos mínimos a partir de uma fonte em grafos com pesos das arestas em $\{0, 1\}$.}
+  {Mantém-se uma \texttt{deque}: relaxamentos por aresta de peso $0$ inserem no início (\texttt{push\_front}) e de peso $1$ no final (\texttt{push\_back}).}
+  {A \texttt{deque} preserva a invariante de Dijkstra com no máximo dois valores de distância consecutivos ($d$ e $d+1$), evitando o custo logarítmico da heap.}
+  {Grid com células livres/bloqueadas (custo $0/1$ para virar ou quebrar parede), mudança de direção em labirinto, grafos de estados binários.}
+  {Um mesmo vértice pode entrar mais de uma vez na \texttt{deque} se for relaxado primeiro por peso $1$ e depois por $0$; usar \texttt{INT\_MAX / 4} para evitar overflow.}
+  {$\Ocomp{V + E}$ tempo, $\Ocomp{V}$ espaço}
 
 \begin{lstlisting}
 vi bfs_01(int n, int src, const vector<vector<pii>>& adj) {
@@ -82,7 +106,17 @@ vi bfs_01(int n, int src, const vector<vector<pii>>& adj) {
   }
   return dist;
 }
+\end{lstlisting}
 
+\algobox
+  {Encontrar, para cada vértice, a menor distância até um conjunto de fontes $S$ e qual fonte $s \in S$ a realiza.}
+  {Todas as fontes $s \in S$ são enfileiradas inicialmente com \texttt{dist[s] = 0} e \texttt{origin[s] = s}, executando-se uma única BFS padrão.}
+  {Equivale a conectar uma super-fonte artificial a todos os $s \in S$ com arestas de peso $1$, particionando $V$ em regiões de Voronoi discretas por frentes simultâneas.}
+  {Propagação de fogo/infecção em grid, menor distância entre dois vértices marcados em grafo não-ponderado (colisão de frentes com \texttt{origin} distintos).}
+  {Checar \texttt{dist[s] == -1} ao inicializar fontes duplicadas. Em grids $R \times C$, validar limites antes de indexar.}
+  {$\Ocomp{V + E}$ tempo, $\Ocomp{V}$ espaço}
+
+\begin{lstlisting}
 pair<vi, vi> multi_source_bfs(int n, const vi& sources, const vector<vi>& adj) {
   vi dist(n, -1), origin(n, -1);
   queue<int> q;
@@ -110,10 +144,12 @@ pair<vi, vi> multi_source_bfs(int n, const vi& sources, const vector<vi>& adj) {
 
 \subsubsection{Dijkstra, Contagem de Caminhos e Vértices Obrigatórios}
 \algobox
-  {Caminhos mínimos a partir de uma fonte $s$ em grafos com pesos não-negativos ($w \ge 0$), contagem de caminhos mínimos módulo $M$ e caracterização do DAG de caminhos mínimos.}
-  {O algoritmo de Dijkstra extrai vértices em ordem não-decrescente de distância $d[u]$. As arestas $(u, v)$ tais que $d[u] + w = d[v]$ induzem o DAG de caminhos mínimos (para $w > 0$). Um vértice $x$ pertence a todos os caminhos mínimos de $s$ até $t$ sse $d_{\setminus x}(s, t) > d(s, t)$, onde $d_{\setminus x}$ é obtido bloqueando $x$; equivalentemente, em grafos sem arestas de peso zero, sse $d(s, x) + d(x, t) = d(s, t)$ e $\text{ways}(s, x) \cdot \text{ways}(x, t) = \text{ways}(s, t)$.}
-  {Utilizar \texttt{LLONG\_MAX / 4} como $\infty$ para evitar overflow em somas $d[u] + w$. A contagem direta durante Dijkstra requer pesos estritamente positivos ($w > 0$); havendo ciclos de peso zero, contrair SCCs de peso zero previamente.}
-  {Tempo: $\Ocomp{(V + E) \log V}$ $\mid$ Espaço: $\Ocomp{V + E}$}
+  {Caminhos mínimos a partir de \texttt{src} com pesos $w \ge 0$, contagem de caminhos mínimos módulo $M$ e suporte a vértice bloqueado.}
+  {Extrai-se o vértice $u$ de menor distância $d[u]$ via min-heap, relaxando arestas $(u, v, w)$ e acumulando \texttt{ways[v]} sempre que $d[u] + w = d[v]$. As arestas apertadas ($d[u] + w = d[v]$) formam o DAG de caminhos mínimos.}
+  {Com $w \ge 0$, nenhum caminho futuro passando por vértices ainda na heap pode diminuir o menor $d[u]$ corrente; logo $d[u]$ já é definitivo na primeira extração válida.}
+  {Menor custo em grafo ponderado, vértice obrigatório em todo caminho mínimo ($d(s,x)+d(x,t)=d(s,t)$ e $\text{ways}(s,x)\cdot\text{ways}(x,t)=\text{ways}(s,t)$), grafo de estados com custos não-negativos.}
+  {A contagem direta exige $w > 0$ (arestas de peso $0$ podem gerar ciclos ou ordem errada de soma); usar \texttt{LLONG\_MAX / 4} para evitar overflow em $d + w$ e ignorar entradas obsoletas (\texttt{d > dist[u]}).}
+  {$\Ocomp{(V + E) \log V}$ tempo, $\Ocomp{V + E}$ espaço}
 
 \begin{lstlisting}
 constexpr ll INF_D = LLONG_MAX / 4;
@@ -156,10 +192,12 @@ DijkstraResult dijkstra(int n, int src, const vector<vector<pair<int, ll>>>& adj
 
 \subsubsection{Tarjan: Pontes, Pontos de Articulação e Componentes Biconexas}
 \algobox
-  {Identificação de pontes, vértices de articulação e decomposição de grafos não-direcionados em componentes 2-arestas-conexas (ou biconexas por vértices) em tempo linear.}
-  {Na árvore de DFS, \texttt{tin[u]} registra o tempo de descoberta e \texttt{low[u]} o menor \texttt{tin} alcançável na subárvore de $u$ via no máximo uma aresta de retorno (\emph{back-edge}). Uma aresta de árvore $(u, v)$ é ponte sse $\texttt{low[v]} > \texttt{tin[u]}$. Um vértice $u$ é ponto de articulação sse é raiz da DFS com $\ge 2$ filhos na árvore, ou não é raiz e possui filho $v$ com $\texttt{low[v]} \ge \texttt{tin[u]}$. Mantendo uma pilha de vértices, cada ponte fecha uma componente 2-arestas-conexa (comprimindo o grafo em uma árvore de pontes).}
-  {Identificar a aresta do pai pelo seu índice \texttt{pe} (e não pelo vértice pai) para tratar arestas paralelas corretamente. Executar a DFS a partir de todo vértice não visitado em grafos desconexos.}
-  {Tempo: $\Ocomp{V + E}$ $\mid$ Espaço: $\Ocomp{V + E}$}
+  {Encontrar pontes, pontos de articulação e componentes 2-arestas-conexas (EBCC) de um grafo não-direcionado.}
+  {Na DFS, \texttt{tin[u]} é o tempo de entrada e \texttt{low[u]} o menor \texttt{tin} alcançável na subárvore de $u$ via até uma \emph{back-edge}. A aresta de árvore $(u, v)$ é ponte sse $\texttt{low[v]} > \texttt{tin[u]}$; $u$ é articulação sse é raiz com $\ge 2$ filhos ou tem filho $v$ com $\texttt{low[v]} \ge \texttt{tin[u]}$.}
+  {Se nenhum vértice na subárvore de $v$ possui \emph{back-edge} para $u$ ou acima, remover $(u, v)$ desconecta a subárvore de $v$, fechando uma componente 2-arestas-conexa na pilha.}
+  {Compressão de grafo em árvore de pontes (\emph{bridge tree}), arestas críticas em rede, orientação fortemente conexa (teorema de Robbins).}
+  {Filtrar a aresta do pai pelo seu \texttt{id} (\texttt{id == pe}), nunca pelo vértice pai, para tratar arestas paralelas corretamente. Rodar \texttt{build()} para cobrir grafos desconexos.}
+  {$\Ocomp{V + E}$ tempo, $\Ocomp{V + E}$ espaço}
 
 \begin{lstlisting}
 struct TarjanUndirected {
@@ -209,10 +247,12 @@ struct TarjanUndirected {
 
 \subsubsection{Componentes Fortemente Conexas (Tarjan SCC) e 2-SAT}
 \algobox
-  {Decomposição de grafos direcionados em Componentes Fortemente Conexas (SCC) e decisão/atribuição de fórmulas booleanas em 2-CNF (2-SAT).}
-  {Em Tarjan, um vértice $u$ é raiz de uma SCC sse $\texttt{low[u]} == \texttt{tin[u]}$, produzindo identificadores \texttt{comp[u]} em ordem topológica reversa do DAG de condensação. No 2-SAT sobre $n$ variáveis, cada literal $x_i$ é representado por $2i$ e $\neg x_i$ por $2i+1$ ($\neg u = u \oplus 1$). Cada cláusula $(a \lor b)$ equivale às implicações $(\neg a \to b)$ e $(\neg b \to a)$. A instância é satisfatível sse $\forall i,\ \texttt{comp}[2i] \neq \texttt{comp}[2i+1]$, sendo válida a atribuição $x_i = (\texttt{comp}[2i] < \texttt{comp}[2i+1])$.}
-  {Apenas arestas para vértices ainda na pilha (\texttt{comp[v] == -1}) atualizam \texttt{low[u]}. Para forçar $u$ verdadeiro, adicionar a implicação $(\neg u \to u)$.}
-  {Tempo: $\Ocomp{V + E}$ $\mid$ Espaço: $\Ocomp{V + E}$}
+  {Decompor grafos direcionados em SCCs e resolver sistemas de restrições booleanas em 2-CNF (2-SAT).}
+  {Tarjan fecha uma SCC sempre que $\texttt{low[u]} == \texttt{tin[u]}$, numerando \texttt{comp[u]} em ordem topológica reversa do DAG de condensação. No 2-SAT, cada cláusula $(a \lor b)$ vira $(\neg a \to b)$ e $(\neg b \to a)$; há solução sse $\texttt{comp}[2i] \neq \texttt{comp}[2i+1]$, com $x_i = (\texttt{comp}[2i] < \texttt{comp}[2i+1])$.}
+  {Como Tarjan extrai SCCs de trás para frente no DAG, atribuir verdadeiro ao literal de menor \texttt{comp} garante que nenhuma aresta de implicação vá de um literal verdadeiro para um falso.}
+  {Decisão de escolhas binárias com conflitos aos pares, condensação de grafo direcionado em DAG, prefix-optimization de cláusulas ``no máximo 1 verdadeiro''.}
+  {Só atualizar \texttt{low[u]} por \texttt{tin[v]} quando $v$ ainda está na pilha (\texttt{comp[v] == -1}). Para forçar $u$ verdadeiro, usar \texttt{set\_true(u)} ($ \neg u \to u$).}
+  {$\Ocomp{V + E}$ tempo, $\Ocomp{V + E}$ espaço}
 
 \begin{lstlisting}
 struct TwoSatSCC {
@@ -260,10 +300,12 @@ struct TwoSatSCC {
 
 \subsubsection{Trilha e Circuito Euleriano (Hierholzer)}
 \algobox
-  {Construção de trilha ou circuito Euleriano (percorrendo cada aresta exatamente uma vez) em grafos não-direcionados e direcionados.}
-  {Em grafos não-direcionados, existe trilha Euleriana sse todas as arestas pertencem à mesma componente conexa e o número de vértices de grau ímpar é $0$ (circuito) ou $2$ (trilha entre os dois ímpares). Em grafos direcionados, exige-se conectividade fraca das arestas e $\deg^+(v) = \deg^-(v)$ para todos os vértices (circuito), ou exatamente um início com $\deg^+ - \deg^- = 1$ e um fim com $\deg^- - \deg^+ = 1$. O algoritmo de Hierholzer avança consumindo arestas via ponteiro corrente e registra o vértice ao retroceder, invertendo a sequência ao final.}
-  {Avançar o ponteiro \texttt{ptr[u]} por referência para garantir complexidade linear mesmo com múltiplas arestas e laços. Verificar \texttt{sz(path) == m + 1} ao final para detectar desconexão entre arestas.}
-  {Tempo: $\Ocomp{V + E}$ $\mid$ Espaço: $\Ocomp{V + E}$}
+  {Construir trilha ou circuito Euleriano (usando cada aresta exatamente uma vez) em grafo não-direcionado.}
+  {Verifica-se se há $0$ ou $2$ vértices de grau ímpar; em seguida Hierholzer avança via pilha e ponteiro \texttt{ptr[u]} marcando arestas em \texttt{used[id]}, registra $u$ ao esgotar suas arestas e inverte o resultado.}
+  {Ao empilhar ciclos secundários encontrados no retrocesso e registrá-los antes de continuar o caminho principal, todos os ciclos são costurados em um único percurso contínuo.}
+  {Emparelhamento de dominós, cobertura de todas as arestas sem repetição, decomposição de grafo de graus pares em ciclos.}
+  {Avançar \texttt{ptr[u]} monotonicamente para evitar $\Ocomp{E^2}$ em vértices de grau alto com laços/arestas paralelas. Checar \texttt{sz(path) == m + 1} para detectar arestas em outra componente.}
+  {$\Ocomp{V + E}$ tempo, $\Ocomp{V + E}$ espaço}
 
 \begin{lstlisting}
 vi eulerian_undirected(int n, const vector<pii>& edges, int start = -1) {
@@ -302,7 +344,17 @@ vi eulerian_undirected(int n, const vector<pii>& edges, int start = -1) {
   reverse(all(path));
   return path;
 }
+\end{lstlisting}
 
+\algobox
+  {Construir trilha ou circuito Euleriano em grafo direcionado.}
+  {Exige-se $\deg^+(v) = \deg^-(v)$ em todos os vértices (circuito), ou exatamente um início com $\deg^+ - \deg^- = 1$ e um fim com $\deg^- - \deg^+ = 1$; Hierholzer consome \texttt{adj[u][ptr[u]++]} e inverte a saída.}
+  {Como cada aresta direcionada aparece apenas na lista de saída de sua origem, basta incrementar \texttt{ptr[u]} sem vetor \texttt{used}; o retrocesso emenda subciclos fechados exatamente onde divergiram.}
+  {Sequência de De Bruijn, reconstrução de string a partir de $k$-mers, encadeamento de palavras/transições.}
+  {Se \texttt{start} for fixado pelo problema, validar que coincide com \texttt{s\_cand} quando existe trilha aberta. Checar \texttt{sz(path) == m + 1} para garantir que não há arestas desconexas.}
+  {$\Ocomp{V + E}$ tempo, $\Ocomp{V + E}$ espaço}
+
+\begin{lstlisting}
 vi eulerian_directed(int n, const vector<pii>& edges, int start = -1) {
   int m = sz(edges);
   vector<vi> adj(n);
@@ -343,10 +395,12 @@ vi eulerian_directed(int n, const vector<pii>& edges, int start = -1) {
 
 \subsubsection{DFS Bottom-Up e Emparelhamento Guloso Folha--Ancestral}
 \algobox
-  {Problemas de cobertura, alocação ou emparelhamento em árvores enraizadas onde unidades geradas nas folhas (ou subárvores) devem ser atribuídas a ancestrais viáveis ao longo do caminho até a raiz.}
-  {Em percurso pós-ordem (bottom-up), cada subárvore propaga ao pai o excedente de folhas livres disponíveis. Por argumento de troca, atribuir folhas livres ao ancestral mais baixo cuja demanda/capacidade \texttt{cap[u]} ainda não foi saturada é sempre ótimo: qualquer atribuição postergada para um ancestral estritamente superior $a$ de $u$ pode ser trocada com uma folha disponível em $u$ sem reduzir o conjunto de ancestrais alcançáveis acima de $a$. O processo mantém apenas o contador escalar de folhas livres por subárvore.}
-  {Distinguir corretamente folha da árvore enraizada ($u \neq r$ e $\deg(u) = 1$, ou $n = 1$) de vértices internos. Caso um vértice possa consumir a si mesmo como folha, inicializar \texttt{avail} antes de aplicar a capacidade local.}
-  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Maximizar o emparelhamento entre folhas de uma árvore enraizada e ancestrais com capacidade \texttt{cap[u]}.}
+  {Em pós-ordem, cada nó soma as folhas livres vindas dos filhos (ou $1$ se for folha), consome $\min(\text{avail}, \text{cap}[u])$ localmente e propaga o excedente ao pai.}
+  {Por argumento de troca, atender primeiro o ancestral mais baixo nunca prejudica ancestrais superiores: qualquer folha que sobe acima de $u$ alcança o mesmo conjunto de ancestrais acima de $u$.}
+  {Cobertura gulosa em árvores enraizadas, alocação de suprimentos gerados nas folhas para nós internos com demanda limitada.}
+  {Não confundir a raiz com folha quando $N > 1$ (a verificação \texttt{is\_leaf} baseada em filhos não-pai já trata $N = 1$ corretamente).}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 pair<ll, ll> greedy_leaf_ancestor_matching(int root, const vll& cap,
@@ -372,10 +426,12 @@ pair<ll, ll> greedy_leaf_ancestor_matching(int root, const vll& cap,
 
 \subsubsection{Distância Mínima e Contagem de Pares em Conjuntos Marcados}
 \algobox
-  {Dada uma árvore $T = (V, E)$ com pesos não-negativos e um subconjunto $S \subseteq V$ ($|S| \ge 2$), calcular a menor distância $d_{\min}$ entre dois vértices distintos de $S$ e o número de pares não ordenados $\{x, y\} \subseteq S$ que atingem $d_{\min}$.}
-  {Cada par $\{x, y\} \subseteq S$ possui um único $\text{LCA}(x, y) = u$. Na DP em pós-ordem, cada vértice $u$ mantém $(b_u, c_u)$: a menor distância de $u$ até um vértice marcado em sua subárvore e a multiplicidade de vértices marcados que atingem $b_u$. Ao fundir um filho $v$ (aresta de peso $w$) em $u$, o candidato $b_u + b_v + w$ atualiza $(d_{\min}, \text{pares})$ com multiplicidade $c_u \cdot c_v$; em seguida atualiza-se $(b_u, c_u)$ com $(b_v + w, c_v)$. Em árvores não-ponderadas, BFS multi-fonte a partir de $S$ com origem rastreada também encontra $d_{\min}$ em $\Ocomp{N}$ quando duas frentes de origens distintas se encontram.}
-  {Inicializar $(b_u, c_u) = (0, 1)$ se $u \in S$ e $(\infty, 0)$ caso contrário. Usar \texttt{long long} para distâncias e contagens de pares, pois o número de pares pode atingir $\binom{|S|}{2} \approx N^2 / 2$.}
-  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Calcular a menor distância $d_{\min}$ entre dois vértices distintos de $S \subseteq V$ em uma árvore ponderada e quantos pares a atingem.}
+  {A DFS retorna $(b_u, c_u)$: menor distância de $u$ até um nó de $S$ na subárvore e sua multiplicidade. Ao fundir o filho $v$ com peso $w$, testa-se $b_u + b_v + w$ com $c_u \cdot c_v$ pares antes de atualizar $(b_u, c_u)$.}
+  {Todo par $\{x, y\} \subseteq S$ tem um único $\text{LCA}(x, y) = u$, sendo contado exatamente uma vez quando a subárvore contendo $y$ é fundida às subárvores já processadas de $u$.}
+  {Menor distância entre vértices especiais em árvore, diâmetro/contagem de pares extremos via DP de subárvore.}
+  {Inicializar $(0, 1)$ se $u \in S$ e $(\infty, 0)$ caso contrário. Usar \texttt{ll} para contagens, pois o número de pares pode chegar a $\binom{|S|}{2}$.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 pll min_dist_and_pairs_marked(const vector<bool>& marked,
@@ -406,10 +462,12 @@ pll min_dist_and_pairs_marked(const vector<bool>& marked,
 
 \subsubsection{DSU com Rollback e Escalonamento Ótimo em Árvore (Smith/Sidney)}
 \algobox
-  {(1) DSU persistente por pilha (Rollback) para conectividade dinâmica offline; (2) Ordenação topológica ótima de uma árvore enraizada em $r$ (pai precede filho) maximizando $\sum_{i=1}^n i \cdot w_{p_i}$.}
-  {No Rollback DSU, omite-se a compressão de caminho e utiliza-se união por tamanho, mantendo altura $\Ocomp{\log N}$ e permitindo desfazer uniões em $\Ocomp{1}$ amortizado. No escalonamento em árvore (teorema de Smith/Sidney), o supernó $u \neq r$ de menor média $\text{sum}(u)/\text{sz}(u)$ deve ser agendado imediatamente após o bloco de seu pai $p = \text{find}(\text{par}[u])$. A fusão de $u$ em $p$ acumula $\text{sz}(p) \cdot \text{sum}(u)$ ao objetivo e combina os blocos via DSU e \texttt{priority\_queue}.}
-  {Usar \texttt{\_\_int128} na comparação de frações $\text{sum}_1 \cdot \text{sz}_2 > \text{sum}_2 \cdot \text{sz}_1$ para evitar overflow. Descartar entradas obsoletas na heap verificando \texttt{dsu[u] == u} e \texttt{sz\_node[u] == c}.}
-  {Rollback DSU: $\Ocomp{\log N}$/op $\mid$ Escalonamento: $\Ocomp{N \log N}$}
+  {Manter conectividade dinâmica com suporte a desfazer (\texttt{rollback}) as últimas uniões para um instante salvo.}
+  {Aplica-se união por tamanho sem compressão de caminho, empilhando o estado anterior de \texttt{e[a]} e \texttt{e[b]} a cada fusão para restauração exata em \texttt{rollback(t)}.}
+  {Sem compressão de caminho, cada união modifica exatamente duas posições de \texttt{e[]}, enquanto a união por tamanho limita a altura da árvore a $\lfloor \log_2 N \rfloor$.}
+  {Conectividade dinâmica offline via Segment Tree no tempo (Divide \& Conquer sobre queries), bipartição dinâmica com rollback.}
+  {Nunca comprimir caminhos em \texttt{find}, pois isso invalida o histórico da pilha e destrói o rollback.}
+  {$\Ocomp{\log N}$ por operação, $\Ocomp{N + Q}$ espaço}
 
 \begin{lstlisting}
 struct RollbackDSU {
@@ -432,7 +490,17 @@ struct RollbackDSU {
     return true;
   }
 };
+\end{lstlisting}
 
+\algobox
+  {Ordenar topologicamente uma árvore enraizada (pai antes de filho) maximizando $\sum_{i=1}^n i \cdot w_{p_i}$.}
+  {Pelo teorema de Smith/Sidney, extrai-se via heap o bloco $u \neq \text{root}$ de menor razão $\text{sum}(u)/\text{sz}(u)$, funde-se $u$ ao bloco de seu pai $p$ somando $\text{sz}(p) \cdot \text{sum}(u)$ à resposta e reinsere-se $p$.}
+  {O bloco de menor peso médio nunca quer ser adiado além do necessário; assim que seu pai termina, executá-lo imediatamente é ótimo por argumento de troca entre blocos adjacentes.}
+  {Escalonamento de tarefas com precedência em árvore (minimizar $\sum i \cdot w_i$ usa maior razão), coloração ótima de árvore (Color a Tree).}
+  {Usar \texttt{i128} no produto cruzado \texttt{s * o.c > o.s * c} para evitar overflow. Descartar entradas obsoletas checando \texttt{dsu[u] == u} e \texttt{sz\_node[u] == c}.}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 ll max_tree_schedule_profit(int n, int root, const vll& weight, const vector<vi>& adj) {
   vi par(n, -1);
   auto dfs = [&](auto& self, int u, int p) -> void {
@@ -472,10 +540,12 @@ ll max_tree_schedule_profit(int n, int root, const vll& weight, const vector<vi>
 
 \subsubsection{Binary Lifting (LCA / $k$-ésimo Ancestral) e Rerooting DP}
 \algobox
-  {(1) Consultas online de menor ancestral comum (LCA), $k$-ésimo ancestral e distância entre pares de vértices em árvores; (2) Cálculo de uma DP enraizada para todas as $N$ raízes possíveis em tempo linear sem exigir inverso algébrico.}
-  {No Binary Lifting, \texttt{up[j][u]} armazena o $2^j$-ésimo ancestral de $u$ e o par $(\texttt{tin}, \texttt{tout})$ decide ancestralidade em $\Ocomp{1}$. Na Rerooting DP sobre um monoide $(T, \oplus, e)$ com operador de aresta \texttt{lift(val, u, v)}, o primeiro passo calcula \texttt{down[u]} em pós-ordem; o segundo passo pré-calcula prefixos e sufixos das contribuições dos filhos de $u$ para propagar \texttt{up\_val[v]} em pré-ordem sem subtração ou divisão.}
-  {Em Binary Lifting, definir \texttt{up[0][root] = root} e checar \texttt{k >= dep[u]} caso consultas possam ultrapassar a raiz. Na Rerooting DP, garantir que \texttt{merge} seja associativo e comutativo com identidade \texttt{id}.}
-  {LCA: Build $\Ocomp{N \log N}$, Query $\Ocomp{\log N}$ $\mid$ Rerooting: $\Ocomp{N}$}
+  {Responder consultas online de LCA, $k$-ésimo ancestral e distância entre pares de vértices em árvore.}
+  {Pré-calcula-se \texttt{up[j][u]} (ancestral a distância $2^j$) e os tempos \texttt{tin}/\texttt{tout} da DFS; para \texttt{lca(u, v)}, sobe-se $u$ nos maiores saltos que ainda não são ancestrais de $v$.}
+  {A decomposição binária de qualquer salto $k$ usa no máximo $\lceil \log_2 N \rceil$ potências de 2, e \texttt{tin}/\texttt{tout} testa ancestralidade em $\Ocomp{1}$ via inclusão de intervalos.}
+  {Distância em árvore, consultas estáticas de máximo/soma em caminhos (mantendo tabela paralela de agregados), $k$-ésimo nó no caminho $(u, v)$.}
+  {Definir \texttt{up[0][root] = root} faz saltos além da raiz saturarem na própria raiz; verificar \texttt{k > dep[u]} se o problema exigir $-1$ fora da árvore.}
+  {Build $\Ocomp{N \log N}$, Query $\Ocomp{\log N}$, $\Ocomp{N \log N}$ espaço}
 
 \begin{lstlisting}
 struct BinaryLifting {
@@ -514,7 +584,17 @@ struct BinaryLifting {
   }
   int dist(int u, int v) const { return dep[u] + dep[v] - 2 * dep[lca(u, v)]; }
 };
+\end{lstlisting}
 
+\algobox
+  {Calcular uma DP de árvore enraizada para todas as $N$ escolhas de raiz em tempo linear, sem precisar de operação inversa.}
+  {Em \texttt{dfs1} calcula-se \texttt{down[u]} (agregado dos filhos); em \texttt{dfs2} montam-se prefixos e sufixos das contribuições dos filhos para enviar a cada filho $v$ o complemento \texttt{merge(up\_val, merge(pref[i], suff[i+1]))}.}
+  {Combinar prefixo e sufixo exclui exatamente a contribuição do filho $v$ usando apenas associatividade, permitindo operações sem inverso como $\max$, $\min$ ou produto módulo composto.}
+  {Excentricidade de cada vértice, soma de distâncias para todas as raízes, contagem de colorações ou emparelhamentos por raiz.}
+  {Garantir que \texttt{merge} forme um monoide com elemento neutro \texttt{id} e atenção à direção da aresta em \texttt{lift(val, pai, filho)}.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 template <class T, class Merge, class Lift>
 vector<T> rerooting_dp(int n, const vector<vi>& adj, T id, Merge merge, Lift lift) {
   vector<T> down(n, id), ans(n, id);
@@ -550,10 +630,12 @@ vector<T> rerooting_dp(int n, const vector<vi>& adj, T id, Merge merge, Lift lif
 
 \subsubsection{Centroid Decomposition (Decomposição por Centróides)}
 \algobox
-  {Decomposição hierárquica de árvores para consultas e atualizações de distância, contagem de caminhos com restrições de comprimento e manutenção dinâmica de vértices ativos.}
-  {Todo vértice $c$ cuja remoção particiona a componente atual de tamanho $S$ em subárvores de tamanho $\le S/2$ é um centróide. A árvore de centróides resultante tem altura $\le \lfloor \log_2 N \rfloor$ e todo caminho $(u, v)$ na árvore original passa pelo $\text{LCA}(u, v)$ na árvore de centróides. Armazenando para cada $u$ a lista \texttt{anc[u]} de pares $(c, \text{dist}(u, c))$ de seus ancestrais centróides, atualizações e consultas de distância iteram em $\Ocomp{\log N}$ sem recalcular LCA.}
-  {Sempre descontar contribuições de vértices na mesma subárvore do centróide quando a operação envolver contagem de pares (inclusão-exclusão por centróide filho). Em árvores ponderadas, usar \texttt{long long} nas distâncias de \texttt{anc[u]}.}
-  {Build: $\Ocomp{N \log N}$ $\mid$ Update/Query por vértice: $\Ocomp{\log N}$}
+  {Decompor uma árvore em hierarquia de altura $\Ocomp{\log N}$ para consultas de distância e contagem de caminhos.}
+  {Encontra-se recursivamente o centróide $c$ (cujas subárvores têm tamanho $\le S/2$), marca-se \texttt{dead[c] = 1}, registra-se $(c, \text{dist}(u, c))$ em \texttt{anc[u]} para toda a componente e recursa-se nos vizinhos ativos.}
+  {Como cada componente cai pelo menos pela metade, a árvore de centróides tem profundidade $\le \lfloor \log_2 N \rfloor$, e todo caminho $(u, v)$ na árvore original passa pelo $\text{LCA}(u, v)$ na árvore de centróides.}
+  {Vértice pintado mais próximo com updates online, contagem de pares de nós a distância $= K$ ou $\le K$ em árvore.}
+  {Em contagens aditivas de caminhos, descontar contribuições vindas da mesma subárvore do centróide filho (inclusão-exclusão). Em árvores ponderadas, usar \texttt{ll} nas distâncias de \texttt{anc[u]}.}
+  {Build $\Ocomp{N \log N}$, Query/Update $\Ocomp{\log N}$, $\Ocomp{N \log N}$ espaço}
 
 \begin{lstlisting}
 struct CentroidDecomposition {
@@ -592,10 +674,12 @@ struct CentroidDecomposition {
 
 \subsubsection{Heavy-Light Decomposition (HLD)}
 \algobox
-  {Decomposição de árvores em cadeias pesadas mapeadas para intervalos contíguos de uma estrutura de intervalo (Segment Tree / Fenwick), suportando operações em caminhos e subárvores.}
-  {Ao posicionar o filho de maior subárvore em \texttt{adj[u][0]} durante a primeira DFS, o percurso em pré-ordem atribui posições \texttt{pos[u]} contíguas tanto para cada cadeia pesada quanto para toda subárvore \texttt{[pos[u], pos[u] + sz\_sub[u] - 1]}. Qualquer caminho $(u, v)$ atravessa no máximo $\Ocomp{\log N}$ cadeias leves.}
-  {Quando os valores residem nas arestas, associa-se cada aresta $(p, u)$ ao filho $u$ e aciona-se \texttt{edges\_only = true}, excluindo o LCA no segmento final \texttt{[pos[u] + 1, pos[v]]}. Para operações não-comutativas em caminhos, distinguir os segmentos da subida de $u$ (ordem reversa) e de $v$ (ordem direta).}
-  {Build: $\Ocomp{N}$ $\mid$ Path Op: $\Ocomp{\log^2 N}$ $\mid$ Subtree Op: $\Ocomp{\log N}$}
+  {Reduzir consultas e atualizações em caminhos e subárvores de uma árvore a intervalos contíguos em Segment Tree ou BIT.}
+  {A primeira DFS coloca o filho de maior subárvore em \texttt{adj[u][0]}; a segunda numera em pré-ordem mantendo cada cadeia pesada e cada subárvore \texttt{[pos[u], pos[u] + sz\_sub[u] - 1]} contíguas.}
+  {Toda troca de cadeia pesada (aresta leve) dobra o tamanho mínimo da subárvore ao subir em direção à raiz, limitando qualquer caminho $(u, v)$ a no máximo $\Ocomp{\log N}$ segmentos.}
+  {Soma/máximo/atribuição em caminhos com updates online, operações simultâneas em caminho e subárvore, LCA em $\Ocomp{\log N}$ com baixa constante.}
+  {Com valores nas arestas, mapear cada aresta ao filho mais fundo e passar \texttt{edges\_only = true} (exclui o LCA). Para operações não-comutativas, separar os segmentos subindo de $u$ (reverso) dos de $v$ (direto).}
+  {Build $\Ocomp{N}$, Path $\Ocomp{\log^2 N}$, Subtree $\Ocomp{\log N}$, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 struct HLD {
@@ -642,10 +726,12 @@ struct HLD {
 
 \subsubsection{Isomorfismo de Árvores (Tree Hashing Canônico)}
 \algobox
-  {Teste probabilístico de isomorfismo entre árvores enraizadas ou livres (não-enraizadas) em tempo linear.}
-  {O hash canônico de uma subárvore enraizada em $u$ agrega os hashes dos filhos via função simétrica não-linear: $H(u) = 1 + \sum_{v} \text{splitmix64}(H(v) + s)$, onde $s$ é uma semente aleatória fixa por execução. Como toda árvore livre possui 1 ou 2 centróides (invariantes sob isomorfismo), o hash não-enraizado é obtido ordenando e combinando os hashes enraizados nos seus centróides.}
-  {Evitar combinações lineares sem embaralhamento não-linear entre níveis (vulneráveis a colisões determinísticas). Para garantia determinística sem risco de colisão, substituir o hash por compressão de tuplas ordenadas (algoritmo AHU) em $\Ocomp{N \log N}$.}
-  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Testar isomorfismo entre árvores enraizadas ou livres (não-enraizadas) em tempo linear.}
+  {O hash enraizado agrega filhos com $H(u) = 1 + \sum_v \text{splitmix64}(H(v) + s)$; para árvores livres, enraíza-se nos 1 ou 2 centróides e combinam-se seus hashes em ordem crescente.}
+  {A soma é invariante à ordem dos filhos, enquanto \texttt{splitmix64} com semente aleatória impede colisões estruturais entre níveis; os centróides são invariantes canônicos sob isomorfismo.}
+  {Igualdade de subárvores, simetria em árvores, contagem de árvores distintas em florestas.}
+  {Nunca combinar níveis com funções puramente lineares (como XOR simples), pois colidem facilmente. Para garantia determinística sem colisão, usar compressão de tuplas ordenadas (AHU) em $\Ocomp{N \log N}$.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 vi get_tree_centroids(int n, const vector<vi>& adj) {

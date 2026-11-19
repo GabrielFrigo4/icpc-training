@@ -10,10 +10,12 @@
 
 \subsubsection{Emparelhamento Planar em Borda de Retângulo via Pilha}
 \algobox
-  {Decidir se $N$ pares de pontos no retângulo $[0, W] \times [0, H]$ admitem conexão por curvas contínuas disjuntas no interior da região.}
-  {Pares com ao menos uma extremidade estritamente interna podem ser roteados livremente ao redor dos demais. A obstrução topológica restringe-se aos pares com ambas as extremidades na fronteira. Parametrizam-se os pontos de borda no perímetro 1D $t \in [0, 2(W+H))$ em sentido horário, ordenam-se por $t$ e verifica-se via pilha se os identificadores formam uma sequência bem-parentizada (ausência de intercalação $a \dots b \dots a \dots b$).}
-  {Descartar pares que não possuam ambas as extremidades na fronteira ($x \in \{0, W\}$ ou $y \in \{0, H\}$). Utilizar inteiros de 64 bits no perímetro para $W, H \le 10^9$.}
-  {Tempo: $\Ocomp{N \log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Decidir se $N$ pares de pontos em $[0, W] \times [0, H]$ podem ser ligados por curvas contínuas disjuntas no interior do retângulo.}
+  {Filtram-se os pares com ambas as extremidades na fronteira, parametriza-se cada ponto no perímetro 1D $[0, 2(W+H))$ em sentido horário, ordena-se e testa-se emparelhamento bem-parentizado com uma pilha.}
+  {Qualquer par com extremidade interna pode contornar outras curvas sem bloqueá-las; já pares borda--borda cortam o retângulo em duas regiões, impedindo cruzamento sse não houver intercalação $a \dots b \dots a \dots b$.}
+  {Roteamento planar sem cruzamentos em borda de polígono/círculo, teste de cruzamento de cordas em circunferência.}
+  {Descartar pares que não tenham ambas as pontas na fronteira ($x \in \{0, W\}$ ou $y \in \{0, H\}$). Usar \texttt{ll} na posição do perímetro para $W, H \le 10^9$.}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 bool can_join_border_pairs(ll W, ll H, const vector<tuple<ll, ll, ll, ll>>& pairs) {
@@ -46,10 +48,12 @@ bool can_join_border_pairs(ll W, ll H, const vector<tuple<ll, ll, ll, ll>>& pair
 
 \subsubsection{Pilha Monotônica (PGE / NGE) e Histograma 1D/2D}
 \algobox
-  {(1) Computar para cada índice $i$ o maior índice $L_i < i$ e o menor índice $R_i > i$ com elemento estritamente maior que $A_i$; (2) Determinar a maior área de retângulo e de quadrado sob um histograma 1D; (3) Determinar a maior submatriz quadrada uniforme em matriz binária/simbólica permitindo inversão arbitrária de linhas.}
-  {Mantém-se uma pilha estritamente decrescente de índices para PGE/NGE (ou crescente para histograma). Cada elemento entra e sai da pilha no máximo uma vez. Para submatrizes com inversão de linhas, a igualdade entre células adjacentes da mesma linha é invariante à inversão: um bloco $k \times k$ torna-se uniforme sse todos os pares horizontais adjacentes em suas $k$ linhas forem iguais, reduzindo o problema a DP 2D ou histograma.}
-  {Ajustar o operador de comparação (\texttt{<=} vs \texttt{<}) conforme o critério de desempate em elementos iguais (estritamente maior vs maior ou igual). Em histogramas, incluir sentinela de altura $0$ em $i = N$ para esvaziar a pilha.}
-  {Tempo: $\Ocomp{N}$ (1D) / $\Ocomp{NM}$ (2D) $\mid$ Espaço: $\Ocomp{N}$ / $\Ocomp{M}$}
+  {Calcular, para cada índice $i$, o vizinho mais próximo à esquerda $L_i$ e à direita $R_i$ com valor estritamente maior que $A_i$.}
+  {Mantém-se uma pilha estritamente decrescente de índices em duas varreduras: desempilha-se enquanto \texttt{a[st.back()] <= a[i]}; o topo restante é a resposta.}
+  {Qualquer elemento $\le A_i$ atrás de $i$ jamais será o próximo maior para índices posteriores, pois $A_i$ está mais próximo e é pelo menos tão grande; cada índice entra e sai da pilha uma única vez.}
+  {Soma de máximos/mínimos de todos os subarrays (técnica de contribuição), construção de Árvore Cartesiana em $\Ocomp{N}$.}
+  {Em contribuições com empates, usar \texttt{<=} de um lado e \texttt{<} do outro para não contar o mesmo subarray duas vezes.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 pair<vi, vi> prev_next_greater(const vi& a) {
@@ -68,7 +72,17 @@ pair<vi, vi> prev_next_greater(const vi& a) {
   }
   return {L, R};
 }
+\end{lstlisting}
 
+\algobox
+  {Encontrar a maior área de retângulo e de quadrado contidos sob um histograma 1D de alturas $h_0, \dots, h_{N-1}$.}
+  {Mantém-se uma pilha crescente de índices; ao encontrar $h_i \le h_{\text{topo}}$, desempilha-se a barra de altura $H$, cuja largura máxima é $W = i - \text{st.back()} - 1$ (ou $i$ se vazia), atualizando $H \cdot W$ e $\min(H, W)$.}
+  {A altura ótima de todo retângulo maximal coincide com alguma barra $H$; o instante do desempilhamento delimita exatamente a primeira barra menor à esquerda e à direita.}
+  {Maior submatriz de $1$s em matriz binária (aplicando o histograma linha a linha com alturas acumuladas).}
+  {Incluir barra sentinela de altura $0$ em $i = N$ para descarregar a pilha no final. Usar \texttt{ll} em \texttt{H * W}.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 pll max_histogram_rect_and_square(const vi& h) {
   int n = sz(h);
   vi st;
@@ -86,7 +100,17 @@ pll max_histogram_rect_and_square(const vi& h) {
   }
   return {max_rect, max_sq_side * max_sq_side};
 }
+\end{lstlisting}
 
+\algobox
+  {Encontrar a maior submatriz quadrada uniforme em uma matriz binária/simbólica permitindo inverter linhas arbitrárias.}
+  {Em DP 2D com rolagem de linha, um quadrado terminando em $(r, c)$ cresce para $1 + \min(\text{cima}, \text{diag}, \text{esq})$ sse \texttt{grid[r][c] == grid[r][c-1]} e \texttt{grid[r-1][c] == grid[r-1][c-1]}.}
+  {Inverter uma linha preserva a igualdade entre células adjacentes dentro dela; assim um bloco $k \times k$ torna-se uniforme sse cada linha do bloco já for internamente constante.}
+  {Maior submatriz uniforme com operações de flip em linhas (ou colunas, transpondo), invariantes locais em grids.}
+  {Funciona para matrizes binárias onde flipar alinha qualquer linha constante ao mesmo símbolo; retornar \texttt{1LL * max\_side * max\_side} para área.}
+  {$\Ocomp{NM}$ tempo, $\Ocomp{M}$ espaço}
+
+\begin{lstlisting}
 ll max_square_with_row_flips(const vector<string>& grid) {
   int n = sz(grid), m = sz(grid[0]);
   vi dp(m, 1), ndp(m, 1);
@@ -113,10 +137,12 @@ ll max_square_with_row_flips(const vector<string>& grid) {
 
 \subsubsection{Hashing de Soma Nula 128-bit (Subarrays Balanceados)}
 \algobox
-  {Encontrar o maior subarray contíguo no qual todos os $K$ símbolos ($1 \dots K$) ocorrem com a mesma multiplicidade.}
-  {Atribui-se a cada símbolo $c \in [1, K-1]$ um peso aleatório $W_c \in [0, 2^{64})$ e define-se $W_K \equiv -\sum_{c=1}^{K-1} W_c \pmod{2^{64}}$, impondo $\sum_{c=1}^K W_c \equiv 0 \pmod{2^{64}}$. Um subarray com $m$ cópias de cada símbolo possui soma de pesos nula módulo $2^{64}$, equivalendo à igualdade de prefixos $\text{pref}[R] = \text{pref}[L]$. Empregam-se duas sementes independentes em \texttt{pair<ull, ull>} para reduzir a probabilidade de colisão a $\le N / 2^{128}$.}
-  {Armazenar exclusivamente a primeira ocorrência de cada hash de prefixo em tabela hash com \texttt{CustomHash}. A mesma técnica com XOR (Zobrist) verifica igualdade de paridades ou de conjuntos.}
-  {Tempo: $\Ocomp{N + K}$ $\mid$ Espaço: $\Ocomp{N + K}$}
+  {Encontrar o maior subarray contíguo onde todos os $K$ símbolos ($1 \dots K$) ocorrem com a mesma frequência.}
+  {Atribuem-se pesos aleatórios $W_c \in [0, 2^{64})$ para $c \in [1, K-1]$ e $W_K \equiv -\sum_{c=1}^{K-1} W_c \pmod{2^{64}}$ em dois canais independentes; subarrays balanceados têm soma nula, logo prefixos iguais.}
+  {Como $\sum_{c=1}^K W_c \equiv 0$, qualquer múltiplo de um bloco balanceado cancela exatamente na soma modular, enquanto desequilíbrios têm probabilidade $\le 2^{-128}$ de colidir.}
+  {Subarray mais longo com frequências iguais de $K$ cores, igualdade de multiconjuntos (soma aleatória), paridade de frequências (Zobrist XOR).}
+  {Guardar apenas a primeira ocorrência de cada prefixo (\texttt{try\_emplace}) e usar \texttt{CustomHash} para evitar colisões adversariais na \texttt{unordered\_map}.}
+  {$\Ocomp{N + K}$ tempo, $\Ocomp{N + K}$ espaço}
 
 \begin{lstlisting}
 int max_balanced_k_subarray(const vi& a, int k) {
@@ -148,10 +174,12 @@ int max_balanced_k_subarray(const vi& a, int k) {
 
 \subsubsection{Fenwick Tree (BIT 1D com Binary Lifting, Range-Range e 2D)}
 \algobox
-  {(1) Atualização pontual, soma de prefixo e busca \texttt{lower\_bound} em $\Ocomp{\log N}$; (2) Adição e soma em intervalo via duas BITs; (3) Soma em submatriz 2D em $\Ocomp{\log N \log M}$.}
-  {O método \texttt{lower\_bound(k)} percorre potências decrescentes $2^{\lfloor \log_2 N \rfloor} \dots 2^0$: o nó \texttt{bit[pos + pw]} armazena exatamente a soma do bloco $(\text{pos}, \text{pos} + \text{pw}]$. Na variante Range-Range, expressa-se $\sum_{i=0}^{r} a_i = r \sum_{i=0}^{r} d_i - \sum_{i=0}^{r} (i - 1) d_i$.}
-  {A árvore interna é 1-indexada com interface pública 0-indexada (\texttt{0..n-1}). \texttt{lower\_bound(k)} exige todos os pesos não-negativos e $k \ge 1$; retorna $n$ caso a soma total seja menor que $k$.}
-  {Update / Query / Lower Bound: $\Ocomp{\log N}$ (1D) / $\Ocomp{\log N \log M}$ (2D) $\mid$ Espaço: $\Ocomp{N}$ / $\Ocomp{NM}$}
+  {Atualização pontual, soma de prefixo/intervalo e busca \texttt{lower\_bound(k)} (menor índice com prefixo $\ge k$) em 1D.}
+  {Cada nó \texttt{bit[i]} (1-indexado) agrega o bloco $(i - \text{lsb}(i), i]$. Em \texttt{lower\_bound(k)}, desce-se nas potências de 2 somando \texttt{pw} sempre que \texttt{bit[pos + pw] < k}.}
+  {A decomposição por bit menos significativo (\texttt{i \& -i}) particiona qualquer prefixo em $\le \log_2 N$ blocos disjuntos, e o binary lifting evita uma busca binária externa $\Ocomp{\log^2 N}$.}
+  {Order Statistic Tree sobre domínio comprimido, contagem de inversões, soma dinâmica com constante mínima.}
+  {Interface 0-indexada (\texttt{0..n-1}). \texttt{lower\_bound(k)} exige pesos não-negativos e $k \ge 1$; retorna $n$ se a soma total for $< k$.}
+  {$\Ocomp{\log N}$ por operação, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 template <class T = ll>
@@ -182,7 +210,17 @@ struct Fenwick {
     return pos;
   }
 };
+\end{lstlisting}
 
+\algobox
+  {Adição em intervalo $[l, r]$ e consulta de soma em intervalo $[l, r]$ usando apenas duas Fenwick Trees.}
+  {Mantém-se o vetor de diferenças $d_i$ em $B_1$ e $(i - 1) d_i$ em $B_2$; a soma de prefixo satisfaz $\sum_{i=0}^{r} a_i = r \sum_{i=0}^{r} d_i - \sum_{i=0}^{r} (i - 1) d_i$.}
+  {Expandir a soma dupla $\sum_{i=0}^{r} \sum_{j=0}^{i} d_j = \sum_{j=0}^{r} (r - j + 1) d_j$ separa os termos lineares em $r$ e constantes em $j$, permitindo duas BITs em vez de Lazy SegTree.}
+  {Range Add + Range Sum com baixo uso de memória e constante 4--5$\times$ menor que Segment Tree com Lazy.}
+  {Índices 0-indexados em \texttt{0..n-1}; \texttt{r + 1 == n} é seguro pois o laço de \texttt{Fenwick::add} checa \texttt{i <= n}.}
+  {$\Ocomp{\log N}$ por operação, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 struct RangeFenwick {
   Fenwick<ll> B1, B2;
   RangeFenwick(int n) : B1(n), B2(n) {}
@@ -193,7 +231,17 @@ struct RangeFenwick {
   ll prefix_sum(int idx) const { return B1.query(idx) * idx - B2.query(idx); }
   ll range_sum(int l, int r) const { return l > r ? 0 : prefix_sum(r) - prefix_sum(l - 1); }
 };
+\end{lstlisting}
 
+\algobox
+  {Atualização pontual e soma em submatriz retangular $[r_1..r_2] \times [c_1..c_2]$ em grade $N \times M$.}
+  {Aninham-se dois laços de Fenwick (linhas e colunas) e calcula-se a soma retangular por inclusão-exclusão dos quatro prefixos 2D.}
+  {Como a soma 2D é separável por dimensão, cada eixo se decompõe independentemente em $\Ocomp{\log}$ blocos de Fenwick.}
+  {Contagem dinâmica de pontos em retângulos, somas em matrizes densas $N, M \le 2000$.}
+  {Exige $\Ocomp{NM}$ memória; para coordenadas grandes e esparsas, usar BIT 2D offline com compressão por nó ou CDQ.}
+  {$\Ocomp{\log N \log M}$ por operação, $\Ocomp{NM}$ espaço}
+
+\begin{lstlisting}
 template <class T = ll>
 struct Fenwick2D {
   int n, m;
@@ -217,10 +265,12 @@ struct Fenwick2D {
 
 \subsubsection{Contagem Ponderada de Inversões via BIT}
 \algobox
-  {Computar $\sum_{0 \le i < j < N,\, a_i > a_j} w_i w_j$ ou somas lineares $\sum_{i < j,\, a_i > a_j} (w_i + w_j)$ em arrays arbitrários.}
-  {Comprimem-se as coordenadas de $a$ para $[0, M-1]$. Varrendo $j$ da esquerda para a direita, a soma dos pesos de elementos já inseridos com $a_i > a_j$ é $S_>(a_j) = W_{\text{tot}} - \text{bit.query}(\text{rk}(a_j))$, contribuindo com $w_j \cdot S_>(a_j)$ ao produto ponderado. Para somas aditivas $\sum (w_i + w_j)$, mantêm-se duas BITs: uma de contagens $C_>(a_j)$ e outra de pesos $S_>(a_j)$, somando $S_>(a_j) + w_j \cdot C_>(a_j)$.}
-  {Em produtos $w_i w_j$ com pesos grandes, acumular em \texttt{i128} ou reduzir módulo $M$ para evitar overflow de 64 bits. Para contagem clássica de inversões, definir $w_i = 1$.}
-  {Tempo: $\Ocomp{N \log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Computar $\sum_{i < j,\, a_i > a_j} w_i w_j$ e $\sum_{i < j,\, a_i > a_j} (w_i + w_j)$ sobre arrays arbitrários.}
+  {Comprime-se $a$ para $[0, M-1]$ e varre-se $j$ da esquerda para a direita: duas BITs fornecem a contagem $C_>$ e a soma de pesos $S_>$ dos elementos já inseridos com $a_i > a_j$, somando $w_j S_>$ e $S_> + w_j C_>$.}
+  {Fixando a extremidade direita $j$, todos os $i < j$ já estão na BIT; fatorar $w_j$ transforma a soma quadrática sobre pares em duas consultas de sufixo em $\Ocomp{\log N}$.}
+  {Contagem clássica de inversões ($w_i = 1$), custo de trocas adjacentes ponderadas, soma de distâncias entre pares invertidos.}
+  {Produtos $w_i w_j$ estouram \texttt{ll} facilmente; manter o acumulador em \texttt{i128} ou aplicar módulo em cada passo.}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 pair<i128, i128> weighted_inversions(const vll& a, const vll& w) {
@@ -250,10 +300,12 @@ pair<i128, i128> weighted_inversions(const vll& a, const vll& w) {
 
 \subsubsection{Sweep-Line Offline e $K$-ésimo Menor em Dois Conjuntos via BIT}
 \algobox
-  {(1) Responder consultas offline $(X_q, K_q)$ pedindo o $K_q$-ésimo menor $y_i$ dentre elementos com $x_i \le X_q$; (2) Dado um conjunto dinâmico $A = \{(x_i, y_i)\}$ ativado por $x_i \le X_q$ e um conjunto estático ordenado $B$, determinar o menor limiar $t$ tal que $|\{i \in A : x_i \le X_q \land y_i \le t\}| + |\{b \in B : b + \Delta_q \le t\}| \ge K_q$.}
-  {Ordenam-se os elementos de $A$ por $x_i$ e as consultas por $X_q$, inserindo progressivamente as posições comprimidas de $y_i$ em uma BIT. No caso de um conjunto, \texttt{bit.lower\_bound(K\_q)} obtém o $K_q$-ésimo elemento em $\Ocomp{\log N}$. Na presença do segundo conjunto $B$ sob deslocamento linear $\Delta_q$, executa-se busca binária no domínio de $t$, somando a contagem na BIT (até \texttt{upper\_bound} em $A$) com a contagem via \texttt{upper\_bound} em $B$ em $\Ocomp{\log N \log V}$.}
-  {Garantir que o domínio $[t_{\min}, t_{\max}]$ da busca binária contenha todas as respostas possíveis e evitar overflow em $t - \Delta_q$. Retornar sentinela quando a quantidade total de elementos elegíveis for inferior a $K_q$.}
-  {1 Conjunto: $\Ocomp{(N+Q)\log N}$ $\mid$ 2 Conjuntos: $\Ocomp{(N+Q)\log N \log V}$ $\mid$ Espaço: $\Ocomp{N + Q}$}
+  {Responder consultas offline $(X_q, K_q)$ pedindo o $K_q$-ésimo menor $y_i$ dentre os itens com $x_i \le X_q$.}
+  {Ordenam-se itens por $x_i$ e consultas por $X_q$, inserindo na BIT o posto comprimido de $y_i$ conforme $x_i \le X_q$ e consultando \texttt{vals[bit.lower\_bound(q.k)]}.}
+  {Varrer em ordem crescente de $x$ elimina uma dimensão (torna a restrição $x_i \le X_q$ sempre satisfeita pelos elementos já inseridos), restando apenas estatística de ordem 1D.}
+  {Consultas offline 2D com limiar em uma coordenada e $k$-ésimo elemento na outra, ativação progressiva de eventos.}
+  {Verificar \texttt{q.k >= 1 \&\& ptr >= q.k} antes de chamar \texttt{lower\_bound}; retorna \texttt{LLONG\_MAX} se houver menos de $K_q$ itens elegíveis.}
+  {$\Ocomp{(N + Q) \log N}$ tempo, $\Ocomp{N + Q}$ espaço}
 
 \begin{lstlisting}
 struct SweepItem { ll x, y; };
@@ -282,7 +334,17 @@ vll sweep_kth_offline(vector<SweepItem> items, vector<SweepQuery> qs) {
   }
   return ans;
 }
+\end{lstlisting}
 
+\algobox
+  {Encontrar o menor limiar $t$ com ao menos $K_q$ elementos $\le t$ na união do conjunto dinâmico $A$ ($x_i \le X_q$) e de um conjunto estático $B$ deslocado por $\Delta_q$.}
+  {Mantém-se $A$ na BIT via sweep-line em $x_i \le X_q$ e executa-se busca binária em $t \in [\text{lo\_dom}, \text{hi\_dom}]$, somando a contagem $\le t$ na BIT com \texttt{upper\_bound} em $B$ para $t - \Delta_q$.}
+  {A função de contagem acumulada $f(t) = |A_{\le t}| + |B_{\le t - \Delta_q}|$ é monotônica crescente em $t$, permitindo busca binária sobre a união sem precisar mesclar os dois conjuntos.}
+  {Mediana ou $K$-ésimo menor da união de dois conjuntos com deslocamento por consulta, problemas de limiar combinado.}
+  {Garantir que $[\text{lo\_dom}, \text{hi\_dom}]$ contenha todas as respostas e que \texttt{mid - q.offset} não cause overflow em \texttt{ll}.}
+  {$\Ocomp{(N + Q) \log N \log V}$ tempo, $\Ocomp{N + Q}$ espaço}
+
+\begin{lstlisting}
 vll sweep_kth_two_sets(vector<SweepItem> items, vll B, vector<SweepQuery> qs,
                        ll lo_dom, ll hi_dom) {
   sort(all(B));
@@ -327,10 +389,12 @@ vll sweep_kth_two_sets(vector<SweepItem> items, vll B, vector<SweepQuery> qs,
 
 \subsubsection{Segment Tree com Walk ($\Ocomp{\log N}$)}
 \algobox
-  {Atualização pontual, máximo em intervalo e busca do primeiro ou último índice em $[ql, qr]$ cujo valor supera estritamente um limiar \texttt{val}, sem busca binária externa.}
-  {Durante a descida recursiva, subárvores cujo máximo é $\le \text{val}$ são podadas em $\Ocomp{1}$. Como cada nível visita no máximo dois nós parcialmente sobrepostos e desce em apenas um ramo contendo a resposta, o tempo total permanece $\Ocomp{\log N}$.}
-  {Adaptar o retorno sentinela (\texttt{INT\_MIN} / \texttt{-1}) caso o array contenha valores negativos.}
-  {Build: $\Ocomp{N}$ $\mid$ Update / Query / Walk: $\Ocomp{\log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Atualização pontual, máximo em intervalo e busca do primeiro ou último índice em $[ql, qr]$ com valor estritamente maior que \texttt{val}.}
+  {Na descida recursiva, poda-se imediatamente qualquer nó com \texttt{tree[p] <= val}; em \texttt{find\_first}, testa-se o filho esquerdo primeiro e só se entra no direito se o esquerdo retornar $-1$.}
+  {No máximo $\Ocomp{\log N}$ nós cobrem $[ql, qr]$, e a descida até a folha ocorre em apenas um único nó (o primeiro/último com máximo $> \text{val}$), eliminando o fator extra de uma busca binária.}
+  {Primeiro elemento $\ge X$ à direita/esquerda, alocação de primeira vaga livre (Hotel Queries), busca de próximo evento.}
+  {Retorna $-1$ quando não existe índice válido; ajustar \texttt{INT\_MIN} se o tipo mudar para \texttt{ll} ou usar \texttt{< val} para busca ``maior ou igual''.}
+  {Build $\Ocomp{N}$, Update/Query/Walk $\Ocomp{\log N}$, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 struct SegTreeMaxWalk {
@@ -378,10 +442,12 @@ struct SegTreeMaxWalk {
 
 \subsubsection{Segment Tree com Lazy Propagation (Add/Min e Assign/Sum)}
 \algobox
-  {(1) Adição em intervalo e consulta de mínimo em intervalo (aplicável também à conjugação de Ferrers $\min_{k \ge 0}(k + |\{i : c_i > k\}|)$ mantendo $f(k) = k$ inicial e somando $\pm 1$ em $[0, c_i - 1]$); (2) Atribuição em intervalo e consulta de soma em intervalo.}
-  {Tags pendentes acumulam operações nos nós internos e são propagadas aos filhos via \texttt{push} antes de qualquer descida. Na variante de atribuição, uma flag booleana \texttt{has\_lz} desambigua a atribuição do valor $0$ da ausência de tag.}
-  {Em \texttt{LazySegTreeAddMin}, utilizar \texttt{LLONG\_MAX / 4} como elemento neutro do mínimo para evitar overflow ao somar tags negativas. Sempre invocar \texttt{push} antes de descer aos filhos.}
-  {Build: $\Ocomp{N}$ $\mid$ Update / Query: $\Ocomp{\log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Adição de constante $v$ em intervalo $[ql, qr]$ e consulta de mínimo em intervalo $[ql, qr]$.}
+  {Cada nó guarda o mínimo \texttt{mn[p]} e a soma pendente \texttt{lz[p]}; adicionar $v$ desloca o mínimo em $+v$, e \texttt{push(p)} propaga \texttt{lz[p]} aos filhos antes de qualquer descida.}
+  {Como $\min(a_i + v) = \min(a_i) + v$, atualizações em nós completamente cobertos podem ser adiadas sem percorrer a subárvore, mantendo $\Ocomp{\log N}$ nós visitados por operação.}
+  {Checagem de prefixo sempre $\ge 0$ (parênteses dinâmicos), conjugação de Ferrers ($\min_{k \ge 0}(k + |\{i : c_i > k\}|)$), DP 1D otimizada por SegTree.}
+  {Usar \texttt{LLONG\_MAX / 4} como neutro do mínimo para não dar overflow ao somar tags negativas. Nunca esquecer \texttt{push(p)} antes de recursar.}
+  {Build $\Ocomp{N}$, Update/Query $\Ocomp{\log N}$, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 struct LazySegTreeAddMin {
@@ -422,7 +488,17 @@ struct LazySegTreeAddMin {
     return min(query_min(p << 1, l, m, ql, qr), query_min(p << 1 | 1, m + 1, r, ql, qr));
   }
 };
+\end{lstlisting}
 
+\algobox
+  {Atribuição de constante $v$ em intervalo $[ql, qr]$ e consulta de soma em intervalo $[ql, qr]$.}
+  {Atribuir $v$ a $[l, r]$ define \texttt{sum[p] = v * (r - l + 1)}, \texttt{lz[p] = v} e \texttt{has\_lz[p] = 1}; \texttt{push} sobreescreve os filhos e limpa a flag.}
+  {Uma atribuição sobrepõe completamente qualquer histórico anterior do intervalo, logo basta guardar o valor mais recente e multiplicar pelo tamanho do nó.}
+  {Pintura de intervalos com contagem de soma, reset de segmentos para zero, cobertura dinâmica de faixa.}
+  {Usar a flag separada \texttt{has\_lz} para distinguir atribuição do valor $0$ de ausência de tag pendente.}
+  {Build $\Ocomp{N}$, Update/Query $\Ocomp{\log N}$, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 struct LazySegTreeAssignSum {
   int n;
   vll sum, lz;
@@ -472,10 +548,12 @@ struct LazySegTreeAssignSum {
 
 \subsubsection{Segment Tree de Composição de Funções de Clamping}
 \algobox
-  {Dado um array $A_0, \dots, A_{N-1}$ e limites $[L, U]$, responder consultas $(B, E, X)$ aplicando sequencialmente $x \gets \min(U, \max(L, x + A_j))$ para $j = B \dots E$, com suporte a atualização pontual.}
-  {A família de funções $f(x) = \min(h, \max(l, x + d))$ com $l \le h$ é fechada sob composição. Para $f_1 = (d_1, l_1, h_1)$ seguida de $f_2 = (d_2, l_2, h_2)$, a composta $g(x) = f_2(f_1(x))$ possui parâmetros $d = d_1 + d_2$, $l = \min(h_2, \max(l_2, l_1 + d_2))$ e $h = \min(h_2, \max(l_2, h_1 + d_2))$. A operação associativa permite combinação em $\Ocomp{1}$ numa Segment Tree sem lazy propagation.}
-  {A composição não é comutativa: combinar rigorosamente o filho esquerdo como primeiro operando e o filho direito como segundo. Evitar overflow na soma de deslocamentos $d_1 + d_2$ quando $|A_j| \le 10^9$ e $N \le 10^6$.}
-  {Build: $\Ocomp{N}$ $\mid$ Update / Query: $\Ocomp{\log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Responder consultas $(B, E, X)$ aplicando $x \gets \min(U, \max(L, x + A_j))$ para $j = B \dots E$, com atualização pontual em $A_j$.}
+  {Cada nó guarda $f(x) = \min(h, \max(l, x + d))$. Compondo $f_1$ seguida de $f_2$, obtém-se $d = d_1 + d_2$, $l = \min(h_2, \max(l_2, l_1 + d_2))$ e $h = \min(h_2, \max(l_2, h_1 + d_2))$.}
+  {A família de funções de saturação é fechada e associativa sob composição, permitindo pré-compor blocos na Segment Tree sem lazy propagation.}
+  {Simulação de bateria/tanque com capacidade $[L, U]$, composição de transformações por partes lineares com corte (\emph{clamp}) em subintervalos.}
+  {A composição não é comutativa: passar sempre filho esquerdo antes do direito. Cuidado com overflow em \texttt{f1.d + f2.d} se $|A_j| \cdot N > 9 \cdot 10^{18}$.}
+  {Build $\Ocomp{N}$, Update/Query $\Ocomp{\log N}$, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 struct ClampFunc {
@@ -528,10 +606,12 @@ struct ClampSegTree {
 
 \subsubsection{Segment Tree Dinâmica (Esparsa) e Segment Tree Persistente}
 \algobox
-  {(1) Segment Tree Esparsa para domínio extenso $[L_{\text{dom}}, R_{\text{dom}}]$ ($R_{\text{dom}} - L_{\text{dom}} \le 10^{18}$) sem compressão offline; (2) Segment Tree Persistente para consultas em versões históricas e $K$-ésimo menor em subintervalos $[L, R]$.}
-  {Ambas alocam nós sob demanda em um \texttt{vector<Node>} contínuo, criando no máximo $\Ocomp{\log C}$ nós por atualização. Na versão persistente, cada atualização copia o caminho da raiz até a folha alterada, preservando todas as versões anteriores; o $K$-ésimo menor em $[L, R]$ desce simultaneamente nas raízes \texttt{uL} e \texttt{uR}.}
-  {Pré-alocar o pool com \texttt{reserve} e nunca atribuir o retorno da recursão diretamente a \texttt{t[u].l} ou \texttt{t[u].r} na mesma expressão, evitando referências inválidas em caso de realocação. Usar \texttt{l + (r - l) / 2} no ponto médio para suportar coordenadas negativas.}
-  {Update / Query / $K$-th: $\Ocomp{\log C}$ $\mid$ Espaço: $\Ocomp{Q \log C}$}
+  {Manter atualizações pontuais e somas em intervalo sobre um domínio grande $[L_{\text{dom}}, R_{\text{dom}}]$ (até $10^{18}$) online, sem compressão de coordenadas.}
+  {Alocam-se nós sob demanda no pool \texttt{vector<Node> t}: cada atualização cria apenas os $\Ocomp{\log C}$ nós do caminho até \texttt{idx}, tratando nós inexistentes (\texttt{u == 0}) como soma zero.}
+  {Mesmo em um domínio de $10^{18}$, $Q$ operações tocam no máximo $Q \log_2 C$ nós distintos; o restante da árvore permanece implícito sem gastar memória.}
+  {Consultas online com coordenadas grandes ou negativas, Segment Tree interna de estruturas 2D (BIT de SegTree Esparsa).}
+  {Nunca escrever \texttt{t[u].l = update(...)} diretamente, pois \texttt{t.pb()} pode realocar o vetor e invalidar a referência à esquerda; usar \texttt{l + (r - l) / 2} para suportar coordenadas negativas.}
+  {Update/Query $\Ocomp{\log C}$, $\Ocomp{Q \log C}$ espaço}
 
 \begin{lstlisting}
 struct SparseSegTree {
@@ -563,7 +643,17 @@ struct SparseSegTree {
   }
   ll query(ll ql, ll qr) const { return query(1, L_dom, R_dom, ql, qr); }
 };
+\end{lstlisting}
 
+\algobox
+  {Consultar versões históricas de um array e responder $K$-ésimo menor em subintervalos $[L, R]$ online.}
+  {Cada \texttt{update} duplica apenas o caminho da raiz à folha ($\Ocomp{\log N}$ nós novos), reutilizando os filhos inalterados de \texttt{prev\_root}. O método \texttt{kth(uL, uR, ...)} desce simultaneamente em duas versões usando a diferença de contagens à esquerda.}
+  {Como a soma de frequências é linear, subtrair a árvore do prefixo $L-1$ da árvore do prefixo $R$ produz instantaneamente a árvore de frequências do subarray $[L, R]$.}
+  {$K$-ésimo menor em subarray $[L, R]$ (MKTHNUM), contagem de distintos em $[L, R]$ online, consultas em caminhos de árvore via versões por ancestral.}
+  {Pré-alocar \texttt{t} com \texttt{reserve} e atribuir o filho em variável temporária antes de escrever em \texttt{t[u].l}/\texttt{t[u].r}. Em \texttt{kth}, garantir $1 \le k \le \text{total em } [L, R]$.}
+  {Update/Query/$K$-th $\Ocomp{\log N}$, $\Ocomp{Q \log N}$ espaço}
+
+\begin{lstlisting}
 struct PersistentSegTree {
   struct Node { int l = 0, r = 0; ll sum = 0; };
   int n;
@@ -614,10 +704,12 @@ struct PersistentSegTree {
 
 \subsubsection{Sqrt Decomposition por Buffer de Atualizações em DAG}
 \algobox
-  {Processar atualizações pontuais no peso base $B_u$ e consultas de agregação $T(u) = B_u + \sum_{(u,v) \in E} c_{uv} T(v) \pmod{M}$ em um DAG de $N$ vértices e $M$ arestas sob $Q$ operações.}
-  {Seja $W(u, x)$ o número de caminhos ponderados de $u$ até $x$ no DAG, pré-calculado em ordem topológica reversa em $\Ocomp{N(N+M)}$. Um incremento $\Delta_x$ em $B_x$ altera $T(u)$ em $\Delta_x \cdot W(u, x)$. Acumulam-se atualizações em um buffer de tamanho máximo $K \approx \sqrt{N + M}$: cada consulta soma o cache $T[u]$ às contribuições dos vértices presentes no buffer em $\Ocomp{K}$; ao atingir $K$, descarrega-se o buffer recalculando $T$ em $\Ocomp{N + M}$.}
-  {A matriz linearizada $W$ requer $\Ocomp{N^2}$ inteiros de 32 bits; quando $N$ exceder o orçamento de memória para $N^2$, substituir o cache global $W$ por reconstrução offline em blocos de $K$ operações sobre o subconjunto de vértices tocados.}
-  {Pré-cálculo: $\Ocomp{N(N+M)}$ $\mid$ Operações: $\Ocomp{Q\sqrt{N+M}}$ $\mid$ Espaço: $\Ocomp{N^2}$}
+  {Processar updates no valor base $B_u$ e queries de $T(u) = B_u + \sum_{(u,v)\in E} c_{uv} T(v) \pmod M$ em um DAG.}
+  {Pré-calcula-se a matriz $W(u, x)$ de caminhos ponderados de $u$ até $x$ em ordem topológica reversa. Updates vão para um buffer \texttt{dirty} de limite $K \approx \sqrt{N+M}$; queries somam $T[u] + \sum_{x \in \text{dirty}} \text{pending}[x] \cdot W(u, x)$, e ao lotar o buffer recalcula-se $T$ do zero.}
+  {Pela linearidade de $T$ em relação a $B$, acumular até $K$ alterações equilibra o custo da consulta $\Ocomp{K}$ com a reconstrução global $\Ocomp{(N+M)/K}$ amortizado por operação.}
+  {Propagação linear dinâmica em DAGs ou árvores densas, técnica geral de reconstrução periódica (\emph{batching} por $\sqrt{Q}$).}
+  {A matriz $W$ usa $\Ocomp{N^2}$ inteiros (4 bytes cada); se $N$ for grande demais para $N^2$, calcular contribuições em blocos offline apenas sobre os vértices tocados.}
+  {Build $\Ocomp{N(N + M)}$, Ops $\Ocomp{Q\sqrt{N + M}}$, $\Ocomp{N^2}$ espaço}
 
 \begin{lstlisting}
 struct DagSqrtBuffer {
@@ -692,10 +784,12 @@ struct DagSqrtBuffer {
 
 \subsubsection{Algoritmo de Mo (Consultas de Intervalo Offline)}
 \algobox
-  {Responder $Q$ consultas offline em intervalos $[L, R]$ quando inserção e remoção de um elemento nas extremidades custam $\Ocomp{1}$.}
-  {Ordenam-se as consultas pelo bloco $\lfloor L / B \rfloor$ com $B = \max(1, \lfloor N / \sqrt{Q} \rfloor)$, alternando a ordenação de $R$ (crescente em blocos pares, decrescente em ímpares) para reduzir o deslocamento amortizado do ponteiro direito.}
-  {Expandir sempre os ponteiros (\texttt{add}) antes de contraí-los (\texttt{rem}) para impedir que o intervalo ativo passe por estados inválidos $L > R$.}
-  {Tempo: $\Ocomp{N\sqrt{Q} + Q \log Q}$ $\mid$ Espaço: $\Ocomp{N + Q}$}
+  {Responder $Q$ consultas offline em intervalos $[L, R]$ quando adicionar e remover um elemento nas extremidades custa $\Ocomp{1}$.}
+  {Ordenam-se as consultas por $(\lfloor L / B \rfloor, R)$ com $B = \max(1, \lfloor N / \sqrt{Q} \rfloor)$, alternando o sentido de $R$ entre blocos pares e ímpares, e movem-se os ponteiros $L, R$ incrementalmente.}
+  {Dentro de cada bloco de $L$, o ponteiro $R$ percorre o array de forma monotônica ($\Ocomp{N}$ por bloco, $\Ocomp{N/B}$ blocos), enquanto $L$ desloca-se $\Ocomp{B}$ por consulta; escolher $B \approx N/\sqrt{Q}$ minimiza a soma.}
+  {Contagem de distintos ou moda de frequências em $[L, R]$, soma de $f(c)^2$ por frequência, consultas offline em subárvores via Euler Tour.}
+  {Sempre expandir o intervalo (\texttt{add}) antes de encolher (\texttt{rem}) para evitar estados inválidos $L > R$ com frequências negativas.}
+  {$\Ocomp{N\sqrt{Q} + Q \log Q}$ tempo, $\Ocomp{N + Q}$ espaço}
 
 \begin{lstlisting}
 struct MoQuery { int l, r, id; };
@@ -723,10 +817,12 @@ vll mo_algorithm(int n, vector<MoQuery>& qs, Add add, Rem rem, Get get) {
 
 \subsubsection{Convex Hull Trick Dinâmico (LineContainer) e Li Chao Tree}
 \algobox
-  {Manter um conjunto dinâmico de funções afins $y = kx + m$ e consultar o máximo em um ponto arbitrário $x$ (para mínimo, inserir $(-k, -m)$ e negar o retorno).}
-  {\textbf{LineContainer:} mantém a envoltória superior ordenada por inclinação $k$ em \texttt{std::multiset}, descartando retas dominadas por interseção inteira exata. \textbf{Li Chao Tree:} árvore de segmentos implícita sobre o domínio $[X_{\min}, X_{\max}]$ onde cada nó armazena a função dominante no ponto médio, estendendo-se naturalmente à inserção de segmentos restritos a $[x_L, x_R]$ em $\Ocomp{\log^2 X}$.}
-  {No \texttt{LineContainer}, a divisão inteira \texttt{div(a, b)} arredonda para $-\infty$. Na \texttt{LiChaoTree}, pré-alocar o vetor de nós e garantir que \texttt{k * x + m} não estoure 64 bits.}
-  {LineContainer: $\Ocomp{\log N}$ $\mid$ Li Chao: $\Ocomp{\log X}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Inserir retas $y = kx + m$ em ordem arbitrária e consultar $\max(kx + m)$ em qualquer $x \in \ZZ$ (para mínimo, negar $k, m$ e o resultado).}
+  {Mantém-se a envoltória superior ordenada por inclinação $k$ em \texttt{multiset}, guardando em \texttt{p} o maior $x$ onde cada reta domina a próxima e removendo retas dominadas via interseção inteira \texttt{div}.}
+  {Na envoltória superior, os intervalos de dominância das retas são contíguos e crescentes em $x$, permitindo achar a reta ótima por \texttt{lower\_bound(x)} e amortizar cada remoção em $\Ocomp{\log N}$.}
+  {Otimização de DP $dp[i] = \max_j(a_i b_j + c_j)$ sem monotonicidade nas inclinações ou consultas, CHT dinâmico geral.}
+  {Não chamar \texttt{query} em container vazio (\texttt{assert(!empty())}). Verificar se \texttt{k * x + m} e \texttt{y->m - x->m} cabem em \texttt{ll}; caso contrário, promover para \texttt{i128}.}
+  {$\Ocomp{\log N}$ por operação, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 struct Line {
@@ -756,7 +852,17 @@ struct LineContainer : multiset<Line, less<>> {
     return l.k * x + l.m;
   }
 };
+\end{lstlisting}
 
+\algobox
+  {Inserir retas $y = kx + m$ (extensível a segmentos em $[x_L, x_R]$) e consultar $\max(kx + m)$ sobre um domínio inteiro $[L_{\text{dom}}, R_{\text{dom}}]$.}
+  {Cada nó da árvore de segmentos implícita guarda a reta dominante no ponto médio \texttt{mid}; a reta perdedora em \texttt{mid} só pode vencer em uma das metades, para onde é propagada recursivamente.}
+  {Duas retas se cruzam no máximo uma vez: se a reta perdedora em \texttt{mid} vence em $l$, o cruzamento está em $[l, \text{mid}]$; caso contrário só pode vencer em $[\text{mid}+1, r]$, garantindo descida única.}
+  {CHT com segmentos restritos a subintervalos $[x_L, x_R]$ ($\Ocomp{\log^2 X}$), CHT com rollback ou persistência, DP em árvore com Small-to-Large.}
+  {Pré-alocar \texttt{t} e salvar o novo índice antes de atribuir a \texttt{t[u].l}/\texttt{t[u].r}. Ajustar \texttt{L\_dom}, \texttt{R\_dom} e \texttt{INF\_Y} para evitar overflow em \texttt{k * x + m}.}
+  {$\Ocomp{\log X}$ por operação, $\Ocomp{N \log X}$ espaço}
+
+\begin{lstlisting}
 struct LiChaoTree {
   static constexpr ll INF_Y = -4000000000000000000LL;
   struct Func {
@@ -800,10 +906,12 @@ struct LiChaoTree {
 
 \subsubsection{CDQ Divide \& Conquer com Otimização de Monge sobre Skyline 2D}
 \algobox
-  {Processar uma sequência cronológica de inserções de pontos $(x_j, y_j)$ e consultas em pontos base $(a_i, b_i)$ (ordenados com $a_1 < \dots < a_N$ e $b_1 > \dots > b_N$), maximizando $(y_j - b_i)(x_j - a_i + 1)$ sobre os pontos inseridos anteriormente com $x_j \ge a_i$ e $y_j > b_i$.}
-  {Aplica-se CDQ Divide \& Conquer sobre o eixo temporal: em cada nível, pontos inseridos na metade esquerda contribuem para consultas da metade direita. Reduzem-se os pontos da esquerda ao seu skyline superior ($x_j$ crescente e $y_j$ estritamente decrescente). Como ambos os conjuntos são anti-monótonos, o funcional retangular satisfaz a propriedade de Monge, garantindo monotonicidade do índice ótimo $\text{opt}(i)$ e permitindo avaliação via Divide \& Conquer DP.}
-  {Restringir o intervalo de busca de cada ponto base $(a_i, b_i)$ aos índices do skyline com $x_j \ge a_i$ e $y_j > b_i$ para evitar produtos de dois fatores negativos. Quando o intervalo válido for vazio, particionar \texttt{split\_j} segundo a posição relativa de \texttt{lb} em relação a $[\text{optL}, \text{optR}]$.}
-  {Tempo: $\Ocomp{(N + Q) \log^2(N + Q)}$ $\mid$ Espaço: $\Ocomp{N + Q}$}
+  {Processar inserções de pontos $(x_j, y_j)$ e consultas em pontos base $(a_i, b_i)$ ($a_i$ crescente, $b_i$ decrescente) maximizando $(y_j - b_i)(x_j - a_i + 1)$ com $x_j \ge a_i, y_j > b_i$.}
+  {CDQ divide o tempo ao meio, avaliando inserções da metade esquerda contra consultas da direita: reduz-se a esquerda ao skyline superior ($x$ crescente, $y$ decrescente) e resolve-se todas as consultas da direita via Divide \& Conquer DP pela monotonicidade do índice ótimo.}
+  {CDQ elimina a dimensão temporal convertendo o problema em estático; sobre dois conjuntos anti-monótonos, a área retangular satisfaz a desigualdade de Monge, tornando o ponto ótimo $\text{opt}(i)$ não-decrescente.}
+  {Consultas offline 3D (tempo + 2 coordenadas), maior área de retângulo entre produtores e consumidores (Money for Nothing), problemas dinâmicos decomponíveis.}
+  {Restringir a busca aos índices do skyline com $x_j \ge a_i$ e $y_j > b_i$ para não maximizar produto de dois fatores negativos; quando vazio, particionar \texttt{split\_j} conforme \texttt{lb > optR}.}
+  {$\Ocomp{(N + Q) \log^2(N + Q)}$ tempo, $\Ocomp{N + Q}$ espaço}
 
 \begin{lstlisting}
 struct BasePoint { ll a, b; };

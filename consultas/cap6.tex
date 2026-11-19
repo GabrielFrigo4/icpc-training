@@ -10,10 +10,12 @@
 
 \subsubsection{Run-Length Encoding (RLE) e Flips Mínimos em Blocos}
 \algobox
-  {Obter o número mínimo de inversões (\emph{flips}) em uma string binária $S$ para que nenhum bloco contíguo de caracteres iguais atinja comprimento $K \ge 2$.}
-  {Para $K = 2$, restam apenas as duas sequências alternadas; seleciona-se a de menor distância de Hamming. Para $K \ge 3$, cada bloco maximal de comprimento $L \ge K$ exige exatamente $\lfloor L / K \rfloor$ inversões nas posições $i + fK - 1$ ($1 \le f \le \lfloor L/K \rfloor$). Quando $L \equiv 0 \pmod K$, a última inversão recua para $i + L - 2$, preservando o último caractere do bloco e impedindo fusão com o bloco adjacente.}
-  {Tratar $K = 2$ separadamente; para $K \ge 3$, inverter a posição $i + L - 1$ quando $K \mid L$ pode estender o bloco subsequente além do limite $K - 1$.}
-  {Tempo: $\Ocomp{|S|}$ $\mid$ Espaço: $\Ocomp{|S|}$}
+  {Minimizar inversões (\emph{flips}) em string binária $S$ para que nenhum bloco contíguo de caracteres iguais atinja comprimento $K \ge 2$.}
+  {Para $K = 2$, compara-se a distância de Hamming contra as duas strings alternadas. Para $K \ge 3$, cada bloco maximal de tamanho $L \ge K$ exige $\lfloor L / K \rfloor$ inversões em $i + fK - 1$; se $K \mid L$, a última inversão recua para $i + L - 2$.}
+  {Cada inversão separa um bloco de tamanho $K - 1$ sem criar novos blocos de tamanho $\ge 2$ quando $K \ge 3$; recuar quando $K \mid L$ preserva a fronteira e impede fusão com o bloco seguinte.}
+  {Quebrar repetições consecutivas em strings binárias com mínimo de edições.}
+  {Tratar $K = 2$ separadamente; para $K \ge 3$, inverter $i + L - 1$ quando $K \mid L$ pode fundir com o bloco adjacente e causar WA.}
+  {$\Ocomp{|S|}$ tempo, $\Ocomp{|S|}$ espaço}
 
 \begin{lstlisting}
 pair<int, string> min_flips_max_run(int K, string s) {
@@ -53,10 +55,12 @@ pair<int, string> min_flips_max_run(int K, string s) {
 
 \subsubsection{Z-Function, KMP, Autômato de Prefixo e Manacher}
 \algobox
-  {Calcular (1) \texttt{z[i]}, o maior prefixo comum (LCP) entre $S$ e $S[i..n-1]$; (2) \texttt{pi[i]}, a maior borda própria de $S[0..i]$, e o autômato de transições de KMP; (3) os raios máximos de todos os palíndromos ímpares (\texttt{d1}) e pares (\texttt{d2}) via Manacher.}
-  {Z-Function e Manacher mantêm o intervalo mais à direita $[l, r]$ já explorado, garantindo avanço monotônico de $r \le N$. No KMP, a função de falha \texttt{pi} permite pré-computar transições $\delta(i, c)$ por programação dinâmica sobre o alfabeto $\Sigma$.}
-  {Por convenção, \texttt{z[0] = 0}. Em Manacher, \texttt{d1[i]} denota palíndromo de tamanho $2\cdot d_1[i] - 1$ centrado em $i$, e \texttt{d2[i]} denota palíndromo de tamanho $2\cdot d_2[i]$ centrado entre $i-1$ e $i$. No autômato KMP, o separador \texttt{sep} não deve pertencer ao alfabeto $[\texttt{BASE}, \texttt{BASE}+\texttt{ALPHA})$.}
-  {Z / KMP / Manacher: $\Ocomp{N}$ $\mid$ Autômato KMP: $\Ocomp{N \cdot \Sigma}$}
+  {Calcular \texttt{z[i]} $= \text{LCP}(S, S[i..n-1])$ para todo $i \in [0, n-1]$.}
+  {Mantém-se a Z-box $[l, r)$ mais à direita já casada com $S[0..r-l)$. Para $i < r$, inicializa-se \texttt{z[i]} $= \min(r - i, \texttt{z[i - l]})$ e estende-se caractere a caractere.}
+  {Como $S[l..r) = S[0..r-l)$, o prefixo de $S[i..r)$ coincide com o de $S[i-l..r-l)$, reaproveitando \texttt{z[i-l]}; cada comparação bem-sucedida do \texttt{while} avança $r \le n$, garantindo tempo linear.}
+  {Busca exata de padrão ($P + \text{'\#'} + T$), menor período da string, contagem de ocorrências de prefixos.}
+  {Por convenção \texttt{z[0] = 0} (não $n$). Usar separador fora do alfabeto ao concatenar $P + \text{sep} + T$.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 vi z_function(const string& s) {
@@ -70,7 +74,17 @@ vi z_function(const string& s) {
   }
   return z;
 }
+\end{lstlisting}
 
+\algobox
+  {Calcular a função de prefixo (KMP) \texttt{pi[i]}: comprimento da maior borda própria de $S[0..i]$.}
+  {Parte-se de $j = \texttt{pi[i - 1]}$ e recua-se pela cadeia de bordas $j \leftarrow \texttt{pi[j - 1]}$ até $S[i] = S[j]$ ou $j = 0$, incrementando $j$ em caso de casamento.}
+  {Toda borda de $S[0..i]$ de tamanho $> 0$ é extensão por $S[i]$ de uma borda de $S[0..i-1]$; como $j$ cresce no máximo $1$ por iteração e nunca fica negativo, os recuos somam $\Ocomp{N}$.}
+  {Matching online, compressão/menor período ($n - \texttt{pi[n-1]}$), árvore de bordas, número de substrings distintas em $\Ocomp{N^2}$.}
+  {Índices são 0-based e \texttt{pi[i]} representa comprimento (não índice); menor período exato só vale se $(n - \texttt{pi[n-1]}) \mid n$.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 vi prefix_function(const string& s) {
   int n = sz(s);
   vi pi(n, 0);
@@ -82,7 +96,17 @@ vi prefix_function(const string& s) {
   }
   return pi;
 }
+\end{lstlisting}
 
+\algobox
+  {Pré-computar a tabela de transições $\delta(i, c)$ do autômato KMP para um padrão $S$.}
+  {Anexa-se um separador \texttt{sep} fora do alfabeto, calcula-se \texttt{pi} e preenche-se \texttt{aut[i][c]} por DP: $i + 1$ se $c = S[i]$, ou \texttt{aut[pi[i - 1]][c]} se $i > 0$ e $c \neq S[i]$.}
+  {Em caso de falha no estado $i$, o próximo estado após ler $c$ coincide com a transição já computada na maior borda própria \texttt{pi[i - 1]} $< i$, eliminando o laço \texttt{while} em tempo de consulta.}
+  {DP em strings evitando ou contando ocorrências de um padrão, exponenciação matricial sobre estados de KMP.}
+  {\texttt{sep} não pode pertencer a $[\texttt{BASE}, \texttt{BASE}+\texttt{ALPHA})$. O autômato possui $|S| + 1$ estados (estado $|S|$ indica casamento completo).}
+  {$\Ocomp{N \cdot \Sigma}$ tempo, $\Ocomp{N \cdot \Sigma}$ espaço}
+
+\begin{lstlisting}
 template <int ALPHA = 26, char BASE = 'a'>
 vector<array<int, ALPHA>> kmp_automaton(string s, char sep = '#') {
   s += sep;
@@ -95,7 +119,17 @@ vector<array<int, ALPHA>> kmp_automaton(string s, char sep = '#') {
   }
   return aut;
 }
+\end{lstlisting}
 
+\algobox
+  {Computar os raios máximos de todos os palíndromos ímpares (\texttt{d1}) e pares (\texttt{d2}) centrados em cada posição de $S$.}
+  {Mantém-se o palíndromo mais à direita $[l, r]$. Para $i \le r$, espelha-se o centro $i$ em $l + r - i$ (limitado a $r - i + 1$) e expande-se por comparações diretas, atualizando $[l, r]$.}
+  {A simetria de $[l, r]$ garante que o palíndromo espelhado já ocorre em torno de $i$ até a borda $r$; cada expansão além de $r$ avança $r$ estritamente, limitando o trabalho total a $\Ocomp{N}$.}
+  {Maior substring palindrômica, contagem total de palíndromos ($\sum (d_1[i] + d_2[i])$), consultas de palíndromo em $\Ocomp{1}$.}
+  {\texttt{d1[i]} corresponde a comprimento $2\cdot d_1[i] - 1$ centrado em $i$; \texttt{d2[i]} corresponde a comprimento $2\cdot d_2[i]$ centrado entre $i - 1$ e $i$.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 pair<vi, vi> manacher(const string& s) {
   int n = sz(s);
   vi d1(n, 0), d2(n, 0);
@@ -117,10 +151,12 @@ pair<vi, vi> manacher(const string& s) {
 
 \subsubsection{Rolling Hash Polinomial ($\bmod 2^{61}-1$), LCP e Cobertura Periódica}
 \algobox
-  {Comparar substrings em $\Ocomp{1}$, computar $\text{LCP}(i, j)$ em $\Ocomp{\log N}$ sob o primo de Mersenne $M = 2^{61}-1$ e determinar a cobertura mínima de $S$ por blocos periódicos de período $p \le D$.}
-  {A redução módulo $2^{61}-1$ utiliza deslocamento de bits em \texttt{u128}, eliminando divisões e colisões determinísticas via base aleatória. Na cobertura periódica, um bloco de período $p$ iniciado em $i$ cobre $p + \text{LCP}(i, i + p)$ posições; a escolha gulosa do máximo alcance em $p \in [1, D]$ é ótima. A poda em $\Ocomp{1}$ verifica se o candidato supera o melhor alcance corrente antes de invocar a busca binária, limitando as buscas a $\Ocomp{\log D}$ por salto.}
-  {Intervalos são semi-abertos $[l, r)$ com $0 \le l \le r \le N$. Requer \texttt{rng} inicializado (Seção 0.5). Converter cada caractere para \texttt{(unsigned char)} antes da promoção para \texttt{ull}.}
-  {Build: $\Ocomp{N}$ $\mid$ Hash: $\Ocomp{1}$ $\mid$ LCP: $\Ocomp{\log N}$ $\mid$ Cobertura: $\Ocomp{N}$ esperado / $\Ocomp{N \log N}$ pior caso}
+  {Comparar substrings em $\Ocomp{1}$ e calcular $\text{LCP}(i, j)$ em $\Ocomp{\log N}$ via hash polinomial módulo $2^{61}-1$.}
+  {Pré-computam-se potências da base aleatória $B$ e prefixos \texttt{pref}; a multiplicação em \texttt{u128} reduz módulo $M = 2^{61}-1$ via $c = q \cdot 2^{61} + r \equiv q + r \pmod M$. O LCP aplica busca binária sobre \texttt{get(l, r)}.}
+  {Como $2^{61} \equiv 1 \pmod{2^{61}-1}$, deslocar bits substitui a divisão custosa; o primo grande com base aleatória reduz a probabilidade de colisão abaixo de $N^2 / 2^{61}$ mesmo contra entradas adversariais.}
+  {Igualdade e ordenação lexicográfica de substrings, contagem de substrings distintas, busca binária por LCP.}
+  {Intervalos são semi-abertos $[l, r)$ com $0 \le l \le r \le N$. Requer \texttt{rng} inicializado (Seção 0.5) e cast \texttt{(unsigned char)} em caracteres.}
+  {Build $\Ocomp{N}$, Hash $\Ocomp{1}$, LCP $\Ocomp{\log N}$, Espaço $\Ocomp{N}$}
 
 \begin{lstlisting}
 struct RollingHash61 {
@@ -163,7 +199,17 @@ struct RollingHash61 {
     return ans;
   }
 };
+\end{lstlisting}
 
+\algobox
+  {Determinar a cobertura mínima de $S$ por blocos contíguos periódicos com período $p \le \texttt{max\_p}$.}
+  {A partir de $i$, um bloco de período $p$ alcança $i + p + \text{LCP}(i, i + p)$. Testa-se $p \in [1, \texttt{max\_p}]$ com poda em $\Ocomp{1}$ via hash: só executa \texttt{lcp} se o candidato superar o melhor alcance atual \texttt{best\_reach}.}
+  {Escolher gulosamente o bloco que avança mais à direita é ótimo por argumento de troca (todo prefixo de um bloco periódico mantém o mesmo período); a poda restringe as chamadas de busca binária aos recordes crescentes.}
+  {Compressão gulosa por blocos periódicos de período limitado, particionamento mínimo por repetições.}
+  {Exige $\texttt{max\_p} \ge 1$; truncar \texttt{need\_lcp} em $n - (i + p)$ para não consultar hash fora do intervalo $[0, n]$.}
+  {$\Ocomp{N}$ esperado / $\Ocomp{N \log N}$ pior caso, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 int min_periodic_cover(const string& s, int max_p) {
   int n = sz(s), i = 0, ans = 0;
   RollingHash61 rh(s);
@@ -186,10 +232,12 @@ int min_periodic_cover(const string& s, int max_p) {
 
 \subsubsection{Parsing e Contagem de Expressões Balanceadas}
 \algobox
-  {Contar substrings contíguas $S[l..r]$ que formam expressões aritméticas bem formadas sobre identificadores (letras minúsculas), parênteses e operadores binários.}
-  {Adjacências localmente inválidas (\texttt{a(}, \texttt{)a}, \texttt{)(}, \texttt{()}, \texttt{(+}, \texttt{+)}, \texttt{++}) particionam $S$ em segmentos independentes. Em cada segmento válido, $S[l..r]$ é bem formada sse $d[l] = d[r+1]$, $\min_{l \le k \le r+1} d[k] = d[l]$, $S[l] \in \{\text{letra}, \text{'('}\}$ e $S[r] \in \{\text{letra}, \text{')'}\}$, acumulando inícios válidos por nível de parênteses em uma pilha.}
-  {Aplicar cast \texttt{(unsigned char)} em \texttt{islower}. Desempilhar o nível ao fechar parêntese e reiniciar na nova base caso a pilha esvazie.}
-  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Contar substrings $S[l..r]$ que formam expressões aritméticas bem formadas sobre letras minúsculas, parênteses e operadores binários.}
+  {Pares adjacentes localmente inválidos (\texttt{a(}, \texttt{)a}, \texttt{)(}, \texttt{()}, \texttt{(+}, \texttt{+)}, \texttt{++}) quebram $S$ em segmentos independentes. Em cada segmento, uma pilha por nível de profundidade acumula inícios válidos (\texttt{letra} ou \texttt{'('}) e soma ao encontrar fins válidos (\texttt{letra} ou \texttt{')'}).}
+  {Eliminadas adjacências proibidas, uma substring é válida sse tem saldo de parênteses zero sem prefixo negativo e extremos válidos; a pilha descarta automaticamente níveis acima do mínimo corrente quando fecha um parêntese.}
+  {Contagem de subexpressões válidas, substrings balanceadas com restrições gramaticais locais.}
+  {Aplicar cast \texttt{(unsigned char)} em \texttt{islower}. Se a pilha esvaziar em um \texttt{')'} extra, reinicializar na nova profundidade base sem contaminar prefixos anteriores.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 ll count_valid_expressions(const string& s) {
@@ -247,10 +295,12 @@ ll count_valid_expressions(const string& s) {
 
 \subsubsection{Suffix Array $\Ocomp{N \log N}$, LCP de Kasai e RMQ $\Ocomp{1}$}
 \algobox
-  {Ordenar lexicograficamente todos os sufixos de $S$ em $\Ocomp{N \log N}$ e consultar $\text{LCP}(S[i..], S[j..])$ entre quaisquer dois sufixos em $\Ocomp{1}$ (ou buscar padrões por busca binária em $\Ocomp{|P| \log |S|}$).}
-  {Duplicação de prefixos com \emph{counting sort} estável constrói \texttt{sa} e \texttt{rk}. O algoritmo de Kasai calcula \texttt{lcp[r] = LCP(sa[r], sa[r+1])} em $\Ocomp{N}$. Uma Sparse Table sobre \texttt{lcp} responde ao mínimo no intervalo $[\min(\text{rk}[i], \text{rk}[j]), \max(\text{rk}[i], \text{rk}[j]))$ em $\Ocomp{1}$.}
-  {O vetor \texttt{sa} armazena os $N$ índices $0 \dots N-1$ sem sentinela nulo. Para $i = j$, \texttt{lcp\_query(i, j)} retorna $N - i$ diretamente.}
-  {Build SA + RMQ: $\Ocomp{N \log N}$ $\mid$ Kasai: $\Ocomp{N}$ $\mid$ Query LCP: $\Ocomp{1}$ $\mid$ Espaço: $\Ocomp{N \log N}$}
+  {Ordenar lexicograficamente todos os sufixos de $S$ e responder $\text{LCP}(S[i..], S[j..])$ em $\Ocomp{1}$.}
+  {Constrói-se \texttt{sa} e \texttt{rk} por duplicação de prefixos com \emph{counting sort} estável; Kasai computa \texttt{lcp[r] = LCP(sa[r], sa[r+1])} em $\Ocomp{N}$; uma Sparse Table sobre \texttt{lcp} responde o mínimo em $[\min(\text{rk}[i], \text{rk}[j]), \max(\text{rk}[i], \text{rk}[j]))$.}
+  {Em ordem lexicográfica, o LCP entre dois sufixos é o mínimo dos LCPs adjacentes entre eles; em Kasai, ao passar do sufixo $i$ para $i+1$, o LCP cai em no máximo $1$, garantindo $\Ocomp{N}$ comparações totais.}
+  {Contagem de substrings distintas ($\frac{n(n+1)}{2} - \sum \texttt{lcp}$), $k$-ésima substring lexicográfica, LCS entre múltiplas strings, busca de padrão em $\Ocomp{|P|\log N}$.}
+  {\texttt{sa} contém os $N$ índices $0 \dots N-1$ sem sentinela nulo. Para $i = j$, \texttt{lcp\_query} deve retornar $N - i$ diretamente (intervalo vazio na Sparse Table).}
+  {Build $\Ocomp{N \log N}$, Query LCP $\Ocomp{1}$, Espaço $\Ocomp{N \log N}$}
 
 \begin{lstlisting}
 struct SuffixArray {
@@ -316,10 +366,12 @@ struct SuffixArray {
 
 \subsubsection{Suffix Automaton (SAM) e Partição Gulosa em Substrings}
 \algobox
-  {Representar todas as substrings de $S$ em um autômato mínimo (DAG com $\le 2|S|-1$ estados e $\le 3|S|-4$ transições) e particionar uma string $T$ no menor número de substrings contíguas de $S$.}
-  {Cada estado corresponde a uma classe de equivalência \emph{endpos} abrangendo comprimentos em $(\text{len}[\text{link}[u]], \text{len}[u]]$. Para particionar $T$, avança-se gulosamente a partir da raiz $0$ enquanto existir transição para $T[i]$; ao falhar, reinicia-se na raiz incrementando o número de segmentos (retornando $-1$ se $T[i]$ não ocorre em $S$).}
-  {Parametrizar \texttt{ALPHA} e \texttt{BASE} conforme o alfabeto de entrada. O número máximo de estados para $|S| \ge 2$ é $2|S| - 1$.}
-  {Build SAM: $\Ocomp{|S| \Sigma}$ $\mid$ Query: $\Ocomp{|T|}$ $\mid$ Espaço: $\Ocomp{|S| \Sigma}$}
+  {Indexar todas as substrings de $S$ em um autômato mínimo ($\le 2|S|-1$ estados) e particionar $T$ no menor número de substrings de $S$.}
+  {Cada estado representa uma classe \emph{endpos} de comprimentos em $(\text{len}[\text{link}[u]], \text{len}[u]]$. Em \texttt{extend}, redirecionam-se transições ao longo dos \emph{suffix links}, clonando o estado $q$ quando $\text{len}[p] + 1 < \text{len}[q]$. Para particionar $T$, consome-se o maior prefixo reconhecido a partir da raiz $0$ e reinicia-se ao falhar.}
+  {As classes \emph{endpos} formam uma árvore laminar de tamanho $\le 2|S|-1$ (os \emph{suffix links}); na partição de $T$, como toda substring de um bloco válido também ocorre em $S$, estender cada peça ao máximo nunca piora o sufixo restante.}
+  {Número de substrings distintas ($\sum (\text{len}[u] - \text{len}[\text{link}[u]])$), frequência de substrings (DP na link tree), LCS, partição gulosa em substrings.}
+  {Ajustar \texttt{ALPHA} e \texttt{BASE} ao alfabeto; caracteres fora da faixa causam acesso inválido. Reservar $2|S| + 2$ estados evita realocações.}
+  {Build $\Ocomp{|S|\Sigma}$, Query $\Ocomp{|T|}$, Espaço $\Ocomp{|S|\Sigma}$}
 
 \begin{lstlisting}
 template <int ALPHA = 26, char BASE = 'a'>
@@ -383,10 +435,12 @@ struct SuffixAutomaton {
 
 \subsubsection{Generalized SAM em Trie de Versões e Substrings Repetidas Dinâmicas}
 \algobox
-  {Manter uma string sob operações de inserção e remoção no final (\emph{rollback}), reportando após cada atualização o total de substrings distintas que ocorrem ao menos duas vezes.}
-  {Constrói-se offline a Trie de versões e o Generalized SAM em BFS. Na Link Tree do SAM, a soma de $(\text{len}[u] - \text{len}[\text{link}[u]])$ no caminho da raiz a $z$ vale $\text{len}[z]$. Um estado ocorre $\ge 2$ vezes na string ativa sse pertence à união dos caminhos da raiz até o conjunto $Z$ dos LCAs de pares adjacentes das folhas ativas $X$ ordenadas por \texttt{tin}. A soma sobre a união é mantida dinamicamente via $\sum \text{len}[z_i] - \sum \text{len}[\text{LCA}(z_i, z_{i+1})]$.}
-  {Construir o GSAM em BFS sobre a Trie garante linearidade no número de nós. O caractere \texttt{pop\_ch} de remoção não deve pertencer ao alfabeto $[\texttt{BASE}, \texttt{BASE}+\texttt{ALPHA})$.}
-  {Tempo: $\Ocomp{(N + Q) \log(N + Q)}$ $\mid$ Espaço: $\Ocomp{(N + Q)(\Sigma + \log(N + Q))}$}
+  {Manter uma string sob \emph{push}/\emph{pop} no final, reportando após cada operação quantas substrings distintas ocorrem $\ge 2$ vezes.}
+  {Constrói-se offline a Trie de versões e o Generalized SAM via BFS. Na Link Tree, mantém-se o conjunto $X$ dos estados ativos ordenados por \texttt{tin}, o multiconjunto $Z$ dos LCAs de pares adjacentes em $X$, e a soma da união dos caminhos da raiz a $Z$ via $\sum \text{len}[z_i] - \sum \text{len}[\text{LCA}(z_i, z_{i+1})]$.}
+  {Um estado ocorre $\ge 2$ vezes sse possui $\ge 2$ descendentes ativos em $X$, o que equivale a ser ancestral de algum LCA de nós consecutivos de $X$ na ordem de DFS (\texttt{tin}); cada nó $u$ contribui $\text{len}[u] - \text{len}[\text{link}[u]]$, que telescópia para $\text{len}[z]$ no caminho até a raiz.}
+  {Consultas offline sobre histórico de edição de strings (\emph{append}/\emph{backspace}), união dinâmica de subárvores na Link Tree.}
+  {Construir o GSAM em BFS sobre a Trie (não em DFS) para garantir $\Ocomp{N}$ estados. O caractere \texttt{pop\_ch} não pode pertencer a $[\texttt{BASE}, \texttt{BASE}+\texttt{ALPHA})$.}
+  {$\Ocomp{(N + Q) \log(N + Q)}$ tempo, $\Ocomp{(N + Q)(\Sigma + \log(N + Q))}$ espaço}
 
 \begin{lstlisting}
 template <int ALPHA = 26, char BASE = 'a'>

@@ -10,10 +10,12 @@
 
 \subsubsection{Struct \texttt{Pt<T>}, Orientação, Segmentos, Retas e Polígonos}
 \algobox
-  {Primitivas geométricas 2D em aritmética inteira exata (\texttt{ll} / \texttt{i128}) e ponto flutuante (\texttt{ld}).}
-  {Produtos vetorial (\texttt{cross}) e escalar (\texttt{dot}) eliminam funções trigonométricas e erros de arredondamento. O predicado \texttt{ccw(a, b, c) > 0} indica curva estritamente à esquerda (sentido anti-horário). A área com sinal de um polígono simples é metade da soma cíclica de \texttt{p[i].cross(p[(i+1)\%n])}.}
-  {Para coordenadas com módulo até $10^9$, \texttt{cross} e \texttt{dist2} alcançam $4 \cdot 10^{18}$ (limite de \texttt{ll}); comparações envolvendo produtos de duas áreas ou circuncentros exigem \texttt{i128}. Em \texttt{ld}, adotar $\eps = 10^{-9}$.}
-  {Primitivas: $\Ocomp{1}$ $\mid$ Área de Polígono: $\Ocomp{N}$}
+  {Primitivas 2D em inteiros exatos (\texttt{ll}) ou ponto flutuante (\texttt{ld}): orientação, pertinência, interseção de segmentos/retas e área.}
+  {\texttt{cross} e \texttt{dot} expressam orientação (\texttt{ccw(a,b,c) > 0} = esquerda), ponto em segmento e interseções sem trigonometria; \texttt{polygon\_area2} acumula o dobro da área com sinal via fórmula de Shoelace $\sum p_i \times p_{i+1}$.}
+  {O sinal do determinante $2 \times 2$ de $(b-a, c-a)$ é invariante sob rotação e translação e decide todos os predicados afins de forma puramente algébrica e exata em inteiros.}
+  {Base obrigatória para qualquer problema 2D: testes de colisão, polígonos simples, visibilidade e envoltórias.}
+  {Para $|x|, |y| \le 10^9$, \texttt{cross} e \texttt{dist2} chegam a $4 \cdot 10^{18}$ (limite de \texttt{ll}); produtos de áreas exigem \texttt{i128}. Em \texttt{ld}, usar $\eps = 10^{-9}$.}
+  {Primitivas: $\Ocomp{1}$ tempo, $\Ocomp{1}$ espaço $\mid$ Área: $\Ocomp{N}$ tempo, $\Ocomp{1}$ espaço}
 
 \begin{lstlisting}
 constexpr ld EPS = 1e-9L;
@@ -83,10 +85,12 @@ ll polygon_area2(const vector<Pll>& p) {
 
 \subsubsection{União de Intervalos 1D e Cruzamento de Cordas em Região Parabólica}
 \algobox
-  {(1) Medida da união de $N$ intervalos $[l_i, r_i] \subset \RR$; (2) Contagem de pares de retas $y = M_i x + C_i$ que se cruzam estritamente na região aberta $y > A x^2 + B$ ($A > 0$).}
-  {\textbf{1. União 1D:} Ordenação por extremo esquerdo crescente e fusão gulosa de intervalos sobrepostos. \textbf{2. Cordas na Parábola:} Uma reta entra em $y > A x^2 + B$ sse $\Delta_i = M_i^2 - 4A(B - C_i) > 0$, definindo a corda aberta de abscissas $(l_i, r_i) = \bigl(\frac{M_i \mp \sqrt{\Delta_i}}{2A}\bigr)$. Pela convexidade estrita, duas cordas se cruzam no interior sse seus extremos se entrelaçam estritamente ($l_i < l_j < r_i < r_j$). Compressão de coordenadas + Fenwick Tree (BIT) conta os pares.}
-  {Retas concorrentes exatamente sobre a fronteira compartilham $l_i = l_j$, $r_i = r_j$ ou $r_i = l_j$ e não devem ser contadas: agrupar cordas por $l_i$ igual antes de atualizar a BIT e consultar o intervalo aberto $[L+1, R-1]$ com tolerância $\eps = 10^{-11}$.}
-  {Tempo: $\Ocomp{N \log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Calcular o comprimento total da união de $N$ intervalos $[l_i, r_i] \subset \RR$.}
+  {Ordenam-se os intervalos por extremo esquerdo crescente e fundem-se intervalos sobrepostos mantendo o bloco ativo $[\texttt{curL}, \texttt{curR}]$; quando $l > \texttt{curR}$, soma-se $\texttt{curR} - \texttt{curL}$ e abre-se novo bloco.}
+  {Com os inícios ordenados, nenhum intervalo futuro pode alcançar atrás de \texttt{curR} se o atual já começou depois de \texttt{curR}, tornando cada componente conexa da união definitiva ao ser fechada.}
+  {Cobertura de arcos/intervalos, sombras em reta, verificação de cobertura angular completa em busca binária.}
+  {Assumir $l_i \le r_i$ em toda entrada; para vetor vazio, retornar $0$ antes de acessar \texttt{segs[0]}.}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{1}$ espaço auxiliar}
 
 \begin{lstlisting}
 ld union_of_intervals_length(vector<pair<ld, ld>> segs) {
@@ -99,7 +103,17 @@ ld union_of_intervals_length(vector<pair<ld, ld>> segs) {
   }
   return tot + (curR - curL);
 }
+\end{lstlisting}
 
+\algobox
+  {Contar pares de retas $y = M_i x + C_i$ que se cruzam estritamente na região aberta $y > A x^2 + B$ ($A > 0$).}
+  {Cada reta com $\Delta_i = M_i^2 - 4A(B - C_i) > 0$ gera a corda $(l_i, r_i) = \frac{M_i \mp \sqrt{\Delta_i}}{2A}$. Após comprimir coordenadas, ordenam-se as cordas por $l_i$ crescente e uma Fenwick Tree conta quantas cordas anteriores têm $r \in [L_i + 1, R_i - 1]$.}
+  {Pela convexidade estrita da parábola, duas cordas se cruzam no interior aberto sse seus extremos se alternam estritamente ($l_i < l_j < r_i < r_j$), reduzindo geometria 2D a cruzamento de cordas 1D.}
+  {Contagem de interseções de retas dentro de regiões estritamente convexas (círculo, parábola, faixa).}
+  {Agrupar cordas com mesmo $L$ antes de inseri-las na BIT e consultar $[L+1, R-1]$ para não contar interseções exatamente sobre a parábola; usar $\eps = 10^{-11}$ na compressão.}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 ll count_parabola_chord_intersections(ll A, ll B, const vector<pll>& lines) {
   constexpr ld EPS_P = 1e-11L;
   vector<pair<ld, ld>> chords;
@@ -148,10 +162,12 @@ ll count_parabola_chord_intersections(ll A, ll B, const vector<pll>& lines) {
 
 \subsubsection{Árvore de Contenção de Retângulos Laminares (Sweep-Line + LCA)}
 \algobox
-  {Dada uma família laminar de $N$ retângulos alinhados aos eixos $[x_{1,i}, x_{2,i}] \times [y_{1,i}, y_{2,i}]$ (quaisquer dois são disjuntos ou estritamente aninhados, sem interseção de bordas), construir a árvore de contenção e localizar o menor retângulo contendo pontos ou sub-retângulos de consulta.}
-  {Realiza-se sweep-line em $x$ crescente mantendo em um \texttt{std::set} as bordas horizontais ativas como tuplas \texttt{(y, is\_top, id)}. Ao consultar uma ordenada $y$ via \texttt{lower\_bound(\{y, 0, 0\})}, se o primeiro marcador encontrado for uma borda superior (\texttt{is\_top = 1}) do retângulo $r$, então $y$ está contido em $r$; caso contrário (\texttt{is\_top = 0}), o menor contentor de $y$ é \texttt{parent[r]} (ou o próprio $r$ se $y$ coincidir com a borda inferior em consulta fechada). Como $x_{1,\text{pai}} < x_{1,\text{filho}}$, a ordem de abertura é topológica, permitindo calcular \texttt{depth} na própria varredura. Para um sub-retângulo alinhado aos eixos de consulta, o menor retângulo da família que o contém é o \texttt{lca} dos contentores de dois cantos opostos.}
-  {Retângulos indexados em $1 \dots N$; a raiz virtual $0$ representa o plano externo. Processar fechamentos antes de aberturas e aberturas antes de pontos quando coordenadas $x$ coincidem.}
-  {Construção + $Q$ Pontos: $\Ocomp{(N + Q) \log N}$ $\mid$ LCA: $\Ocomp{\log N}$ por consulta $\mid$ Espaço: $\Ocomp{N \log N}$}
+  {Construir a árvore de contenção de $N$ retângulos alinhados sem interseção de bordas e localizar pontos ou sub-retângulos via LCA.}
+  {Sweep-line em $x$ crescente mantém em \texttt{std::set} as bordas ativas \texttt{(y, is\_top, id)}. Em \texttt{lower\_bound(\{y, 0, 0\})}, uma borda superior (\texttt{is\_top = 1}) devolve o próprio retângulo $r$; uma inferior devolve \texttt{parent[r]}. O binary lifting sobre \texttt{parent} responde LCA.}
+  {Como bordas nunca se cruzam, a primeira borda acima de $y$ pertence ao menor retângulo que envolve $y$ (se for teto) ou a um irmão interno cujo pai também envolve $y$ (se for piso); ademais, pais sempre abrem antes dos filhos.}
+  {Hierarquia de janelas/cercas/ilhas disjuntas ou aninhadas, distância entre pontos atravessando fronteiras laminares.}
+  {Retângulos são 1-indexados com raiz virtual $0$ (plano externo); em $x$ empatado, processar fechamento ($0$) antes de abertura ($1$) e abertura antes de ponto ($2$).}
+  {Build + $Q$ pontos: $\Ocomp{(N + Q) \log N}$, LCA: $\Ocomp{\log N}$, $\Ocomp{N \log N}$ espaço}
 
 \begin{lstlisting}
 struct Rect { ll x1, y1, x2, y2; };
@@ -229,10 +245,12 @@ struct LaminarRectTree {
 
 \subsubsection{Rotação de Coordenadas de $45^\circ$ (Manhattan $\leftrightarrow$ Chebyshev)}
 \algobox
-  {Converter a métrica $L_1$ ($|x_1 - x_2| + |y_1 - y_2|$) na métrica $L_\infty$ ($\max(|u_1 - u_2|, |v_1 - v_2|)$) e calcular a interseção de $N$ esferas discretas de Manhattan $\{p \in \ZZ^2 : \|p - C_i\|_1 = D_i\}$.}
-  {Sob a bijeção $u = x + y$ e $v = x - y$, vale $\|p_1 - p_2\|_1 = \|(u_1, v_1) - (u_2, v_2)\|_\infty$, e $(u, v) \in \ZZ^2$ corresponde a $(x, y) = \bigl(\frac{u+v}{2}, \frac{u-v}{2}\bigr) \in \ZZ^2$ sse $u \equiv v \pmod 2$. Cada esfera de Manhattan de centro $(X_i, Y_i)$ e raio $D_i$ torna-se a fronteira do quadrado alinhado aos eixos $[U_i - D_i, U_i + D_i] \times [V_i - D_i, V_i + D_i]$, composta por $4$ segmentos ortogonais. A interseção iterativa mantém $\Ocomp{1}$ segmentos ortogonais ativos após deduplicação.}
-  {Para $D_i = 0$, a fronteira degenera em um único ponto. A enumeração final assume conjunto de soluções finito; caso contrário, retornar diretamente o conjunto de segmentos ortogonais sobreviventes.}
-  {Tempo: $\Ocomp{N + K \log K}$ ($K$ pontos de saída) $\mid$ Espaço: $\Ocomp{K}$}
+  {Encontrar todos os pontos inteiros na interseção de $N$ esferas de Manhattan $\{p \in \ZZ^2 : \|p - C_i\|_1 = D_i\}$.}
+  {Sob $u = x + y$ e $v = x - y$, cada esfera vira a borda do quadrado $[U_i - D_i, U_i + D_i] \times [V_i - D_i, V_i + D_i]$ ($4$ segmentos ortogonais). Intersectam-se os segmentos iterativamente com deduplicação e filtram-se pontos $(u, v)$ com $u \equiv v \pmod 2$.}
+  {A transformação linear $(u, v) = (x+y, x-y)$ é uma isometria entre $L_1$ e $L_\infty$, desacoplando as coordenadas e transformando losangos em quadrados alinhados cuja interseção tem $\Ocomp{1}$ segmentos.}
+  {Triangulação por distâncias Manhattan em grade, maior distância $L_1$, cobertura por losangos.}
+  {Para $D_i = 0$ a borda é um único ponto; a enumeração final assume conjunto finito de soluções (se um segmento sobreviver longo, retornar \texttt{active} sem enumerar).}
+  {$\Ocomp{N + K \log K}$ tempo ($K$ pontos), $\Ocomp{K}$ espaço}
 
 \begin{lstlisting}
 struct OrthoSeg { ll u1, v1, u2, v2; };
@@ -290,10 +308,12 @@ vector<pll> intersect_manhattan_spheres(const vector<tuple<ll, ll, ll>>& spheres
 
 \subsubsection{Busca Binária Paralela com CHT e Janela Espaço-Tempo}
 \algobox
-  {(1) Dados $N$ pontos $(x_i, y_i)$ e $M$ retas $y = a_j x + b_j$, determinar para cada ponto o menor índice $j$ tal que $a_j x_i + b_j > y_i$; (2) Filtrar segmentos verticais $(u_j, [a_j, b_j])$ não interceptados por um conjunto base de semirretas $x(t) = (t - t_i) s_i$ ($t \ge t_i, s_i > 0$) e contar quantos remanescentes são interceptados por cada semirreta de consulta $(t', s')$.}
-  {\textbf{1. PBS + CHT:} A condição $\exists j \le m : a_j x_i + b_j > y_i$ equivale a $\max_{0 \le j \le m} (a_j x_i + b_j) > y_i$, que é monótona em $m$. A Busca Binária Paralela avalia todos os pontos por camadas de \texttt{mid} com uma única varredura incremental em \texttt{LineContainer}. \textbf{2. Janela Espaço-Tempo:} Ordenando os segmentos por $u_j$ e as semirretas base por $t_i$, interrompe-se o teste quando $t_i > u_j$. Para cada consulta $(t', s')$, limita-se a busca por busca binária à janela $u_j \in [t', t' + X_{\max} / s']$.}
-  {Requer \texttt{LineContainer} (Cap.\ 4) na PBS. Na janela espaço-tempo, garantir $s' > 0$ e evitar overflow em $t' + X_{\max}/s'$.}
-  {PBS + CHT: $\Ocomp{(N + M) \log^2 M}$ $\mid$ Espaço: $\Ocomp{N + M}$}
+  {Dados $N$ pontos $(x_i, y_i)$ e $M$ retas $y = a_j x + b_j$, achar para cada ponto o menor $j$ com $a_j x_i + b_j > y_i$.}
+  {Executa-se Busca Binária Paralela sobre $j \in [0, M-1]$: em cada rodada, varrem-se as retas $0 \dots M-1$ inserindo-as num \texttt{LineContainer} e testando \texttt{cht.query(x\_i) > y\_i} nos pontos cujo \texttt{mid} cai em $j$.}
+  {A condição $\exists j \le m : a_j x_i + b_j > y_i$ equivale a $\max_{j \le m}(a_j x_i + b_j) > y_i$, que é monótona em $m$; a PBS compartilha uma única reconstrução do CHT entre todos os $N$ pontos por nível.}
+  {Primeiro instante em que uma função linear ultrapassa um limiar para múltiplos pontos/consultas offline.}
+  {Requer \texttt{LineContainer} (Cap.~2) configurado para máximo; pontos não cobertos por nenhuma reta recebem índice $M$.}
+  {$\Ocomp{(N + M) \log^2 M}$ tempo, $\Ocomp{N + M}$ espaço}
 
 \begin{lstlisting}
 vi first_line_above_points(const vector<pll>& pts, const vector<pll>& lines) {
@@ -324,7 +344,17 @@ vi first_line_above_points(const vector<pll>& pts, const vector<pll>& lines) {
   }
   return ans;
 }
+\end{lstlisting}
 
+\algobox
+  {Filtrar segmentos verticais $(u_j, [a_j, b_j])$ não atingidos por semirretas base $x(t) = (t - t_i)s_i$ e contar quantos restam após cada semirreta de consulta.}
+  {Ordenam-se os segmentos por $u_j$ e as semirretas base por $t_i$, interrompendo o laço quando $t_i > u_j$. Para cada consulta $(t', v')$, busca binária restringe a varredura à janela $u_j \in [t', t' + X_{\max} / v']$.}
+  {Como $s_i > 0$ e $b_j \le X_{\max}$, uma semirreta disparada em $t'$ só pode atingir segmentos com $u_j \ge t'$ e antes de ultrapassar $X_{\max}$, podando o espaço de busca a uma janela curta em $u$.}
+  {Sensores/projéteis com velocidade constante interceptando obstáculos espaço-temporais com coordenada espacial limitada.}
+  {Exige $v > 0$ em todas as semirretas; cuidado com overflow em \texttt{(s.u - t) * v} se $u \cdot v > 9 \cdot 10^{18}$.}
+  {$\Ocomp{(N + M) \log(N + M) + \sum |\text{janela}|}$ tempo, $\Ocomp{N + M}$ espaço}
+
+\begin{lstlisting}
 vi count_uncovered_after_query_ray(const vector<pll>& base_rays,
                                    const vector<tuple<ll, ll, ll>>& segs,
                                    const vector<pll>& queries,
@@ -377,10 +407,12 @@ vi count_uncovered_after_query_ray(const vector<pll>& base_rays,
 
 \subsubsection{Ordenação Angular Exata (Inteiros), Múltiplos Pivôs e Varredura Angular}
 \algobox
-  {(1) Ordenar vetores em $[0, 2\pi)$ usando apenas inteiros (\texttt{half\_plane} + \texttt{cross}), estendido a pivôs arbitrários para comparar ordens panorâmicas via contagem de inversões; (2) Decidir existência de vetor $\vec{g} \ne \vec{0}$ com $\vec{g} \cdot \vec{d}_k \ge 0$ para todo $\vec{d}_k$; (3) Determinar o maior semilado $L$ de um quadrado centrado na origem sem pontos em $(-L, L)^2$.}
-  {\textbf{1. Ordenação Polar e Múltiplos Pivôs:} \texttt{half\_plane(p)} particiona o plano em $[0, \pi)$ e $[\pi, 2\pi)$; dentro do mesmo semiplano, \texttt{a.cross(b) > 0} ordena estritamente em sentido anti-horário. A ordenação relativa a dois pivôs distintos $A, B$ induz duas permutações dos demais pontos, reduzindo contagem de pares com ordem panorâmica invertida a contagem de inversões em $\Ocomp{N \log N}$ via BIT. \textbf{2. Semiplano Comum:} Existe $\vec{g}$ sse as direções únicas normalizadas admitem um salto angular $\ge \pi$ entre duas direções cíclicas consecutivas (\texttt{cross < 0} ou \texttt{cross == 0} com \texttt{dot < 0}). \textbf{3. Maior Quadrado Vazio:} Pela simetria de $\pi/2$, um ponto com $L \le r_i < \sqrt{2} L$ proíbe um arco aberto de largura $\pi/2 - 2\arccos(L/r_i)$ no período $[0, \pi/2)$; aplica-se busca binária em $L$ com união de intervalos 1D.}
-  {Excluir o vetor nulo $(0, 0)$ antes de ordenar com \texttt{polar\_cmp}. Em múltiplos pivôs, tratar pontos colineares ao pivô definindo desempate explícito por \texttt{dist2}.}
-  {Polar/Inversões: $\Ocomp{N \log N}$ $\mid$ Semiplano Comum: $\Ocomp{M \log M}$ $\mid$ Quadrado: $\Ocomp{N \log N \cdot \text{iter}}$}
+  {Ordenar vetores em $[0, 2\pi)$ usando apenas inteiros e contar inversões entre as ordens angulares vistas de dois pivôs $A$ e $B$.}
+  {\texttt{half\_plane(p)} separa $[0, \pi)$ de $[\pi, 2\pi)$; no mesmo semiplano, \texttt{a.cross(b) > 0} ordena anti-horariamente (com desempate por \texttt{dist2}). As duas ordens induzidas por $A$ e $B$ formam uma permutação cujas inversões são contadas com Fenwick Tree.}
+  {Como o produto vetorial define ordem estrita total dentro de cada semiplano aberto de largura $\pi$, combinar \texttt{half\_plane} com \texttt{cross} produz uma ordem total exata em $[0, 2\pi)$ sem \texttt{atan2l}.}
+  {Sweep radial exato, ordenação panorâmica em torno de observadores, contagem de pares que mudam de ordem relativa.}
+  {Nunca passar o vetor nulo $(0, 0)$ para \texttt{polar\_cmp} (quebra transitividade de \texttt{std::sort}).}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 int half_plane(const Pll& p) { return p.y < 0 || (p.y == 0 && p.x < 0); }
@@ -420,7 +452,17 @@ ll count_polar_inversions(const Pll& piv_a, const Pll& piv_b,
   }
   return inv;
 }
+\end{lstlisting}
 
+\algobox
+  {Decidir se existe vetor não nulo $\vec{g}$ tal que $\vec{g} \cdot \vec{d}_k \ge 0$ para todas as direções $\vec{d}_k$ (contidas num semiplano fechado).}
+  {Normalizam-se os vetores não nulos pelo $\gcd(|x|, |y|)$, ordenam-se por \texttt{polar\_cmp} com deduplicação e testa-se se algum par cíclico consecutivo $(a, b)$ tem salto angular $\ge \pi$ (\texttt{cross < 0} ou \texttt{cross == 0} com \texttt{dot < 0}).}
+  {Um conjunto de direções cabe num arco fechado de amplitude $\le \pi$ sse seu complemento no círculo contém um arco aberto de amplitude $\ge \pi$, o que ocorre precisamente entre duas direções cíclicas adjacentes.}
+  {Viabilidade de direção de luz/vento/projeção, teste de separabilidade linear pela origem, cones convexos.}
+  {Descartar $(0, 0)$ antes de chamar \texttt{gcd} e \texttt{polar\_cmp}; com $\le 1$ direção única, a resposta é sempre \texttt{true}.}
+  {$\Ocomp{M \log M}$ tempo, $\Ocomp{M}$ espaço}
+
+\begin{lstlisting}
 bool exists_common_halfplane(vector<Pll> dirs) {
   vector<Pll> norm;
   norm.reserve(sz(dirs));
@@ -441,7 +483,17 @@ bool exists_common_halfplane(vector<Pll> dirs) {
   }
   return false;
 }
+\end{lstlisting}
 
+\algobox
+  {Encontrar o maior semilado $L$ de um quadrado rotacionável centrado na origem sem nenhum ponto de $P$ em seu interior.}
+  {Por busca binária em $L \in [r_{\min}/\sqrt{2}, r_{\min}]$, cada ponto com $L \le r_i < \sqrt{2} L$ proíbe um arco aberto de largura $\frac{\pi}{2} - 2\arccos(L/r_i)$ no período $[0, \pi/2)$. $L$ é viável sse a união dos arcos proibidos tem medida $< \pi/2$.}
+  {Pela simetria de $90^\circ$ do quadrado, a orientação fica determinada módulo $\pi/2$; pontos com $r_i \ge \sqrt{2} L$ nunca invadem o quadrado e os demais bloqueiam exatamente um arco contínuo de ângulos.}
+  {Maior polígono regular rotacionável vazio centrado na origem, busca binária + cobertura de arcos periódicos.}
+  {Requer \texttt{union\_of\_intervals\_length}; usar \texttt{clamp(L / r[i], -1.0L, 1.0L)} antes de \texttt{acosl} para evitar \texttt{NaN}.}
+  {$\Ocomp{N \log N \cdot \text{iter}}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 ld max_empty_origin_square_halfside(const vector<Pll>& pts) {
   int n = sz(pts);
   ld Period = PI / 2.0L, min_r = 1e30L;
@@ -481,10 +533,12 @@ ld max_empty_origin_square_halfside(const vector<Pll>& pts) {
 
 \subsubsection{DP Radial de Polígonos Estrelados Convexos}
 \algobox
-  {Dados um ponto interior $O$, um vértice âncora $G$ e um conjunto $P$ de $N$ pontos candidatos, contar quantos polígonos simples contendo $O$ estritamente no interior, passando por $G$ e por um subconjunto de $P$, possuem todas as arestas visíveis a partir de $O$ (giro estrito em $(0, \pi)$) e ângulos internos $< \pi$ em todos os vértices de $P$ (módulo $M$).}
-  {Transladando $O$ para a origem, a visibilidade estrita de cada aresta $(v_i, v_{i+1})$ equivale a $\text{cross}(v_i, v_{i+1}) > 0$, e o ângulo interno $< \pi$ em $v_i$ equivale a $\text{ccw}(v_{i-1}, v_i, v_{i+1}) > 0$. Ordenando $P$ em sentido anti-horário a partir da semirreta $O \to G$, define-se $dp[u][v]$ como o número de cadeias válidas $G \to \dots \to u \to v$, transitando para $w > v$ e fechando em $G$ quando $\text{cross}(v, G) > 0$ e $\text{ccw}(u, v, G) > 0$.}
-  {Pontos na mesma semirreta que $O \to G$ violam a visibilidade estrita e são descartados; dois pontos no mesmo raio a partir de $O$ nunca podem ser consecutivos, o que garante unicidade da representação cíclica por subconjunto.}
-  {Tempo: $\Ocomp{N^3}$ (redutível a $\Ocomp{N^2 \log N}$ com dois ponteiros radiais por pivô) $\mid$ Espaço: $\Ocomp{N^2}$}
+  {Contar polígonos simples contendo $O$ no interior, passando por um âncora $G$ e subconjunto de $P$, com arestas visíveis de $O$ e ângulos $< \pi$ em $P$.}
+  {Transladando $O$ à origem e ordenando $P$ anti-horariamente a partir de $G$, define-se $dp[u][v]$ como o número de cadeias válidas $G \to \dots \to u \to v$. Transita-se para $w > v$ com \texttt{cross(v, w) > 0} e \texttt{ccw(u, v, w) > 0}, fechando em $G$ sob as mesmas condições.}
+  {A visibilidade estrita de $O$ impõe ordem angular estritamente crescente sem dois vértices no mesmo raio, tornando o grafo de transições um DAG; guardar apenas o último par $(u, v)$ basta para validar a convexidade local em $v$.}
+  {Contagem de polígonos convexos/estrelados contendo um ponto interior, DP angular sobre pares de vértices.}
+  {Descartar pontos na semirreta $O \to G$ antes da ordenação; o fechamento em $G$ exige $u \ne 0$ para garantir pelo menos $3$ vértices.}
+  {$\Ocomp{N^3}$ tempo, $\Ocomp{N^2}$ espaço}
 
 \begin{lstlisting}
 ll count_star_convex_polygons(Pll origin, Pll anchor, vector<Pll> pts,
@@ -528,10 +582,12 @@ ll count_star_convex_polygons(Pll origin, Pll anchor, vector<Pll> pts,
 
 \subsubsection{Interseção de Semiplanos em $\Ocomp{N \log N}$}
 \algobox
-  {(1) Determinar o polígono convexo correspondente à interseção de $N$ semiplanos fechados (região à esquerda da reta orientada $a \to b$); (2) Encontrar o menor prefixo de retas que confina a origem ao disco aberto $|p| < R$.}
-  {Ordenam-se os semiplanos por ângulo polar da direção $b - a$, retendo apenas o mais restritivo entre paralelos de mesmo sentido. Um \texttt{deque} mantém a envoltória de semiplanos ativos removendo da traseira e da frente enquanto o vértice de interseção adjacente ficar fora do novo semiplano, finalizando com limpeza cíclica entre as extremidades. Para o confinamento ao raio $R$, uma bounding box $[-2R, 2R]^2$ garante região limitada e permite busca binária verificando se algum vértice satisfaz $|v|^2 \ge R^2$.}
-  {Para interseções potencialmente ilimitadas, incluir previamente uma bounding box ampla. Retas que passam exatamente pela origem requerem tratamento específico se a orientação for indefinida.}
-  {Interseção: $\Ocomp{N \log N}$ $\mid$ Confinamento por Prefixo: $\Ocomp{N \log^2 N}$}
+  {Determinar o polígono convexo formado pela interseção de $N$ semiplanos fechados (à esquerda da reta orientada $a \to b$).}
+  {Ordenam-se os semiplanos por ângulo polar mantendo só o mais restritivo entre paralelos de mesmo sentido. Um \texttt{deque} descarta da traseira e da frente enquanto o vértice adjacente ficar fora do novo semiplano, com limpeza cíclica ao final.}
+  {Pela dualidade ponto-reta, a envoltória de semiplanos ordenados por ângulo comporta-se como uma envoltória convexa cíclica; cada semiplano entra e sai do deque no máximo uma vez.}
+  {Núcleo (kernel) de polígono simples, programação linear 2D, região viável de desigualdades lineares.}
+  {Se a interseção puder ser ilimitada, adicionar uma bounding box ampla antes; retorna vazio quando a região é vazia ou degenerada ($< 3$ lados).}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 struct Halfplane {
@@ -567,7 +623,17 @@ vector<Pld> halfplane_intersection(vector<Halfplane> H) {
   rep(i, 0, sz(dq)) poly[i] = isect(dq[i], dq[(i + 1) % sz(dq)]);
   return poly;
 }
+\end{lstlisting}
 
+\algobox
+  {Encontrar o menor prefixo $k$ de retas que confina a origem ao disco aberto $|p| < R$ (ou $-1$ se nunca confina).}
+  {Orienta-se cada reta para deixar a origem à esquerda, acrescenta-se uma bounding box $[-2R, 2R]^2$ e faz-se busca binária em $k$: o prefixo confina sse todo vértice da interseção de semiplanos satisfaz $|v|^2 < R^2$.}
+  {A função $|p|^2$ é convexa, logo seu máximo sobre um polígono convexo ocorre em algum vértice; além disso, adicionar semiplanos só encolhe a região viável, garantindo monotonicidade para a busca binária.}
+  {Menor prefixo de cortes lineares que limita uma região a um raio/área alvo.}
+  {Retas passando exatamente pela origem têm orientação indefinida e precisam de tratamento à parte; retornar $-1$ se nem $k = n$ confinar.}
+  {$\Ocomp{N \log^2 N}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 int min_prefix_confining_origin(ld R, const vector<pair<Pld, Pld>>& lines) {
   int n = sz(lines);
   ld B = 2.0L * R + 100.0L;
@@ -602,10 +668,12 @@ int min_prefix_confining_origin(ld R, const vector<pair<Pld, Pld>>& lines) {
 
 \subsubsection{Rotating Line Sweep ($\binom{N}{2}$ Retas) e Contagem de Quadriláteros}
 \algobox
-  {Dado um conjunto de $N$ pontos em posição geral (sem 3 colineares) e um limiar de área $S$, contar quantos quadriláteros simples (convexos ou côncavos) possuem área $\ge S$.}
-  {Mantém-se a permutação dos pontos ordenada pela projeção perpendicular a uma reta que gira $180^\circ$ passando por todos os $\binom{N}{2}$ pares $(u, v)$. No evento $(u, v)$, dois ponteiros sobre lados opostos de $uv$ acumulam em $T_{\text{opp}}$ todos os pares $(P, Q)$ com $2\text{Área}(\triangle Puv) + 2\text{Área}(\triangle Quv) \ge 2S$; cada quadrilátero convexo é contado $2$ vezes e cada côncavo $1$ vez ($T_{\text{opp}} = 2Q_{\text{conv}} + Q_{\text{conc}}$). Em paralelo, cada quadrilátero côncavo corresponde univocamente a uma aresta orientada $(A, B)$ e um par $(C, D)$ à esquerda de $AB$ com $D \in \triangle ABC$ e $2\text{Área}(\triangle ABC) - 2\text{Área}(\triangle ABD) \ge 2S$, fornecendo $Q_{\text{conc}}$; o total é $(T_{\text{opp}} + Q_{\text{conc}}) / 2$.}
-  {Operar com o dobro da área ($2S$) em inteiros exatos. A matriz de orientação utiliza bitmasks dinâmicas de 64 bits para eliminar limites estáticos.}
-  {Tempo: $\Ocomp{N^2 \log N + N^3}$ $\mid$ Espaço: $\Ocomp{N^3 / 64}$}
+  {Contar quadriláteros simples (convexos ou côncavos) com área $\ge S$ dentre $N$ pontos em posição geral (sem 3 colineares).}
+  {Girando uma reta pelos $\binom{N}{2}$ pares $(u, v)$, dois ponteiros nos lados opostos contam $T_{\text{opp}} = 2Q_{\text{conv}} + Q_{\text{conc}}$ pares $(P, Q)$ com $2\text{Área}(\triangle Puv) + 2\text{Área}(\triangle Quv) \ge 2S$. Em paralelo, bitmasks de orientação contam $Q_{\text{conc}}$ (triângulos $\triangle ABC$ contendo $D$ com diferença de área $\ge 2S$), retornando $(T_{\text{opp}} + Q_{\text{conc}}) / 2$.}
+  {A ordenação projetada na normal à reta giratória muda apenas por swaps adjacentes ao cruzar cada par $(u, v)$, mantendo os pontos ordenados por altura em relação a $uv$; cada convexo tem $2$ diagonais internas e cada côncavo tem $1$.}
+  {Contagem de triângulos/quadriláteros por limiar de área, problemas que precisam da ordem projetada para todas as $\binom{N}{2}$ direções.}
+  {Trabalhar sempre com $2S$ em inteiros exatos; assume posição geral (nenhum trio colinear) e requer \texttt{polar\_cmp}.}
+  {$\Ocomp{N^3}$ tempo, $\Ocomp{N^3 / 64}$ espaço}
 
 \begin{lstlisting}
 ll count_simple_quadrilaterals_area(ll S, vector<Pll> pts) {
@@ -683,10 +751,12 @@ ll count_simple_quadrilaterals_area(ll S, vector<Pll> pts) {
 
 \subsubsection{Envoltória Convexa, Soma de Minkowski e Ponto em Polígono Convexo $\Ocomp{\log N}$}
 \algobox
-  {(1) Envoltória convexa (Monotone Chain de Andrew) em $\Ocomp{N \log N}$; (2) Soma de Minkowski $P + Q = \{p + q : p \in P, q \in Q\}$ de dois polígonos convexos em $\Ocomp{|P| + |Q|}$; (3) Teste de pertinência em polígono convexo (borda inclusa) em $\Ocomp{\log |P|}$.}
-  {\textbf{1. Monotone Chain:} Ordena pontos por $(x, y)$, constrói as cadeias inferior e superior mantendo curvas estritamente à esquerda (\texttt{ccw > 0}). \textbf{2. Soma de Minkowski:} Rotacionando $P$ e $Q$ para iniciar no vértice de menor $(y, x)$, as arestas ficam ordenadas por ângulo polar; dois ponteiros mesclam as arestas em $\Ocomp{|P| + |Q|}$. Combinações afins como $a P + b Q$ (ex.\ conjunto de pontos médios via $2q \in P + Q$, $q \in 2P - Q$, $q \in 2Q - P$) reduzem-se a \texttt{scale\_polygon} + \texttt{minkowski\_sum}. \textbf{3. Pertinência:} Busca binária na triangulação em leque a partir de $P_0$.}
-  {Ao multiplicar um polígono CCW por $k < 0$, inverter a ordem dos vértices preserva a orientação CCW. Remover vértices colineares na saída de \texttt{minkowski\_sum} para garantir corretude de \texttt{point\_in\_convex\_polygon}.}
-  {Convex Hull: $\Ocomp{N \log N}$ $\mid$ Minkowski: $\Ocomp{|P| + |Q|}$ $\mid$ Pertinência: $\Ocomp{\log |P|}$}
+  {Computar a envoltória convexa (CCW) de $N$ pontos inteiros pelo algoritmo Monotone Chain de Andrew.}
+  {Ordenam-se e deduplicam-se os pontos por $(x, y)$; constroem-se as cadeias inferior e superior desempilhando enquanto o último trio não faz curva estritamente à esquerda (\texttt{ccw <= 0}, ou \texttt{< 0} se incluir colineares).}
+  {Qualquer vértice que provoque curva à direita fica estritamente dentro do triângulo formado pelos vizinhos e jamais pode pertencer à fronteira do fecho convexo; cada ponto entra e sai da pilha no máximo uma vez.}
+  {Diâmetro (rotating calipers), menor cerca, pré-processamento para CHT estático, Minkowski e pertinência.}
+  {Com \texttt{include\_collinear = true}, pontos todos colineares precisam retornar logo após a cadeia inferior para não duplicar a volta.}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 vector<Pll> convex_hull(vector<Pll> pts, bool include_collinear = false) {
@@ -713,7 +783,17 @@ vector<Pll> convex_hull(vector<Pll> pts, bool include_collinear = false) {
   h.pop_back();
   return h;
 }
+\end{lstlisting}
 
+\algobox
+  {Calcular a Soma de Minkowski $P + Q = \{p + q : p \in P, q \in Q\}$ (e combinações afins $aP + bQ$) de dois polígonos convexos CCW.}
+  {Rotacionam-se $P$ e $Q$ para começar no menor vértice $(y, x)$ e mesclam-se suas arestas em ordem polar com dois ponteiros via \texttt{cross}; ao final, removem-se vértices colineares da borda.}
+  {As arestas de um polígono convexo CCW já estão ordenadas por ângulo polar a partir do vértice mais baixo; o contorno de $P + Q$ é exatamente a intercalação ordenada das arestas de $P$ e $Q$.}
+  {Distância mínima entre polígonos convexos (testar $0 \in P + (-Q)$), colisão de robô poligonal, conjuntos de pontos médios ($2q \in P + Q$).}
+  {Em \texttt{scale\_polygon} com $k < 0$, inverter os vértices $1 \dots n-1$ para preservar orientação CCW; entradas $P$ e $Q$ devem estar em CCW sem colineares.}
+  {$\Ocomp{|P| + |Q|}$ tempo, $\Ocomp{|P| + |Q|}$ espaço}
+
+\begin{lstlisting}
 vector<Pll> scale_polygon(vector<Pll> P, ll k) {
   for (auto& p : P) p = p * k;
   if (k < 0 && sz(P) > 2) reverse(P.begin() + 1, P.end());
@@ -755,7 +835,17 @@ vector<Pll> minkowski_sum(vector<Pll> P, vector<Pll> Q) {
     clean.pop_back();
   return clean;
 }
+\end{lstlisting}
 
+\algobox
+  {Decidir se um ponto \texttt{pt} pertence a um polígono convexo CCW (incluindo a borda) em tempo logarítmico.}
+  {Verifica-se se \texttt{pt} está dentro do cone entre $P_0 P_1$ e $P_0 P_{n-1}$, encontra-se por busca binária o maior \texttt{idx} com $\text{ccw}(P_0, P_{\text{idx}}, \text{pt}) \ge 0$ e testa-se $\text{ccw}(P_{\text{idx}}, P_{\text{idx}+1}, \text{pt}) \ge 0$.}
+  {As diagonais partindo de $P_0$ particionam o polígono em um leque angularmente monótono de triângulos $\triangle P_0 P_i P_{i+1}$; a busca binária localiza o único setor que contém o raio $P_0 \to \text{pt}$.}
+  {Múltiplas consultas de pertinência em envoltória convexa ou soma de Minkowski ($Q \le 10^6$).}
+  {O polígono $P$ deve estar estritamente em CCW e sem vértices colineares; caso contrário o teste das arestas extremas pode falhar.}
+  {$\Ocomp{\log |P|}$ tempo, $\Ocomp{1}$ espaço}
+
+\begin{lstlisting}
 bool point_in_convex_polygon(const vector<Pll>& P, const Pll& pt) {
   int n = sz(P);
   if (n == 0) return false;
@@ -776,10 +866,12 @@ bool point_in_convex_polygon(const vector<Pll>& P, const Pll& pt) {
 
 \subsubsection{Geometria de Círculos: Interseções, Tangentes e Área Comum}
 \algobox
-  {Interseção reta-círculo, interseção círculo-círculo, área de interseção de dois discos e tangentes comuns (externas e internas) entre dois círculos (ou ponto-círculo com $r_2 = 0$).}
-  {A projeção ortogonal do centro $O$ sobre a reta $AB$ fornece o pé $P$, com semicorda $h = \sqrt{r^2 - |P - O|^2}$. Para dois círculos a distância $d = |O_2 - O_1|$, a lei dos cossenos fornece $a = \frac{r_1^2 - r_2^2 + d^2}{2d}$ e $h = \sqrt{r_1^2 - a^2}$; a área comum é a soma dos dois segmentos circulares $\frac{1}{2} r_k^2 (\alpha_k - \sin \alpha_k)$.}
-  {Tratar círculos concêntricos ($d < \eps$) antes de dividir por $d$ e aplicar \texttt{clamp} antes de \texttt{acosl} e \texttt{max(0.0L, h2)} antes de \texttt{sqrtl}.}
-  {Tempo: $\Ocomp{1}$ por operação $\mid$ Espaço: $\Ocomp{1}$}
+  {Interseção reta-círculo, interseção círculo-círculo, área da interseção de dois discos e tangentes comuns externas/internas.}
+  {Reta-círculo projeta o centro na reta ($h = \sqrt{r^2 - |P - O|^2}$). Círculo-círculo usa lei dos cossenos $a = \frac{r_1^2 - r_2^2 + d^2}{2d}$ e $h = \sqrt{r_1^2 - a^2}$; a área soma $\frac{1}{2} r_k^2 (\alpha_k - \sin\alpha_k)$. Tangentes resolvem $v \cdot d = r_1 \mp r_2$ com $|v| = 1$ (ponto-círculo usa $r_2 = 0$).}
+  {Todas as fórmulas reduzem-se à base ortonormal $(d, d^\perp)$ definida pela reta dos centros, evitando casos verticais e resolvendo distâncias e ângulos por Pitágoras e lei dos cossenos.}
+  {Visibilidade com obstáculos circulares, menor caminho tangente a discos, interseção de áreas de cobertura.}
+  {Tratar círculos concêntricos ($d < \eps$) antes de dividir por $d$; aplicar \texttt{clamp} antes de \texttt{acosl} e \texttt{max(0.0L, h2)} antes de \texttt{sqrtl}.}
+  {$\Ocomp{1}$ tempo, $\Ocomp{1}$ espaço}
 
 \begin{lstlisting}
 vector<Pld> circle_line_isect(Pld c, ld r, Pld a, Pld b) {

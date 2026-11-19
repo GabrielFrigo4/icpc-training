@@ -10,10 +10,12 @@
 
 \subsubsection{Duas Mochilas Disjuntas e Subset Sum com Bitset Dinâmico}
 \algobox
-  {(1) Determinar a soma máxima distribuível em duas mochilas disjuntas de capacidades $C_1, C_2$ usando cada item no máximo uma vez; (2) Verificar alcançabilidade de soma em Subset Sum usando \texttt{std::bitset} com tamanho escolhido em tempo de compilação.}
-  {Em (1), mantém-se \texttt{dp[i][j] = 1} sse existem subconjuntos disjuntos de somas $i \le C_1$ e $j \le C_2$. Para cada peso $w$, itera-se $i$ de $C_1$ até $0$: inserir $w$ na primeira mochila aplica \texttt{dp[i + w] |= dp[i]}; inserir na segunda aplica \texttt{dp[i] |= (dp[i] << w)}. Em (2), a recursão de template dobra \texttt{MAX\_LEN} até superar o alvo, acelerando operações bit a bit por fator $64$.}
-  {Na DP de duas mochilas, o laço em $i$ deve ser estritamente decrescente para evitar reutilização do mesmo item. Validar $C_2 < \texttt{MAX\_C2}$ e ignorar pesos não positivos.}
-  {Duas Mochilas: $\Ocomp{N C_1 C_2 / 64}$ $\mid$ Subset Sum: $\Ocomp{N W / 64}$}
+  {Soma máxima distribuível em duas mochilas disjuntas de capacidades $C_1, C_2$ usando cada item no máximo uma vez.}
+  {Mantém-se \texttt{dp[i][j] = 1} sse existem subconjuntos disjuntos de somas $i \le C_1$ e $j \le C_2$. Para cada peso $w$, itera-se $i$ de $C_1$ até $0$: colocar $w$ na primeira mochila faz \texttt{dp[i + w] |= dp[i]}; na segunda faz \texttt{dp[i] |= (dp[i] << w)}.}
+  {A dimensão da segunda mochila é booleana e sofre apenas deslocamentos e uniões bit a bit, permitindo empacotar $64$ estados por palavra de máquina.}
+  {Particionar subconjunto de itens em dois contêineres/máquinas com capacidades moderadas ($C_1 C_2 \lesssim 10^8$).}
+  {Iterar $i$ estritamente em ordem decrescente para não reutilizar o mesmo item; validar $C_2 < \texttt{MAX\_C2}$ e ignorar $w \le 0$.}
+  {$\Ocomp{N C_1 C_2 / 64}$ tempo, $\Ocomp{C_1 C_2 / 64}$ espaço}
 
 \begin{lstlisting}
 template <int MAX_C2 = 1024>
@@ -32,7 +34,17 @@ int two_knapsack_max_sum(const vi& weights, int C1, int C2) {
     if (dp[i].test(j)) chmax(best, i + j);
   return best;
 }
+\end{lstlisting}
 
+\algobox
+  {Decidir alcançabilidade de soma alvo $W$ em Subset Sum com \texttt{std::bitset} dimensionado em tempo de compilação.}
+  {A recursão de template dobra \texttt{MAX\_LEN} até superar \texttt{target}; então aplica-se \texttt{bs |= (bs << w)} para cada peso $w \in [0, W]$ e testa-se o bit \texttt{target}.}
+  {Em C++, \texttt{std::bitset} exige tamanho constante; instanciar potências de $2$ limita o desperdício a menos de $2\times$ e mantém o ganho de $64\times$ sobre palavras de 64 bits.}
+  {Subset Sum com $\sum w_i$ grande (até $10^6$), partição equilibrada, decomposição em somas possíveis.}
+  {Ajustar o teto \texttt{1 << 20} se \texttt{target} puder superá-lo; filtrar $w < 0$ ou $w > \texttt{target}$ antes do deslocamento.}
+  {$\Ocomp{N W / 64}$ tempo, $\Ocomp{W / 64}$ espaço}
+
+\begin{lstlisting}
 template <int MAX_LEN = 1>
 bool subset_sum_bitset(const vi& weights, int target) {
   if (target < 0) return false;
@@ -51,10 +63,12 @@ bool subset_sum_bitset(const vi& weights, int target) {
 
 \subsubsection{DP com Transição em Janela e Soma de Prefixos Ponderada}
 \algobox
-  {(1) Acelerar transições de DP da forma $dp_{t+1}[j] = \sum_{i : T[i][j] \in [L_t, R_t]} dp_t[i]$ quando cada linha $T[i]$ está ordenada; (2) Avaliar recorrências com peso linear $dp[w][b] = \sum_{k=1}^{w} (w - k + 1)\, dp[k][b - w]$ em $\Ocomp{1}$ por estado.}
-  {Em (1), determinam-se os limites $[l, r]$ por busca binária em $T[i]$ e propaga-se $dp_t[i]$ ao intervalo $[l, r]$ via array de diferenças em $\Ocomp{1}$, reconstruindo $dp_{t+1}$ por soma de prefixos. Em (2), fatora-se $(w - k + 1) = (w + 1) - k$, resultando em $dp[w][b] = (w + 1)P_1[w][b - w] - P_2[w][b - w]$, onde $P_1[w][r] = \sum_{k=1}^w dp[k][r]$ e $P_2[w][r] = \sum_{k=1}^w k \cdot dp[k][r]$.}
-  {No array de diferenças, normalizar subtrações módulo $M$ somando $M$ antes do resto. Na recorrência ponderada, tratar o caso base $b = w$ com contribuição unitária.}
-  {Janela: $\Ocomp{N K \log K}$ $\mid$ Prefixos Ponderados: $\Ocomp{S \cdot B}$}
+  {Acelerar transições $dp_{t+1}[j] = \sum_{i : T[i][j] \in [L_t, R_t]} dp_t[i] \pmod M$ quando cada linha $T[i]$ é ordenada.}
+  {Para cada estado $i$, busca binária em $T[i]$ acha o intervalo contíguo $[l, r]$ de destinos válidos; propaga-se $dp_t[i]$ em $\Ocomp{1}$ via array de diferenças e reconstrói-se $dp_{t+1}$ por soma de prefixos.}
+  {A ordenação de $T[i]$ transforma a condição de faixa $[L_t, R_t]$ em um intervalo contíguo de índices, eliminando o laço interno sobre $j$.}
+  {Contagem de caminhos em camadas onde transições válidas dependem de uma faixa de pesos/distâncias por passo.}
+  {Normalizar subtrações módulo $M$ somando $M$ antes do resto; garantir que cada linha $T[i]$ esteja ordenada crescentemente.}
+  {$\Ocomp{N K \log K}$ tempo, $\Ocomp{K}$ espaço auxiliar}
 
 \begin{lstlisting}
 ll dp_window_transitions(int K, const vector<vll>& T,
@@ -79,7 +93,17 @@ ll dp_window_transitions(int K, const vector<vll>& T,
   for (ll x : dp) ans = (ans + x) % MOD;
   return ans;
 }
+\end{lstlisting}
 
+\algobox
+  {Avaliar recorrências com peso linear $dp[w][b] = \sum_{k=1}^{w} (w - k + 1)\, dp[k][b - w]$ em $\Ocomp{1}$ por estado.}
+  {Fatora-se $(w - k + 1) = (w + 1) - k$, dando $dp[w][b] = (w + 1) P_1[w][b - w] - P_2[w][b - w]$, onde $P_1[w][r] = \sum_{k=1}^w dp[k][r]$ e $P_2[w][r] = \sum_{k=1}^w k \cdot dp[k][r]$.}
+  {Qualquer kernel polinomial em $k$ de grau $d$ na soma de transição se decompõe em $d + 1$ somas de prefixos independentes de $w$, derrubando um fator $\Ocomp{S}$.}
+  {Contagem de pilhas/escadas/árvores com $w - k + 1$ posições de encaixe entre camadas consecutivas.}
+  {Tratar o caso base $b = w$ com valor $1$ e normalizar \texttt{val < 0} após a subtração modular.}
+  {$\Ocomp{S \cdot B}$ tempo, $\Ocomp{S \cdot B}$ espaço}
+
+\begin{lstlisting}
 ll dp_weighted_prefix_layers(int S, int B) {
   constexpr ll MOD = 1000000007;
   if (B < S) return 0;
@@ -105,10 +129,12 @@ ll dp_weighted_prefix_layers(int S, int B) {
 
 \subsubsection{Subsequência Universal (Guloso + Bitmask DP) e SOS DP}
 \algobox
-  {(1) Dado $V \in \{1, \dots, K\}^N$, decidir se toda permutação de $\{1, \dots, K\}$ ocorre como subsequência de $V$, construindo uma permutação ausente em caso negativo; (2) Computar somas sobre subconjuntos e superconjuntos (SOS DP) em $\Ocomp{B 2^B}$.}
-  {A menor supersequência contendo todas as $K!$ permutações tem comprimento $\Omega(K^2)$. Para $K > 20$, escolhem-se gulosamente os primeiros $K - 20$ elementos priorizando o símbolo não usado cuja próxima ocorrência em $V$ é a mais tardia. Sobre os $M = \min(K, 20)$ elementos restantes, executa-se Bitmask DP onde \texttt{dp[mask]} armazena o maior índice alcançável após consumir os elementos de \texttt{mask}; se \texttt{dp[mask] > N}, reconstrói-se a permutação ausente. Na SOS DP, acumula-se dimensão por dimensão (bit a bit) evitando contagem dupla.}
-  {Em \texttt{nxt[pos][c]}, usar sentinela $N$ para ausência de ocorrência; após somar $1$, qualquer posição $> N$ caracteriza falha de subsequência. Na SOS DP de superconjuntos, iterar máscaras em ordem decrescente.}
-  {Subsequência: $\Ocomp{N K + M 2^M}$ ($M \le 20$) $\mid$ SOS DP: $\Ocomp{B 2^B}$}
+  {Decidir se toda permutação de $\{1, \dots, K\}$ é subsequência de $V \in \{1, \dots, K\}^N$, devolvendo uma ausente se não.}
+  {Para $K > 20$, escolhem-se gulosamente $K - 20$ símbolos não usados com próxima ocorrência mais tardia em $V$. Nos $M = \min(K, 20)$ restantes, \texttt{dp[mask]} guarda o maior índice alcançável após consumir \texttt{mask}; se \texttt{dp[mask] > N}, reconstrói-se a permutação.}
+  {Uma supersequência universal exige comprimento $\Omega(K^2)$: para $K > 20$ e $N$ típico de maratona, o guloso já esgota $V$ ou reduz o problema a $M \le 20$ onde a Bitmask DP é exata.}
+  {Verificar se uma string contém todas as permutações de um alfabeto ou construir o contraexemplo mais curto.}
+  {Usar sentinela $N$ em \texttt{nxt[pos][c]}: somar $+1$ produz $> N$ apenas quando o símbolo não existe a partir de \texttt{pos}.}
+  {$\Ocomp{N K + M 2^M}$ tempo ($M \le 20$), $\Ocomp{N K + 2^M}$ espaço}
 
 \begin{lstlisting}
 vi find_missing_permutation_subseq(int N, int K, const vi& V) {
@@ -157,7 +183,17 @@ vi find_missing_permutation_subseq(int N, int K, const vi& V) {
   if (dp[full - 1] > N) return reconstruct(full - 1);
   return {};
 }
+\end{lstlisting}
 
+\algobox
+  {Computar $F[\text{mask}] = \sum_{s \subseteq \text{mask}} f[s]$ (subconjuntos) ou $\sum_{s \supseteq \text{mask}} f[s]$ (superconjuntos) para todas as $2^B$ máscaras.}
+  {Acumula-se in-place dimensão por dimensão: no bit $i$, cada máscara com bit $i = 1$ (ou $0$, para superconjuntos) soma o valor da máscara vizinha que difere apenas no bit $i$.}
+  {Tratar a máscara como ponto em $\{0, 1\}^B$ equivale a fazer soma de prefixos $B$-dimensional; processar um eixo por vez garante que cada subconjunto seja somado exatamente uma vez.}
+  {Convolução OR/AND (Zeta Transform), contagem de pares com \texttt{a \& b == 0}, inclusão-exclusão em bitmasks.}
+  {O laço externo deve ser sobre o bit $i$ (não sobre \texttt{mask}); para superconjuntos, iterar \texttt{mask} decrescente se reutilizar o mesmo vetor.}
+  {$\Ocomp{B 2^B}$ tempo, $\Ocomp{2^B}$ espaço}
+
+\begin{lstlisting}
 void sos_dp_subsets(vll& f, int B) {
   rep(i, 0, B) rep(mask, 0, 1 << B)
     if ((mask >> i) & 1) f[mask] += f[mask ^ (1 << i)];
@@ -171,9 +207,11 @@ void sos_dp_supersets(vll& f, int B) {
 \subsubsection{DP de Médias de Prefixo com Colapso Harmônico}
 \algobox
   {Contar sequências $a_1, \dots, a_N \in \{1, \dots, K\}$ tais que $i \mid \sum_{j=1}^i a_j$ para todo $1 \le i \le N$ ($\bmod\, 998244353$).}
-  {Definindo a média inteira $m_i = \frac{1}{i}\sum_{j=1}^i a_j \in [1, K]$, tem-se $a_i = i m_i - (i - 1)m_{i-1} = m_{i-1} + i(m_i - m_{i-1})$. Como $a_i \in [1, K]$, para $i > K$ a única escolha válida é $m_i = m_{i-1}$ (sequência estacionária). Para cada $i \le \min(N, K)$, a variação $d = m_i - m_{i-1}$ assume $\Ocomp{K / i}$ valores, limitando o trabalho total pela série harmônica $\sum_{i=2}^{K} K \cdot \frac{K}{i} = \Ocomp{K^2 \log K}$.}
-  {Tratar $N = 1$ corretamente (o laço $i = 2 \dots \min(N, K)$ não executa e retorna $K$). Manter apenas dois vetores de tamanho $K + 1$.}
-  {Tempo: $\Ocomp{K^2 \log K}$ $\mid$ Espaço: $\Ocomp{K}$}
+  {Com $m_i = \frac{1}{i}\sum_{j=1}^i a_j \in [1, K]$, vale $a_i = m_{i-1} + i(m_i - m_{i-1})$. Para $i > K$, exige-se $m_i = m_{i-1}$; para $i \le \min(N, K)$, $d = m_i - m_{i-1}$ percorre $[-\lfloor(m_{i-1}-1)/i\rfloor, \lfloor(K - m_{i-1})/i\rfloor]$.}
+  {Um passo de tamanho $i$ dentro do intervalo $[1, K]$ só admite $\Ocomp{K / i}$ saltos possíveis; somando sobre $i = 2 \dots K$, o trabalho colapsa na série harmônica $K^2 H_K$.}
+  {DPs de contagem com restrições de divisibilidade crescente ou saltos múltiplos do índice $i$.}
+  {Para $N = 1$, o laço $i = 2 \dots \min(N, K)$ não executa e o retorno deve ser $K$; manter \texttt{dp[0] = 0}.}
+  {$\Ocomp{K^2 \log K}$ tempo, $\Ocomp{K}$ espaço}
 
 \begin{lstlisting}
 ll count_divisible_prefix_avg(ll N, int K) {
@@ -204,10 +242,12 @@ ll count_divisible_prefix_avg(ll N, int K) {
 
 \subsubsection{Broken Profile DP em Grades Estreitas ($2 \times N$ / $H \times N$)}
 \algobox
-  {Contagem ou otimização de configurações em grades estreitas $H \times N$ ($H$ pequeno, ex. $H = 2$) com restrições locais de conectividade, acoplamento entre colunas adjacentes ou estrutura de grafo funcional (fluxo de entrada/saída, ciclos e alcance).}
-  {Processa-se a grade coluna a coluna mantendo o estado da fronteira entre as colunas $j$ e $j + 1$. Cada perfil $p \in [0, S)$ codifica a classe de equivalência da fronteira (arestas cruzando o corte, componentes ou ciclos abertos e estado de alcance). A transição de uma coluna para a seguinte forma um autômato esparso de arestas $(p \to p', \Delta k, w)$, onde $\Delta k \in [0, H]$ é o incremento na contagem de células válidas e $w$ é a multiplicidade da coluna. A tabela \texttt{dp[p][k]} acumula o número de prefixos terminando no perfil $p$ com métrica total $k$.}
-  {Restringir transições na primeira e na última coluna para proibir arestas saindo da grade e filtrar apenas perfis finais sem pendências abertas. Alternar dois buffers para limitar a memória a $\Ocomp{S \cdot H N}$.}
-  {Sem contagem por tamanho: $\Ocomp{N \cdot |E_{\text{prof}}|}$ $\mid$ Exata por $k$: $\Ocomp{H N^2 \cdot |E_{\text{prof}}|}$}
+  {Contar configurações em grades estreitas $H \times N$ ($H$ pequeno) indexadas por perfil de fronteira $p$ e métrica acumulada $k$.}
+  {Processa-se a grade coluna a coluna sobre um autômato esparso de transições $(p \to p', \Delta k, w)$, acumulando \texttt{ndp[to][k + delta] += dp[p][k] * ways} módulo \texttt{MOD} com limite ativo $k \le H \cdot \text{col}$.}
+  {Toda interação entre as colunas $\le j$ e $> j$ atravessa apenas o corte de altura $H$, logo comprimir o prefixo na classe de equivalência da fronteira preserva a propriedade de Markov.}
+  {Ladrilhamento, ciclos hamiltonianos, conectividade, fluxo ou grafos funcionais em grades $2 \times N$ / $3 \times N$.}
+  {Proibir arestas saindo da grade na 1ª e última colunas e somar apenas perfis finais sem pendências abertas.}
+  {$\Ocomp{H N^2 \cdot |E_{\text{prof}}|}$ tempo, $\Ocomp{S \cdot H N}$ espaço}
 
 \begin{lstlisting}
 struct ProfEdge { int to, delta; ll ways; };
@@ -241,10 +281,12 @@ vector<vll> profile_dp_grid(
 
 \subsubsection{Sequências Não-Decrescentes e Transformação de Caminhos de Dyck}
 \algobox
-  {Reduzir operações sobre strings balanceadas (\texttt{U}/\texttt{D}) de comprimento $2n$ para transformações monotônicas sobre sequências não-decrescentes, resolvendo viabilidade, projeção ótima e distância de trocas adjacentes em $\Ocomp{n}$.}
-  {Todo caminho de Dyck de semi-comprimento $n$ está em bijeção com uma sequência não-decrescente $0 \le a_0 \le a_1 \le \dots \le a_{n-1}$ satisfazendo $a_i \le i$, onde $a_i$ é a quantidade de \texttt{D} precedendo o $(i+1)$-ésimo \texttt{U}. Uma troca adjacente \texttt{DU} $\leftrightarrow$ \texttt{UD} altera exatamente um $a_i$ em $\pm 1$, logo a distância mínima entre caminhos $A$ e $B$ é $\sum_{i=0}^{n-1} |a_i - b_i|$. Sob restrições locais $L_i \le x_i \le R_i$, a varredura da direita para a esquerda impõe o teto monotônico $R_i \gets \min(R_i, i, R_{i+1})$, seguida pela varredura esquerda-direita $L_i \gets \max(L_i, 0, L_{i-1})$.}
-  {Qualquer índice com $L_i > R_i$ após o relaxamento indica inviabilidade. Na reconstrução de \texttt{nondec\_to\_dyck}, emitir os símbolos \texttt{D} remanescentes ao final para fechar o balanço.}
-  {Tempo: $\Ocomp{n}$ $\mid$ Espaço: $\Ocomp{n}$}
+  {Converter caminhos de Dyck (\texttt{U}/\texttt{D}) em sequências não-decrescentes para viabilidade sob faixas $[L_i, R_i]$ e distância de trocas adjacentes.}
+  {Mapeia-se cada caminho de semi-comprimento $n$ em $0 \le a_0 \le \dots \le a_{n-1}$ com $a_i \le i$ (quantidade de \texttt{D} antes do $(i+1)$-ésimo \texttt{U}). A distância por trocas adjacentes é $\sum |a_i - b_i|$; para faixas $[L_i, R_i]$, relaxa-se $R_i \gets \min(R_i, i, R_{i+1})$ da direita e $L_i \gets \max(L_i, 0, L_{i-1})$ da esquerda.}
+  {Uma troca adjacente \texttt{DU} $\leftrightarrow$ \texttt{UD} altera exatamente um $a_i$ em $\pm 1$ sem mover os demais; logo a métrica de trocas em strings balanceadas torna-se norma $L_1$ sobre o cone monotônico $a_i \le i$.}
+  {Distância de edição por swaps entre sequências de parênteses, construção de caminho de Dyck sob limites por posição.}
+  {Se $L_i > R_i$ após o relaxamento, não existe solução; em \texttt{nondec\_to\_dyck}, completar com \texttt{D} até $d = n$.}
+  {$\Ocomp{n}$ tempo, $\Ocomp{n}$ espaço}
 
 \begin{lstlisting}
 vi dyck_to_nondec(const string& s) {
@@ -297,10 +339,12 @@ ll dyck_swap_distance(const vi& a, const vi& b) {
 
 \subsubsection{Números Mahonianos e $K$-ésima Permutação por Inversões}
 \algobox
-  {Encontrar a $K$-ésima permutação de $\{1, \dots, N\}$ ($N \le 2 \cdot 10^5$, $K \le 4 \cdot 10^{18}$) sob ordenação primária pelo número de inversões e secundária lexicográfica.}
-  {Seja $dp[n][inv]$ o número de permutações de tamanho $n$ com exatamente $inv$ inversões: $dp[n][inv] = \sum_{c=0}^{\min(n-1, inv)} dp[n-1][inv - c]$, saturado em $I_{\infty} > K$. Como $\sum_{inv=0}^{210} dp[N][inv] > 4 \cdot 10^{18}$ para todo $N \ge 21$, o número de inversões $I$ da $K$-ésima permutação nunca excede $I_{\max} = 210$. Determina-se $I$ subtraindo $dp[N][0], dp[N][1], \dots$ de $K$ e reconstrói-se a permutação posição a posição escolhendo o número $c$ de novas inversões e extraindo o $(c+1)$-ésimo elemento disponível via Fenwick Tree (Cap.~2).}
-  {Evitar subtração de somas de prefixos saturadas (causaria underflow); quando $lo > 0$, acumular diretamente os termos de $lo$ até $inv$ com adição saturada.}
-  {Tempo: $\Ocomp{N \cdot I_{\max} + N \log N}$ $\mid$ Espaço: $\Ocomp{N \cdot I_{\max}}$}
+  {Encontrar a $K$-ésima permutação de $\{1, \dots, N\}$ ($K \le 4 \cdot 10^{18}$) ordenada por número de inversões e depois lexicograficamente.}
+  {Computa-se $dp[n][inv] = \sum_{c=0}^{\min(n-1, inv)} dp[n-1][inv - c]$ saturado em $I_\infty > K$ até $I_{\max} = 210$. Acha-se o total $I$ de inversões subtraindo $dp[N][0], dp[N][1], \dots$ de $K$ e reconstrói-se a permutação posição a posição escolhendo $c$ e extraindo o $(c+1)$-ésimo disponível via Fenwick Tree.}
+  {O número de permutações com $\le 210$ inversões já supera $4 \cdot 10^{18}$ para $N \ge 21$, restringindo o estado de inversões a uma constante pequena; fixado $I$, escolher o $(c+1)$-ésimo menor disponível gera exatamente $c$ inversões com o sufixo.}
+  {$K$-ésima permutação ordenada por inversões, contagem de permutações com orçamento limitado de trocas adjacentes.}
+  {Nunca subtrair prefixos saturados (causa erro/underflow): para $lo > 0$, somar diretamente os termos de $lo$ a $inv$ com \texttt{add\_sat}.}
+  {$\Ocomp{N \cdot I_{\max} + N \log N}$ tempo, $\Ocomp{N \cdot I_{\max}}$ espaço}
 
 \begin{lstlisting}
 vi kth_permutation_by_inversions(int N, ll K) {
@@ -348,13 +392,12 @@ vi kth_permutation_by_inversions(int N, ll K) {
 
 \subsubsection{DP de Intervalos Minimax em $\Ocomp{N^2}$ com Deque Monotônico}
 \algobox
-  {Minimizar o custo no pior caso de uma árvore de busca sobre $N$ pontos ordenados $X_1 \le \dots \le X_N$ (custos de teste $D_1, \dots, D_N$) e $N + 1$ folhas com custos terminais $F_1, \dots, F_{N+1}$, onde o deslocamento entre $X_i$ e $X_j$ custa $|X_i - X_j|$ e a busca inicia em $X_1$.}
-  {Em qualquer subproblema sobre o intervalo de folhas $[l, r]$, a posição atual reside em uma das bordas ($l - 1$ ou $r$). Definem-se $L[l][r]$ (início em $\max(1, l - 1)$) e $R[l][r]$ (início em $r$):
-  $L[l][r] = \min_{l \le k < r}\{(X_k - X_{\max(1, l-1)}) + D_k + \max(R[l][k], L[k+1][r])\}$,
-  $R[l][r] = \min_{l \le k < r}\{(X_r - X_k) + D_k + \max(R[l][k], L[k+1][r])\}$.
-  Fixados $l, r$, $R[l][k]$ é não-decrescente em $k$ e $L[k+1][r]$ é não-crescente em $k$. O ponto de cruzamento $p(l, r)$ onde $R[l][k] \ge L[k+1][r]$ desloca-se monotonamente, eliminando o operador $\max$ e reduzindo cada transição para $\Ocomp{1}$ amortizado via deques monotônicos.}
-  {Casos base: $L[i][i] = R[i][i] = F_i$. Para $r$ fixo, varrer $l$ de $r - 1$ decrescendo até $1$ para preservar monotonicidade de \texttt{split}.}
-  {Tempo: $\Ocomp{N^2}$ $\mid$ Espaço: $\Ocomp{N^2}$}
+  {Minimizar o pior caso de uma árvore de busca sobre $X_1 \le \dots \le X_N$ com custos de teste $D_i$, folhas $F_i$ e deslocamento $|X_i - X_j|$.}
+  {Definem-se $L[l][r]$ (início em $\max(1, l-1)$) e $R[l][r]$ (início em $r$) com transição $\min_k \{\text{dist} + D_k + \max(R[l][k], L[k+1][r])\}$. Um ponteiro \texttt{split} separa a região onde $R[l][k] \le L[k+1][r]$ da complementar, reduzindo cada ramo a mínimo em janela via deques monotônicos.}
+  {Fixados $l, r$, $R[l][k]$ cresce com $k$ enquanto $L[k+1][r]$ decresce; logo o ponto de cruzamento \texttt{split} move-se monotonicamente ao decrescer $l$, eliminando o $\max$ e mantendo $\Ocomp{1}$ amortizado por estado.}
+  {Busca binária ótima minimax com custo de movimento físico (ovos/testes em linha, busca com deslocamento).}
+  {Base $L[i][i] = R[i][i] = F_i$; para $r$ fixo, iterar $l$ estritamente de $r - 1$ até $1$ para preservar monotonicidade de \texttt{split}.}
+  {$\Ocomp{N^2}$ tempo, $\Ocomp{N^2}$ espaço}
 
 \begin{lstlisting}
 ll minimax_interval_search(const vll& X_in, const vll& D_in, const vll& F_in) {
@@ -410,10 +453,12 @@ ll minimax_interval_search(const vll& X_in, const vll& D_in, const vll& F_in) {
 
 \subsubsection{Árvore Cartesiana e Partição em $k$ Subarrays (Soma de Máximos)}
 \algobox
-  {(1) Construir a Árvore Cartesiana de máximo em $\Ocomp{N}$; (2) Para todo $k \in [1, N]$, calcular o mínimo e o máximo de $\sum_{m=1}^k \max(S_m)$ sobre partições de um array $A$ em $k$ subarrays contíguos.}
-  {O máximo para $k$ partes é a soma dos $k$ maiores elementos de $A$, pois estes podem sempre ser isolados por $k - 1$ cortes. Para o mínimo, na recorrência $dp[k][i] = \min_{j < i}(dp[k-1][j] + \max_{j < p \le i} A_p)$, mantém-se uma pilha monotônica decrescente de blocos onde cada entrada agrega o menor $dp[k-1][j]$ do intervalo dominado por $A_p$ e o melhor custo prefixado da pilha, computando cada camada em $\Ocomp{N}$.}
-  {Reinicializar posições inválidas ($i < k$) com $+\infty$ ao avançar a camada $k$.}
-  {Cartesian Tree: $\Ocomp{N}$ $\mid$ Partições: $\Ocomp{N^2}$ tempo, $\Ocomp{N}$ espaço}
+  {Construir a Árvore Cartesiana de máximo de um vetor $A$ (raiz + filhos esquerdo e direito) em tempo linear.}
+  {Mantém-se em pilha a espinha direita da árvore: ao inserir $i$, desempilham-se índices com $A[x] < A[i]$ tornando o último filho esquerdo de $i$, e liga-se $i$ como filho direito do novo topo.}
+  {A travessia in-order reproduz os índices $0 \dots n-1$ e a propriedade de max-heap garante que cada nó seja o máximo de seu subintervalo contíguo.}
+  {DP em árvore sobre máximos/mínimos de subarrays, maior retângulo em histograma, redução de RMQ para LCA.}
+  {Empates com \texttt{<} quebram à esquerda; usar \texttt{<=} se quiser o índice mais à direita como pai. Retorno de raiz é $-1$ se $A$ vazio.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 tuple<int, vi, vi> build_max_cartesian_tree(const vll& A) {
@@ -430,7 +475,17 @@ tuple<int, vi, vi> build_max_cartesian_tree(const vll& A) {
   }
   return {st.empty() ? -1 : st[0], L, R};
 }
+\end{lstlisting}
 
+\algobox
+  {Para todo $k \in [1, N]$, calcular o mínimo e o máximo de $\sum_{m=1}^k \max(S_m)$ sobre partições de $A$ em $k$ subarrays contíguos.}
+  {O máximo é a soma dos $k$ maiores elementos de $A$. Para o mínimo, $dp[k][i] = \min_{j<i}(dp[k-1][j] + \max_{j<p\le i} A_p)$ usa pilha monotônica decrescente onde cada bloco agrega o menor $dp[k-1][j]$ sob seu domínio e o melhor custo prefixado da pilha.}
+  {Todos os pontos de corte $j$ no mesmo platô de máximo compartilham o mesmo $A_p$, bastando guardar o menor $dp[k-1][j]$ do platô; fundir platôs dominados mantém cada elemento inserido e removido uma vez por camada.}
+  {Particionar sequência em $k$ blocos minimizando soma de máximos (cargas de lotes, agrupamento em páginas).}
+  {Reinicializar posições inválidas ($i < k$) com \texttt{INF} após cada camada $k$ para não contaminar a camada $k + 1$.}
+  {$\Ocomp{N^2}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 vector<pll> partition_sum_of_max(const vll& A) {
   int n = sz(A);
   static constexpr ll INF = 4000000000000000000LL;
@@ -469,10 +524,12 @@ vector<pll> partition_sum_of_max(const vll& A) {
 
 \subsubsection{Otimizações Clássicas: Divide \& Conquer DP e Knuth}
 \algobox
-  {Quando $C(j, i)$ satisfaz a desigualdade quadrangular $C(a, c) + C(b, d) \le C(a, d) + C(b, c)$ para $a \le b \le c \le d$: (1) \textbf{D\&C DP} para $dp[k][i] = \min_{j < i}(dp[k-1][j] + C(j, i))$ satisfaz $\text{opt}[k][i] \le \text{opt}[k][i+1]$; (2) \textbf{Knuth} para $dp[l][r] = \min_{l \le k < r}(dp[l][k] + dp[k+1][r]) + C(l, r)$ satisfaz $\text{opt}[l][r-1] \le \text{opt}[l][r] \le \text{opt}[l+1][r]$.}
-  {A monotonicidade do ponto de divisão ótimo reduz a busca linear de $\Ocomp{N}$ por estado para $\Ocomp{\log N}$ (divisão recursiva em D\&C DP) ou $\Ocomp{1}$ amortizado (soma telescópica de intervalos em Knuth).}
-  {Validar a propriedade de Monge em instâncias pequenas. Em D\&C DP, limitar $k \le \min(\text{mid} - 1, \text{optR})$; em Knuth, garantir que $C$ seja também monótono no intervalo ($C(b, c) \le C(a, d)$).}
-  {D\&C DP: $\Ocomp{K N \log N}$ $\mid$ Knuth: $\Ocomp{N^2}$}
+  {Computar uma camada $ndp[i] = \min_{j < i}(dp[j] + C(j, i))$ quando o ponto ótimo é monótono ($\text{opt}[i] \le \text{opt}[i+1]$).}
+  {Calcula-se \texttt{mid = (l + r) / 2} testando $k \in [\text{optL}, \min(\text{mid} - 1, \text{optR})]$; depois recursiona-se à esquerda com $[\text{optL}, \text{best\_k}]$ e à direita com $[\text{best\_k}, \text{optR}]$.}
+  {A desigualdade quadrangular $C(a, c) + C(b, d) \le C(a, d) + C(b, c)$ ($a \le b \le c \le d$) garante que o corte ótimo nunca retrocede; assim cada nível da recursão percorre o intervalo de $k$ apenas $\Ocomp{N}$ vezes ao todo.}
+  {Particionar vetor em $K$ blocos com custo convexo/quadrangular (variância, distâncias 1D, inversões via ponteiros estilo Mo).}
+  {Testar a monotonicidade em casos pequenos antes de confiar; limitar $k \le \min(\text{mid} - 1, \text{optR})$ para evitar transições vazias.}
+  {$\Ocomp{K N \log N}$ tempo (para $K$ camadas), $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 template <class CostFunc>
@@ -488,7 +545,17 @@ void dnc_dp_layer(int l, int r, int optL, int optR,
   dnc_dp_layer(l, mid - 1, optL, best_k, dp, ndp, C);
   dnc_dp_layer(mid + 1, r, best_k, optR, dp, ndp, C);
 }
+\end{lstlisting}
 
+\algobox
+  {Resolver DP de intervalos $dp[l][r] = \min_{l \le k < r}(dp[l][k] + dp[k+1][r]) + C(l, r)$ em $\Ocomp{N^2}$ quando $C$ é quadrangular e monótono.}
+  {Processam-se intervalos por comprimento crescente; o ponto de corte ótimo satisfaz $\text{opt}[l][r-1] \le \text{opt}[l][r] \le \text{opt}[l+1][r]$, restringindo o laço em $k$ a essa janela.}
+  {Para comprimento fixo, os comprimentos das janelas $[\text{opt}[l][r-1], \text{opt}[l+1][r]]$ formam uma soma telescópica limitada por $2N$, totalizando $\Ocomp{N}$ iterações por diagonal.}
+  {Árvore binária de busca ótima, fusão de pedras/arquivos adjacentes, quebra ótima de barras/strings.}
+  {Exige ambas as condições: desigualdade quadrangular e monotonicidade de inclusão ($C(b, c) \le C(a, d)$ para $[b, c] \subseteq [a, d]$).}
+  {$\Ocomp{N^2}$ tempo, $\Ocomp{N^2}$ espaço}
+
+\begin{lstlisting}
 template <class CostFunc>
 ll knuth_interval_dp(int n, CostFunc C) {
   vector<vll> dp(n, vll(n, 0));
@@ -516,10 +583,12 @@ ll knuth_interval_dp(int n, CostFunc C) {
 
 \subsubsection{Esperança Modular sob Amostragem em Pares (Hipergeométrica)}
 \algobox
-  {Calcular $\mathbb{E}[f(k, s, m)] \bmod P$ quando $M \le 2N$ posições são selecionadas uniformemente sem reposição dentre $N$ pares disjuntos ($2N$ posições no total).}
-  {Se $k$ pares permanecem vazios, então $s = 2N - M - 2k$ pares possuem exatamente $1$ posição ocupada e $m = M - N + k$ pares ficam completamente cheios. A probabilidade exata dessa configuração é $P(k) = \frac{N!}{k!\, m!\, s!} 2^s \big/ \binom{2N}{M}$. Pré-computando fatoriais, inversos modulares e potências de $2$ em $\Ocomp{N}$, soma-se $P(k) \cdot f(k, s, m) \bmod P$ sobre todos os $k \in [0, N]$ válidos ($s \ge 0, m \ge 0$).}
-  {Exige $P$ primo com $P > 2N$ para inversão de $\binom{2N}{M}$. Garantir que o funcional $f(k, s, m)$ retorne valor já normalizado em $[0, P)$.}
-  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Calcular $\mathbb{E}[f(k, s, m)] \bmod P$ ao escolher $M \le 2N$ posições uniformemente sem reposição dentre $N$ pares disjuntos.}
+  {Com $k$ pares vazios, há $s = 2N - M - 2k$ pares unitários e $m = M - N + k$ cheios, de probabilidade $P(k) = \frac{N!}{k!\, m!\, s!} 2^s \big/ \binom{2N}{M}$. Soma-se $P(k) f(k, s, m) \bmod P$ sobre todos os $k \in [0, N]$ com $s, m \ge 0$.}
+  {A contagem fixa $(k, s, m)$ escolhe quais pares pertencem a cada tipo (multinomial) e qual dos $2$ elementos de cada par unitário é marcado ($2^s$), dividindo pelo espaço equiprovável $\binom{2N}{M}$.}
+  {Problemas de assentos em duplas, meias/sapatos pareados, amostragem sem reposição sobre $N$ pares idênticos.}
+  {Exige $P$ primo com $P > 2N$ para inverter $\binom{2N}{M}$; o retorno de $f(k, s, m)$ pode ser negativo apenas se normalizado ao final.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 template <class EvalFunc>
@@ -552,10 +621,12 @@ ll expected_pair_sampling_mod(int N, int M, EvalFunc f, ll MOD = 1000000007) {
 
 \subsubsection{DP de Valor Esperado por Ordem Relativa (Variáveis i.i.d.)}
 \algobox
-  {Calcular o valor esperado da soma de pesos $w_1 \le \dots \le w_N$ dos elementos não dominados de um conjunto $A$ de $N$ variáveis contínuas i.i.d. confrontado com pareamento ótimo de um conjunto $B$ de $N$ variáveis contínuas i.i.d.}
-  {Como variáveis contínuas i.i.d. têm empates de probabilidade zero, o resultado depende apenas da ordem relativa dos $2N$ valores. Processando do maior para o menor, o próximo elemento pertence a $A$ com probabilidade $\frac{a}{a + b}$ ou a $B$ com probabilidade $\frac{b}{a + b}$, sendo $a, b$ as quantidades restantes. Mantém-se o estado $(a, b, c)$, onde $c$ conta elementos maiores de $B$ disponíveis para dominar elementos subsequentes de $A$: se sai elemento de $A$ com $c = 0$, este é garantidamente não dominado e soma $w_a$; se $c > 0$, consome-se $c \gets c - 1$; se sai elemento de $B$, incrementa-se $c \gets c + 1$.}
-  {Ordenar os pesos $w$ de forma crescente ($w_0 \le \dots \le w_{N-1}$) para que a dominação gulosa decrescente seja ótima. Utilizar \texttt{long double} para estabilidade numérica.}
-  {Tempo: $\Ocomp{N^3}$ $\mid$ Espaço: $\Ocomp{N^2}$}
+  {Valor esperado da soma de pesos $w_1 \le \dots \le w_N$ dos elementos não dominados de $A$ contra pareamento ótimo de $B$ ($2N$ variáveis contínuas i.i.d.).}
+  {Processando os $2N$ valores do maior para o menor, o próximo pertence a $A$ com prob. $\frac{a}{a+b}$ ou a $B$ com $\frac{b}{a+b}$. No estado $(a, b, c)$ ($c$ excedentes de $B$), um elemento de $A$ com $c = 0$ soma $w_a$; com $c > 0$ consome $c \gets c - 1$; um de $B$ faz $c \gets c + 1$.}
+  {Para variáveis contínuas i.i.d., toda permutação relativa é equiprovável e empates têm medida zero; processar em ordem decrescente reduz o pareamento ótimo de dominação a um contador de saldo $c$ sem precisar dos valores reais.}
+  {Jogos de cartas/apostas contínuas i.i.d., pareamento máximo em grafo de limiar aleatório, valor esperado dependente só de ranks.}
+  {Passar $w$ já ordenado crescentemente ($w_0 \le \dots \le w_{N-1}$) para que o pareamento guloso decrescente seja ótimo.}
+  {$\Ocomp{N^3}$ tempo, $\Ocomp{N^2}$ espaço}
 
 \begin{lstlisting}
 ld expected_order_matching(const vector<ld>& w) {
@@ -579,10 +650,12 @@ ld expected_order_matching(const vector<ld>& w) {
 
 \subsubsection{DP Estocástica com Ciclos: Iteração de Valor (MDP) e Gauss}
 \algobox
-  {(1) Resolver Processos de Decisão de Markov (MDPs) ou jogos estocásticos com ciclos via Iteração de Valor (Bellman / Gauss-Seidel); (2) Resolver sistemas lineares densos $Ax = b$ para cadeias de Markov absorventes e DPs lineares cíclicas via Eliminação Gaussiana.}
-  {Em (1), cada estado $u \in [0, V)$ satisfaz $V(u) = \max_{a \in \mathcal{A}(u)} \bigl( r(u, a) + \gamma \sum_v P(v \mid u, a)\, V(v) \bigr)$. A atualização in-place converge geometricamente quando $\gamma < 1$ ou quando todo ciclo possui probabilidade estritamente menor que $1$ de permanência; em grafos decomponíveis em SCCs ou camadas de potencial decrescente, aplicar a iteração localmente em cada componente reduz o custo proporcionalmente. Em (2), pivotamento parcial sobre a matriz aumentada $[A \mid b]$ elimina variáveis em $\Ocomp{V^3}$.}
-  {Alocar sempre as tabelas em \texttt{std::vector} (heap) para evitar estouro de pilha. Em Eliminação Gaussiana, verificar pivô $< 10^{-12}$ para detectar singularidade.}
-  {Iteração de Valor: $\Ocomp{\text{iter} \cdot \sum |E|}$ $\mid$ Gauss: $\Ocomp{V^3}$}
+  {Resolver Processos de Decisão de Markov (MDPs) e DPs estocásticas com ciclos via Iteração de Valor (Bellman / Gauss-Seidel).}
+  {Atualiza-se in-place $V(u) = \max_{a \in \mathcal{A}(u)} \bigl( r(u, a) + \gamma \sum_v P(v \mid u, a) V(v) \bigr)$ até que a maior variação $\max_u |V_{\text{novo}}(u) - V(u)| < \eps$ ou atinja \texttt{max\_iter}.}
+  {Quando $\gamma < 1$ ou todo ciclo tem probabilidade $< 1$ de permanência, o operador de Bellman é uma contração na norma do supremo, garantindo ponto fixo único e convergência geométrica.}
+  {Jogos estocásticos com escolha de ação e reentradas/ciclos, tempo esperado ótimo com reinícios aleatórios.}
+  {Estados terminais devem ter \texttt{adj[u]} vazio (valor fixo $0$); se $\gamma = 1$ e houver ciclo de prob. $1$ com recompensa positiva, diverge.}
+  {$\Ocomp{\text{iter} \cdot \sum |E|}$ tempo, $\Ocomp{V}$ espaço}
 
 \begin{lstlisting}
 struct MDPAction {
@@ -611,7 +684,17 @@ vector<ld> value_iteration_mdp(
   }
   return val;
 }
+\end{lstlisting}
 
+\algobox
+  {Resolver sistema linear denso $Ax = b$ com solução única via Eliminação de Gauss-Jordan com pivotamento parcial.}
+  {Anexa-se $b$ a $A$; em cada coluna escolhe-se o pivô de maior módulo, normaliza-se a linha do pivô e zeram-se todas as demais entradas da coluna, deixando $x$ diretamente na última coluna.}
+  {Operações elementares de linha preservam o conjunto solução, e o pivotamento parcial evita divisão por números próximos de zero que amplificariam erros de arredondamento.}
+  {Cadeias de Markov absorventes, passeios aleatórios em grafos pequenos ($V \le 500$), circuitos resistivos e DPs lineares cíclicas.}
+  {Retorna vetor vazio se algum pivô tiver módulo $< 10^{-12}$ (matriz singular ou indeterminada); alocar $A$ em \texttt{vector}, nunca na stack.}
+  {$\Ocomp{V^3}$ tempo, $\Ocomp{V^2}$ espaço}
+
+\begin{lstlisting}
 vector<ld> gaussian_elimination(vector<vector<ld>> A, vector<ld> b) {
   int n = sz(A);
   rep(i, 0, n) A[i].pb(b[i]);

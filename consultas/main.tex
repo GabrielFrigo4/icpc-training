@@ -19,7 +19,8 @@
   \usepackage[utf8]{inputenc}
   \usepackage[T1]{fontenc}
   \usepackage{lmodern}
-  \IfFileExists{helvet.sty}{\usepackage[scaled=0.92]{helvet}\renewcommand{\familydefault}{\sfdefault}}{}
+  \IfFileExists{tgheros.sty}{\usepackage[scale=0.92]{tgheros}\renewcommand{\familydefault}{\sfdefault}}{%
+    \IfFileExists{helvet.sty}{\usepackage[scaled=0.92]{helvet}\renewcommand{\familydefault}{\sfdefault}}{}}
   \IfFileExists{zi4.sty}{\usepackage[scaled=0.84]{zi4}}{%
     \IfFileExists{FiraMono.sty}{\usepackage[scaled=0.80]{FiraMono}}{%
       \usepackage[scaled=0.80]{beramono}}}
@@ -48,6 +49,8 @@
 \usepackage{enumitem}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{needspace}
+\usepackage{etoolbox}
 \usepackage{microtype}
 \usepackage[hidelinks,bookmarks=false,pdfencoding=auto]{hyperref}
 
@@ -58,24 +61,26 @@
   pdfkeywords={ICPC, Maratona SBC, Fase Nacional 2026, C++23, Algorithms, Data Structures, TRD, UFABC}
 }
 
-\definecolor{dkgreen}{rgb}{0.0,0.40,0.16}
-\definecolor{dkblue}{rgb}{0.04,0.18,0.62}
-\definecolor{dkred}{rgb}{0.58,0.06,0.06}
+\definecolor{dkgreen}{rgb}{0.0,0.42,0.18}
+\definecolor{dkblue}{rgb}{0.04,0.20,0.64}
+\definecolor{dkred}{rgb}{0.60,0.06,0.06}
 \definecolor{dkpurple}{rgb}{0.42,0.06,0.48}
-\definecolor{codebg}{rgb}{0.985,0.988,0.992}
-\definecolor{rulecolor}{rgb}{0.72,0.75,0.80}
-\definecolor{secblue}{rgb}{0.06,0.20,0.42}
+\definecolor{codebg}{rgb}{0.976,0.982,0.990}
+\definecolor{rulecolor}{rgb}{0.66,0.71,0.78}
+\definecolor{algorule}{rgb}{0.38,0.52,0.72}
+\definecolor{secblue}{rgb}{0.05,0.20,0.44}
 
 \lstdefinestyle{icpcplain}{
-  basicstyle=\ttfamily\fontsize{5.65pt}{6.35pt}\selectfont,
+  basicstyle=\ttfamily\fontsize{5.65pt}{6.42pt}\selectfont,
   backgroundcolor=\color{codebg},
   frame=single,
+  framerule=0.35pt,
   rulecolor=\color{rulecolor},
-  framesep=1.0pt,
-  xleftmargin=1.5pt,
-  xrightmargin=1.5pt,
-  aboveskip=1.2pt,
-  belowskip=1.2pt,
+  framesep=1.5pt,
+  xleftmargin=2.0pt,
+  xrightmargin=2.0pt,
+  aboveskip=2.0pt plus 1.5pt,
+  belowskip=1.8pt plus 1.5pt,
   tabsize=4,
   breaklines=true,
   showstringspaces=false,
@@ -86,20 +91,21 @@
 
 \lstdefinestyle{icpccpp}{
   language=C++,
-  basicstyle=\ttfamily\fontsize{5.65pt}{6.35pt}\selectfont,
+  basicstyle=\ttfamily\fontsize{5.65pt}{6.42pt}\selectfont,
   keywordstyle=\color{dkblue}\bfseries,
   keywordstyle=[2]\color{dkpurple}\bfseries,
-  commentstyle=\color{dkgreen}\itshape,
+  commentstyle=\color{dkgreen},
   stringstyle=\color{dkred},
   numbers=none,
   backgroundcolor=\color{codebg},
   frame=single,
+  framerule=0.35pt,
   rulecolor=\color{rulecolor},
-  framesep=1.0pt,
-  xleftmargin=1.5pt,
-  xrightmargin=1.5pt,
-  aboveskip=1.2pt,
-  belowskip=1.2pt,
+  framesep=1.5pt,
+  xleftmargin=2.0pt,
+  xrightmargin=2.0pt,
+  aboveskip=2.0pt plus 1.5pt,
+  belowskip=1.8pt plus 1.5pt,
   tabsize=2,
   breaklines=true,
   breakatwhitespace=false,
@@ -117,29 +123,40 @@
 
 \lstset{style=icpccpp}
 
-\setlength{\columnsep}{0.35cm}
-\setlength{\columnseprule}{0.25pt}
+\setlength{\columnsep}{0.36cm}
+\setlength{\columnseprule}{0.3pt}
 \def\columnseprulecolor{\color{rulecolor}}
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{0.6pt}
+\setlength{\parskip}{0.8pt plus 0.4pt}
+\setlength{\lineskiplimit}{1.0pt}
+\setlength{\lineskip}{1.3pt}
 
-\setlist[itemize]{leftmargin=8pt,itemsep=0.2pt,topsep=0.5pt,parsep=0pt}
-\setlist[enumerate]{leftmargin=10pt,itemsep=0.2pt,topsep=0.5pt,parsep=0pt}
+\setlist[itemize]{leftmargin=8.5pt,itemsep=0.6pt,topsep=1.2pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=10.5pt,itemsep=0.6pt,topsep=1.2pt,parsep=0pt}
 
 \titleformat{\section}
-  {\normalfont\fontsize{8.2pt}{9.2pt}\selectfont\bfseries\color{secblue}}
-  {\thesection.}{0.3em}{}[\vspace{-1.5pt}\titlerule]
-\titlespacing*{\section}{0pt}{2.2pt}{1.0pt}
+  {\normalfont\fontsize{8.2pt}{9.5pt}\selectfont\bfseries\color{secblue}}
+  {\thesection.}{0.35em}{\strut}[\vspace{1.1pt}{\color{secblue!75}\titlerule[0.55pt]}\nopagebreak]
+\titlespacing*{\section}{0pt}{3.6pt plus 2pt}{2.0pt plus 0.5pt}
 
 \titleformat{\subsection}
-  {\normalfont\fontsize{7.2pt}{8.0pt}\selectfont\bfseries\color{black}}
-  {\thesubsection}{0.3em}{}
-\titlespacing*{\subsection}{0pt}{1.6pt}{0.6pt}
+  {\normalfont\fontsize{7.2pt}{8.3pt}\selectfont\bfseries\color{black}}
+  {\thesubsection}{0.32em}{\strut}[\vspace{0.7pt}{\color{rulecolor!85}\titlerule[0.3pt]}\nopagebreak]
+\titlespacing*{\subsection}{0pt}{2.8pt plus 1.5pt}{1.4pt plus 0.5pt}
 
 \titleformat{\subsubsection}
-  {\normalfont\fontsize{6.6pt}{7.4pt}\selectfont\bfseries\color{secblue!85!black}}
-  {\thesubsubsection}{0.25em}{}
-\titlespacing*{\subsubsection}{0pt}{1.2pt}{0.3pt}
+  {\normalfont\fontsize{6.6pt}{7.7pt}\selectfont\bfseries\color{secblue!90!black}}
+  {\thesubsubsection}{0.28em}{\strut}[\nopagebreak]
+\titlespacing*{\subsubsection}{0pt}{2.0pt plus 1.2pt}{0.8pt plus 0.4pt}
+
+\makeatletter
+\let\origsection\section
+\renewcommand{\section}{\if@nobreak\else\needspace{6\baselineskip}\fi\origsection}
+\let\origsubsection\subsection
+\renewcommand{\subsection}{\if@nobreak\else\needspace{5\baselineskip}\fi\origsubsection}
+\let\origsubsubsection\subsubsection
+\renewcommand{\subsubsection}{\if@nobreak\else\needspace{4\baselineskip}\fi\origsubsubsection}
+\makeatother
 
 \pagestyle{fancy}
 \fancyhf{}
@@ -156,30 +173,42 @@
 \newcommand{\ZZ}{\mathbb{Z}}
 \newcommand{\RR}{\mathbb{R}}
 
-\newcommand{\algobox}[4]{%
-  \par\vspace{0.5pt}%
-  {\color{secblue!40}\hrule height 0.35pt}%
-  \nopagebreak\vspace{0.8pt}%
-  {\raggedright\fontsize{5.85pt}{6.65pt}\selectfont%
-   \textbf{\color{secblue}Uso:} #1 \textbf{\color{secblue}Ideia:} #2\par%
-   \textbf{\color{dkred}Armadilhas:} #3 $\mid$ \textbf{\color{secblue}Complexidade:} #4\par}%
-  \nopagebreak\vspace{0.8pt}%
-  {\color{secblue!40}\hrule height 0.35pt}%
-  \vspace{0.8pt}\par%
+\newcommand{\algofield}[3]{%
+  \ifblank{#3}{}{\par\strut\textbf{\color{#1}#2:} #3\strut\par}%
+}
+
+\newcommand{\algobox}[6]{%
+  \par\addvspace{1.0pt plus 1.0pt}%
+  {\color{algorule}\hrule height 0.45pt}%
+  \nopagebreak\vspace{1.2pt plus 0.6pt}\nopagebreak%
+  \begingroup\raggedright\fontsize{5.85pt}{6.85pt}\selectfont%
+   \setlength{\lineskiplimit}{1.1pt}\setlength{\lineskip}{1.4pt}%
+   \setlength{\parskip}{0.5pt plus 0.5pt}%
+   \clubpenalty=10000\widowpenalty=10000%
+   \algofield{secblue}{Uso}{#1}\nopagebreak%
+   \algofield{secblue}{Ideia}{#2}%
+   \algofield{dkgreen}{Intuição}{#3}%
+   \algofield{dkpurple}{Modelagens}{#4}%
+   \algofield{dkred}{Armadilhas}{#5}%
+   \algofield{secblue}{Complexidade}{#6}%
+  \endgroup%
+  \nopagebreak\vspace{1.2pt plus 0.6pt}\nopagebreak%
+  {\color{algorule}\hrule height 0.45pt}%
+  \nopagebreak\vspace{0.6pt plus 0.8pt}\par\nopagebreak%
 }
 
 \begin{document}
 \begin{multicols*}{3}
 
 \begin{center}
-  {\normalsize\bfseries\color{secblue} UFABC — ICPC Team Reference Document}\\[0.5pt]
-  {\fontsize{6.2pt}{7pt}\selectfont\textbf{Versão ICPC Fase Nacional 2026 $\mid$ C++23 \& Python 3 Handbook}}
+  {\normalsize\bfseries\color{secblue} UFABC — ICPC Team Reference Document}\\[1.2pt]
+  {\fontsize{6.2pt}{7.2pt}\selectfont\textbf{Versão ICPC Fase Nacional 2026 $\mid$ C++23 \& Python 3 Handbook}}
 \end{center}
-\vspace{-4pt}
-\setcounter{tocdepth}{2}{\fontsize{5.8pt}{6.5pt}\selectfont\tableofcontents}
-\vspace{1pt}
-\hrule
-\vspace{1.5pt}
+\vspace{-2pt}
+{\setlength{\parskip}{0.2pt}\setcounter{tocdepth}{2}\fontsize{5.8pt}{6.7pt}\selectfont\tableofcontents}
+\vspace{2.0pt}
+{\color{secblue!75}\hrule height 0.5pt}
+\vspace{2.5pt}
 
 % ============================================================================
 % SECAO 0: AMBIENTE, TEMPLATES, MAKEFILE POSIX, COMPILACAO E EDITORES
@@ -223,10 +252,12 @@ main()
 
 \subsection*{0.2 Automação com Makefile POSIX}
 \algobox
-  {Automação portável compatível com GNU Make (\texttt{gmake}), BSD Make (\texttt{bmake}), BusyBox Make e POSIX Make.}
-  {\texttt{.POSIX:} força conformidade estrita via \texttt{sh}. \texttt{.SUFFIXES:} vazio limpa regras legadas e registra apenas \texttt{.cpp} e \texttt{.debug}. \texttt{[A-Z]} no \texttt{clean} apaga só os binários das questões.}
-  {Usar caractere \texttt{TAB} real na indentação. \texttt{CXXFLAGS} e \texttt{DBGFLAGS} unificam \texttt{-Wall -Wextra -Wconversion -Wshadow -std=c++23}.}
-  {Uso: \texttt{make A \&\& ./A < input.txt}}
+  {Compilar cada questão com um único comando, igual em GNU Make, BSD Make, BusyBox e POSIX Make.}
+  {\texttt{.POSIX:} força o modo portável. \texttt{.SUFFIXES:} vazio apaga as regras implícitas legadas; depois registram-se só \texttt{.cpp} e \texttt{.debug}, então \texttt{make A} compila \texttt{A.cpp} e \texttt{make A.debug} gera o binário com sanitizers.}
+  {}
+  {}
+  {Indentar receitas com \texttt{TAB} real. \texttt{clean} apaga \texttt{[A-Z]}, ou seja, só binários de uma letra.}
+  {\texttt{make A \&\& ./A < input.txt}}
 
 \begin{lstlisting}[style=icpcplain]
 .POSIX:
@@ -280,6 +311,15 @@ map <F5> :w<CR>:!c++ -O3 -Wall -Wextra -Wconversion -Wshadow -std=c++23 % -o %:r
 \end{itemize}
 
 \subsection*{0.5 Macros dos Capítulos, \texttt{\_\_int128}, Hash e Bits}
+
+\algobox
+  {Aliases, macros de laço, utilitários de \texttt{\_\_int128} e divisão inteira com piso/teto exato.}
+  {\texttt{floor\_div} e \texttt{ceil\_div} corrigem o truncamento em direção a zero do C++ para dividendos negativos, normalizando o sinal do divisor.}
+  {C++ trunca \texttt{-3 / 2 == -1}, mas o piso matemático é $-2$.}
+  {}
+  {Em \texttt{sz(x)}, o cast para \texttt{int} evita bugs de subtração com \texttt{size\_t} sem sinal.}
+  {$\Ocomp{1}$ (exceto I/O e \texttt{gcd128}: $\Ocomp{\log \min(a,b)}$)}
+
 \begin{lstlisting}
 using ll = long long;
 using ull = unsigned long long;
@@ -332,9 +372,17 @@ ll ceil_div(ll a, ll b) {
   if (b < 0) a = -a, b = -b;
   return a / b + (a % b > 0);
 }
+\end{lstlisting}
 
-/* Bits C++20 (<bit>): popcount(x), countr_zero(x), bit_width(x)-1, has_single_bit(x)
- * Submascaras: for (int s = m; s > 0; s = (s - 1) & m) */
+\algobox
+  {Truques de bits (C++20 \texttt{<bit>}), próxima máscara com mesmo popcount e \texttt{CustomHash} anti-hack para \texttt{unordered\_map}.}
+  {\texttt{popcount}, \texttt{countr\_zero}, $\lfloor \log_2 x \rfloor = $ \texttt{bit\_width(x)-1}, \texttt{has\_single\_bit}. Submáscaras de $m$: \texttt{for (int s = m; s > 0; s = (s - 1) \& m)}. \texttt{next\_bit\_perm(v)} gera o menor $w > v$ com mesmo popcount (Gosper's hack). \texttt{CustomHash} usa \texttt{splitmix64} com semente aleatória em tempo de execução.}
+  {O \texttt{std::hash} padrão do GCC é determinístico e toma TLE $\Ocomp{N^2}$ em casos anti-hash do Codeforces.}
+  {Enumerar $\binom{n}{k}$ máscaras de tamanho fixo; DP sobre submáscaras em $\Ocomp{3^n}$.}
+  {Funções de \texttt{<bit>} exigem tipo \texttt{unsigned}. O laço de submáscaras não visita $s = 0$.}
+  {$\Ocomp{1}$ por operação; todas as submáscaras: $\Ocomp{3^n}$}
+
+\begin{lstlisting}
 ull next_bit_perm(ull v) {
   ull t = v | (v - 1);
   return (t + 1) | (((~t & -~t) - 1) >> (countr_zero(v) + 1));

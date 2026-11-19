@@ -10,10 +10,12 @@
 
 \subsubsection{Rastreamento Reverso de Bits em Dobras Binárias}
 \algobox
-  {Dada uma sequência de $2^n$ elementos ($n \le 60$) submetida a $n$ dobras sucessivas ao meio (\texttt{'L'} ou \texttt{'R'}, sobrepondo uma metade invertida sobre a outra), determinar a sequência de dobras que conduz o índice inicial $p \in [0, 2^n - 1]$ à camada final $h \in [0, 2^n - 1]$.}
-  {Invertendo o processo do passo $n$ ao passo $1$, no passo $k$ a pilha possui $2^k$ camadas: se $h \ge 2^{k-1}$, o elemento estava na metade superior (invertida) e sua altura anterior era $2^k - 1 - h$; caso contrário, permaneceu na base sem inversão. Isso determina, para cada passo $k \in [0, n-1]$, o bit \texttt{flip[k]} indicando se a metade contendo o elemento foi dobrada por cima. Na simulação direta de $0$ a $n-1$, o bit mais significativo da posição horizontal relativa $p$ define a metade atual; combinar essa metade com \texttt{flip[k]} fixa a direção da dobra e atualiza $p$ (espelhando se invertido, ou deslocando se na direita sem inversão).}
-  {Usar \texttt{1ULL << b} (64 bits sem sinal) para evitar overflow em deslocamentos até $n = 60$. Entradas 1-based devem ser convertidas para 0-based antes da chamada.}
-  {Tempo: $\Ocomp{n}$ $\mid$ Espaço: $\Ocomp{n}$}
+  {Determinar a sequência de $n$ dobras (\texttt{'L'}/\texttt{'R'}) que leva o índice inicial $p \in [0, 2^n - 1]$ à camada final $h \in [0, 2^n - 1]$.}
+  {Retrocede-se do passo $n$ ao $1$: se $h \ge 2^{k-1}$, o elemento veio da metade invertida superior (\texttt{flip = true}, $h \leftarrow 2^k - 1 - h$). Depois simula-se de $0$ a $n-1$: comparar $p$ com $2^{n-1-k}$ e combinar com \texttt{flip[k]} fixa \texttt{'L'}/\texttt{'R'} e atualiza $p$.}
+  {A altura final $h$ determina univocamente em quais passos o elemento foi dobrado por cima; conhecendo esses bits de inversão, a posição horizontal $p$ fixa qual metade foi dobrada em cada etapa.}
+  {Dobras de papel, permutações hierárquicas em potências de $2$ com $n \le 60$, reconstrução reversa bit a bit.}
+  {Usar \texttt{1ULL << b} (64 bits sem sinal) para evitar overflow até $n = 60$. Converter $p$ e $h$ para 0-based antes da chamada.}
+  {$\Ocomp{n}$ tempo, $\Ocomp{n}$ espaço}
 
 \begin{lstlisting}
 string binary_fold_sequence(int n, ull p, ull h) {
@@ -43,12 +45,12 @@ string binary_fold_sequence(int n, ull p, ull h) {
 
 \subsubsection{Bases Palindrômicas e Enumeração de Divisores em $\Ocomp{\sqrt{N}}$}
 \algobox
-  {Dado um inteiro $N \ge 1$, listar em ordem crescente todas as bases $b \in [2, N]$ nas quais a representação posicional de $N$ na base $b$ é palindrômica.}
-  {Particiona-se o intervalo de bases em $\lfloor \sqrt{N} \rfloor$:
-  $\bullet$ $2 \le b \le \sqrt{N}$: extração direta dos dígitos de $N$ na base $b$ em $\Ocomp{\log_b N}$ e verificação de simetria.
-  $\bullet$ $\sqrt{N} < b \le N$: a representação de $N$ possui exatamente dois dígitos $(d_1 d_0)_b = d_1 b + d_0$ com $1 \le d_1 < b$. A condição de palíndromo impõe $d_1 = d_0 = d$, logo $N = d(b + 1) \implies b = N/d - 1$, onde $d \mid N$ e $1 \le d < b$. Enumeram-se os divisores $d \le \sqrt{N}$ e coletam-se os valores $b = N/d - 1 > \sqrt{N}$ com $d < b$, revertendo a lista ao final para manter ordenação crescente.}
-  {Para $N \le 2$ não existe base válida (retorna vetor vazio); em particular, na base $b = N$, $N = (10)_N$ nunca é palíndromo.}
-  {Tempo: $\Ocomp{\sqrt{N} \log N}$ $\mid$ Espaço: $\Ocomp{\sigma_0(N)}$}
+  {Listar em ordem crescente todas as bases $b \in [2, N]$ nas quais $N$ é palíndromo.}
+  {Para $2 \le b \le \lfloor\sqrt{N}\rfloor$, testam-se os dígitos diretamente. Para $b > \sqrt{N}$, $N$ tem 2 dígitos $(dd)_b = d(b+1)$, logo enumeram-se divisores $d \le \sqrt{N}$ de $N$ e coletam-se $b = N/d - 1 > \sqrt{N}$ com $d < b$, revertendo a lista final.}
+  {Qualquer base $b > \sqrt{N}$ satisfaz $b^2 > N$, impedindo $\ge 3$ dígitos; portanto todo palíndromo nessa faixa tem a forma $d \cdot b + d = d(b + 1)$ com $1 \le d < b$.}
+  {Bases palindrômicas, partição de domínio em $\sqrt{N}$ combinando força bruta pequena com fatoração grande.}
+  {Para $N \le 2$ não há base válida (retorna vazio); em particular, na base $b = N$ tem-se $(10)_N$, nunca palíndromo.}
+  {$\Ocomp{\sqrt{N} \log N}$ tempo, $\Ocomp{\sigma_0(N)}$ espaço}
 
 \begin{lstlisting}
 vll palindromic_bases(ll n) {
@@ -86,10 +88,12 @@ vll palindromic_bases(ll n) {
 
 \subsubsection{Aritmética Modular (\texttt{Mint}), Euclides Estendido, CRT e Binomiais}
 \algobox
-  {(1) Estrutura \texttt{Mint} para aritmética em $\ZZ_M$ ($M$ primo para divisão via Pequeno Teorema de Fermat); (2) Algoritmo de Euclides Estendido ($ax + by = \gcd(a,b)$) e Teorema Chinês do Resto (CRT) geral para módulos não necessariamente coprimos; (3) Pré-processamento linear de fatoriais e inversos para consultas $\binom{a}{b} \bmod M$ em $\Ocomp{1}$.}
-  {O sistema $x \equiv r_1 \pmod{m_1}$, $x \equiv r_2 \pmod{m_2}$ admite solução se e somente se $g = \gcd(m_1, m_2)$ divide $r_2 - r_1$. Nesse caso, a solução única módulo $\text{lcm}(m_1, m_2) = (m_1/g)m_2$ é obtida via inverso modular de $m_1/g$ módulo $m_2/g$ fornecido por \texttt{extgcd}.}
-  {Usar \texttt{i128} nos produtos intermediários do CRT para evitar overflow quando $\text{lcm}(m_1, m_2) \le 10^{18}$. Em \texttt{Mint::inv()}, requer-se \texttt{MOD} primo e operando não nulo.}
-  {Euclides / CRT: $\Ocomp{\log(\min(a,b))}$ $\mid$ Binomial: $\Ocomp{1}$ após $\Ocomp{N}$}
+  {Realizar aritmética modular segura em $\ZZ_M$ com exponenciação rápida e inverso multiplicativo.}
+  {Normaliza o resíduo em $[0, M)$ no construtor; soma/subtração evitam \texttt{\%}, \texttt{pow} usa exponenciação binária e \texttt{inv} computa $a^{M-2} \bmod M$.}
+  {Pelo Pequeno Teorema de Fermat, para $M$ primo e $a \not\equiv 0 \pmod M$, vale $a^{M-1} \equiv 1 \pmod M$, logo $a^{-1} \equiv a^{M-2} \pmod M$.}
+  {Contagem combinatória, DP modular, probabilidade racional módulo $10^9+7$ ou $998244353$.}
+  {\texttt{inv()} e \texttt{/} exigem \texttt{MOD} primo e operando não nulo. Se \texttt{MOD} $> 3 \cdot 10^9$, \texttt{v * o.v} estoura \texttt{ll} (usar \texttt{i128}).}
+  {Operações $\Ocomp{1}$, \texttt{pow}/\texttt{inv} $\Ocomp{\log M}$, Espaço $\Ocomp{1}$}
 
 \begin{lstlisting}
 template <ll MOD = 1000000007>
@@ -111,7 +115,17 @@ struct Mint {
   friend Mint operator*(Mint a, const Mint& b) { return a *= b; }
   friend Mint operator/(Mint a, const Mint& b) { return a /= b; }
 };
+\end{lstlisting}
 
+\algobox
+  {Pré-computar fatoriais e inversos fatoriais para consultar $\binom{a}{b} \bmod M$ em $\Ocomp{1}$.}
+  {Computa-se \texttt{fact[i]} $= i! \bmod M$ para $i \le N$, inverte-se apenas \texttt{fact[N]} uma vez via Fermat e propaga-se para trás \texttt{invf[i]} $= \texttt{invf[i+1]} \cdot (i + 1)$.}
+  {Como $(i!)^{-1} = ((i+1)!)^{-1} \cdot (i+1)$, basta uma única exponenciação modular em vez de $N$, reduzindo o pré-processamento de $\Ocomp{N \log M}$ para $\Ocomp{N}$.}
+  {Coeficientes binomiais, multinomiais, números de Catalan, inclusão-exclusão, contagem em grades.}
+  {Exige $N < \text{MOD}$ (senão $N! \equiv 0$ e \texttt{invf[n]} zera toda a tabela). Consultas fora de $0 \le b \le a \le N$ retornam $0$.}
+  {Build $\Ocomp{N + \log M}$, Query $\Ocomp{1}$, Espaço $\Ocomp{N}$}
+
+\begin{lstlisting}
 struct Comb {
   int n;
   vector<Mint<>> fact, invf;
@@ -125,7 +139,17 @@ struct Comb {
     return fact[a] * invf[b] * invf[a - b];
   }
 };
+\end{lstlisting}
 
+\algobox
+  {Resolver $ax + by = \gcd(a, b)$ (Euclides Estendido) e fundir congruências $x \equiv r_1 \pmod{m_1}$, $x \equiv r_2 \pmod{m_2}$ (CRT geral).}
+  {\texttt{extgcd} propaga $(x, y) \leftarrow (y_1, x_1 - \lfloor a/b \rfloor y_1)$. No CRT, existe solução sse $g = \gcd(m_1, m_2) \mid (r_2 - r_1)$; nesse caso encontra-se $x \bmod \text{lcm}(m_1, m_2)$ via \texttt{extgcd} em \texttt{i128}.}
+  {Escrevendo $x = r_1 + k m_1 \equiv r_2 \pmod{m_2}$, divide-se a congruência por $g$ para obter $k (m_1/g) \equiv (r_2 - r_1)/g \pmod{m_2/g}$, onde $m_1/g$ é invertível módulo $m_2/g$.}
+  {Inverso modular com módulo composto, sincronização de eventos periódicos, equações diofantinas lineares, combinação de módulos no CRT.}
+  {Retorna \texttt{\{-1, -1\}} se o sistema for inconsistente. Usar \texttt{i128} nos produtos intermediários; cuidado se $\text{lcm}(m_1, m_2)$ exceder $2^{63}-1$.}
+  {$\Ocomp{\log(\min(m_1, m_2))}$ tempo, $\Ocomp{\log(\min(m_1, m_2))}$ espaço}
+
+\begin{lstlisting}
 ll extgcd(ll a, ll b, ll& x, ll& y) {
   if (!b) { x = 1; y = 0; return a; }
   ll x1, y1, g = extgcd(b, a % b, x1, y1);
@@ -146,15 +170,12 @@ pll crt_merge(ll r1, ll m1, ll r2, ll m2) {
 
 \subsubsection{Princípio da Reflexão (1 e 2 Barreiras), Dyck e Intercalação 2D}
 \algobox
-  {Contagem de caminhos em grade 1D com $n$ passos unitários ($\pm 1$) partindo de $s$ até $t$ restritos a $y \ge 0$ (uma barreira / Dyck / Bertrand) ou à faixa $L \le y \le R$ (duas barreiras), e extensão a grades 2D com eixos independentes.}
-  {Sem barreiras, o número de caminhos de $s$ a $t$ em $n$ passos é $W(n, s, t) = \binom{n}{(n + t - s)/2}$ (se $n + t - s$ é par em $[0, 2n]$, senão $0$).
-  $\bullet$ \textbf{Uma barreira ($y \ge 0$):} pela reflexão de André sobre $y = -1$, cada caminho inválido corresponde bijetivamente a um caminho até $-2 - t$, resultando em $W(n, s, t) - W(n, s, -2 - t)$. Para $s = t = 0$ e $n = 2m$, obtém-se o número de Catalan $C_m = \frac{1}{m+1}\binom{2m}{m}$.
-  $\bullet$ \textbf{Duas barreiras ($L \le y \le R$):} definindo as retas absorventes $A = L - 1$ e $B = R + 1$ com distância $D = B - A = R - L + 2$, a composição alternada de reflexões em $A$ e $B$ produz inclusão-exclusão exata:
-  $\displaystyle \sum_{k \in \ZZ} \Bigl(W(n, s, t + 2kD) - W(n, s, 2A - t + 2kD)\Bigr)$.
-  Apenas índices $k$ com $|x - s| \le n$ contribuem, totalizando $\Ocomp{n / D}$ termos.
-  $\bullet$ \textbf{Intercalação 2D:} para movimentos independentes de $\pm 1$ no eixo $x$ ou no eixo $y$ totalizando $N$ passos, $\sum_{N_x=0}^{N} \binom{N}{N_x} W_x(N_x) W_y(N - N_x)$. Em passos diagonais $(\pm 1, \pm 1)$, os eixos desacoplam diretamente como $W_x(N) \cdot W_y(N)$.}
-  {Verificar $L \le s, t \le R$, paridade $(n + t - s) \equiv 0 \pmod 2$ e $|t - s| \le n$ antes da soma. Pré-computar \texttt{Comb} até pelo menos \texttt{steps}.}
-  {Tempo: $\Ocomp{n / (R - L + 2)}$ por consulta após $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Contar caminhos 1D de $n$ passos ($\pm 1$) de $s$ a $t$ restritos à faixa $L \le y \le R$ (inclui 1 barreira / Catalan como caso limite).}
+  {Com $W(n, s, x) = \binom{n}{(n + x - s)/2}$, retas absorventes $A = L - 1$, $B = R + 1$ e $D = B - A = R - L + 2$, soma-se $\sum_{k \in \ZZ} \bigl(W(n, s, t + 2kD) - W(n, s, 2A - t + 2kD)\bigr)$ para $|x - s| \le n$. Para 2D com $N$ passos ortogonais, intercala-se $\sum \binom{N}{N_x} W_x(N_x) W_y(N - N_x)$.}
+  {Refletir o sufixo após o primeiro toque em $A$ ou $B$ cria bijeções alternadas de sinais opostos; como toda trajetória que viola $A$ ou $B$ tem imagem refletida de sinal contrário, só caminhos estritamente dentro de $[L, R]$ sobrevivem ao cancelamento.}
+  {Caminhos de Dyck com altura limitada, passeio aleatório em corredor/caixa 2D, sequências balanceadas com profundidade máxima.}
+  {Validar $L \le s, t \le R$, paridade $(n + t - s) \equiv 0 \pmod 2$ e $|t - s| \le n$. Pré-computar \texttt{Comb} até pelo menos \texttt{steps}.}
+  {Build $\Ocomp{N}$, Query $\Ocomp{n / (R - L + 2)}$, Espaço $\Ocomp{N}$}
 
 \begin{lstlisting}
 Mint<> count_paths_two_barriers(int steps, int start, int target,
@@ -181,11 +202,12 @@ Mint<> count_paths_two_barriers(int steps, int start, int target,
 
 \subsubsection{Expansão Polinomial por Raízes e Inversões em $S^N$}
 \algobox
-  {(1) Expandir o polinômio mônico $P(x) = \prod_{k=1}^{D} (x - r_k)$ a partir do vetor de raízes $\{r_k\}$; (2) Contar o número total de inversões na concatenação $S^N$ de uma string $S$ repetida $N \le 10^{18}$ vezes módulo $\MOD$.}
-  {\textbf{1. Expansão por Raízes:} cada fator linear $(x - r)$ atualiza os coeficientes em ordem decrescente de grau via $c_k \gets c_{k-1} - r \cdot c_k$. Para prescrição de sinais em pontos $x_0 < x_1 < \dots < x_{m-1}$, posiciona-se uma raiz simples em cada inversão de sinal adjacente e ajusta-se o sinal global conforme o valor em $x > \max r_k$.
-  \textbf{2. Inversões em $S^N$:} decompõem-se em inversões internas à mesma cópia ($N \cdot \text{inv}(S)$) e pares entre cópias distintas $a < b$ ($\binom{N}{2} \sum_{c_1 > c_2} \text{cnt}[c_1]\text{cnt}[c_2]$).}
-  {Em \texttt{poly\_from\_roots}, verificar se os coeficientes cabem em 64 bits (ou usar \texttt{Mint}/\texttt{i128}). Em \texttt{count\_repeated\_inversions}, reduzir $N \bmod M$ antes de calcular $\binom{N}{2}$ e assumir alfabeto minúsculo \texttt{'a'..'z'}.}
-  {Expansão: $\Ocomp{D^2}$ $\mid$ Inversões em $S^N$: $\Ocomp{|\Sigma|\cdot|S| + |\Sigma|^2}$}
+  {Expandir os coeficientes do polinômio mônico $P(x) = \prod_{k=1}^{D} (x - r_k)$ a partir de suas raízes.}
+  {Inicia-se $P(x) = 1$ e, para cada raiz $r$, atualiza-se \texttt{poly[k]} $\leftarrow \texttt{poly[k-1]} - r \cdot \texttt{poly[k]}$ em ordem decrescente de $k$ e \texttt{poly[0]} $\leftarrow -r \cdot \texttt{poly[0]}$.}
+  {Multiplicar por $(x - r)$ desloca os coeficientes em $+1$ grau e subtrai $r$ vezes o polinômio atual; iterar de trás para frente evita sobrescrever \texttt{poly[k-1]} antes de lê-lo.}
+  {Construir polinômio com sinais prescritos (colocando raiz entre cada troca de sinal), polinômio característico a partir de autovalores.}
+  {Os coeficientes podem crescer exponencialmente e estourar \texttt{ll} (usar \texttt{Mint} ou \texttt{i128} se grau/raízes forem grandes).}
+  {$\Ocomp{D^2}$ tempo, $\Ocomp{D}$ espaço}
 
 \begin{lstlisting}
 vll poly_from_roots(const vll& roots) {
@@ -200,7 +222,17 @@ vll poly_from_roots(const vll& roots) {
   }
   return poly;
 }
+\end{lstlisting}
 
+\algobox
+  {Contar o número de inversões na concatenação $S^N$ ($N \le 10^{18}$) módulo $10^9 + 7$.}
+  {Soma-se $N \cdot \text{inv}(S)$ (inversões dentro da mesma cópia) com $\binom{N}{2} \sum_{c_1 > c_2} \text{cnt}[c_1]\text{cnt}[c_2]$ (inversões entre pares de cópias distintas $a < b$).}
+  {Qualquer par $(i, j)$ em cópias $a < b$ forma inversão sse o caractere da cópia $a$ é estritamente maior que o da cópia $b$, independentemente das posições internas, multiplicado pelas $\binom{N}{2}$ escolhas de $(a, b)$.}
+  {Inversões em arrays/strings periódicos gigantes, contagem de pares ordenados em repetições de blocos.}
+  {Reduzir $N \bmod \text{MOD}$ antes de multiplicar em $\binom{N}{2}$ para evitar overflow em \texttt{ll}. Assume alfabeto \texttt{'a'..'z'}.}
+  {$\Ocomp{|\Sigma|\cdot|S| + |\Sigma|^2}$ tempo, $\Ocomp{|\Sigma|}$ espaço}
+
+\begin{lstlisting}
 ll count_repeated_inversions(const string& s, ll n) {
   constexpr ll MOD = 1000000007, INV2 = (MOD + 1) / 2;
   vll cnt(26, 0);
@@ -220,10 +252,12 @@ ll count_repeated_inversions(const string& s, ll n) {
 
 \subsubsection{Ciclos de Permutação e Quadrado Latino Invariante}
 \algobox
-  {Dadas duas permutações $\pi_R, \pi_C$ de $\{0, \dots, n-1\}$, decidir se existe um Quadrado Latino $M$ de ordem $n$ invariante sob a ação simultânea ($M_{\pi_R(i), \pi_C(j)} = M_{i,j}$ para todo $i, j$) e construí-lo.}
-  {A invariância exige que $M$ seja constante nas órbitas de $(i, j) \mapsto (\pi_R(i), \pi_C(j))$. Se um ciclo de $\pi_R$ de comprimento $a$ interage com um ciclo de $\pi_C$ de comprimento $b$ com $a < b$, aplicar o passo $a$ vezes retorna à mesma linha em outra coluna com o mesmo símbolo, violando a definição de Quadrado Latino. Logo, a existência ocorre se e somente se todos os ciclos de $\pi_R$ e $\pi_C$ possuem o mesmo comprimento $L \mid n$. Com $K = n / L$ ciclos em cada permutação, o bloco entre o $u$-ésimo ciclo de linhas e o $v$-ésimo de colunas recebe o símbolo $\bigl((u + v) \bmod K\bigr)L + \bigl((j - i + L) \bmod L\bigr) + 1$ na posição interna $(i, j)$.}
-  {Retorna matriz vazia se a condição de uniformidade dos comprimentos de ciclo falhar ou se $n \le 0$.}
-  {Tempo: $\Ocomp{n^2}$ $\mid$ Espaço: $\Ocomp{n^2}$}
+  {Decidir se existe e construir um Quadrado Latino $M_{n \times n}$ invariante sob duas permutações $\pi_R, \pi_C$ ($M_{\pi_R(i), \pi_C(j)} = M_{i,j}$).}
+  {Decompõem-se $\pi_R$ e $\pi_C$ em ciclos; existe solução sse todos os ciclos têm o mesmo tamanho $L \mid n$. Com $K = n / L$, atribui-se ao bloco $(u, v)$ na posição $(i, j)$ o valor $((u + v) \bmod K) L + ((j - i + L) \bmod L) + 1$.}
+  {Se um ciclo de linha de tamanho $a$ cruza um ciclo de coluna de tamanho $b > a$, aplicar a ação $a$ vezes repete a linha em outra coluna com o mesmo símbolo, violando o Quadrado Latino; quando todos têm tamanho $L$, cada bloco é circulante em $j - i \bmod L$ e os blocos formam um Quadrado Latino de ordem $K$.}
+  {Construções de matrizes sob simetria de permutações, decomposição em órbitas de ações de grupo.}
+  {Retorna matriz vazia se $n \le 0$, tamanhos diferirem ou algum ciclo tiver comprimento diferente de $L$. Entradas devem ser permutações válidas de $0 \dots n-1$.}
+  {$\Ocomp{n^2}$ tempo, $\Ocomp{n^2}$ espaço}
 
 \begin{lstlisting}
 vector<vi> build_invariant_latin_square(const vi& nextR, const vi& nextC) {
@@ -265,10 +299,12 @@ vector<vi> build_invariant_latin_square(const vi& nextR, const vi& nextC) {
 
 \subsubsection{FFT, NTT e Convolução em Pareamento Extremo}
 \algobox
-  {(1) Multiplicação polinomial em $\Ocomp{N \log N}$ sobre $\mathbb{C}$ (FFT para inteiros exatos até $\approx 10^{15}$) e sobre $\ZZ_{998244353}$ (NTT exato com raiz primitiva $G = 3$); (2) Dados dois vetores $F, C$ de tamanho $N$, calcular para todo $k \in [1, N]$ o maior (e, negando $C$, o menor) produto escalar escolhendo $k$ elementos distintos de cada vetor.}
-  {Para o produto escalar máximo, pareiam-se elementos de mesmo sinal em ordem decrescente de módulo ($P_{\text{same}}$), tomando-se os $k$ maiores produtos enquanto $k \le |P_{\text{same}}|$. Para $m = k - |P_{\text{same}}| > 0$, os elementos residuais em $F$ e $C$ têm sinais opostos; pela desigualdade de rearranjo, a perda mínima escolhe os $m$ menores módulos $A_0 \le \dots \le A_{m-1}$ e $B_0 \le \dots \le B_{m-1}$ pareados em ordem reversa, $\sum_{i=0}^{m-1} A_i B_{m-1-i}$, que corresponde exatamente ao coeficiente de $x^{m-1}$ na convolução polinomial $A(x)B(x)$. Para o produto mínimo, aplica-se a mesma rotina a $(F, -C)$ e nega-se o resultado.}
-  {Na FFT em \texttt{double}, a mantissa de 53 bits garante precisão exata via \texttt{llround} até coeficientes $\approx 9 \cdot 10^{15}$. Na NTT, o tamanho transformado $n$ é potência de dois $\le 2^{23}$ para $M = 998244353 = 119 \cdot 2^{23} + 1$.}
-  {Tempo: $\Ocomp{N \log N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Multiplicar dois polinômios de inteiros (convolução linear) em $\Ocomp{N \log N}$ via FFT iterativa sobre $\mathbb{C}$.}
+  {Estende-se o tamanho para potência de dois $n \ge |a| + |b| - 1$, aplica-se \emph{bit-reversal} e borboletas Cooley-Tukey nas raízes da unidade $e^{\pm 2\pi i / \text{len}}$, multiplica-se ponto a ponto e inverte-se arredondando com \texttt{llround}.}
+  {A DFT transforma convolução em produto ponto a ponto; dividir os coeficientes em índices pares e ímpares reduz o problema de tamanho $n$ a dois de tamanho $n/2$ graças à simetria $\omega_n^{k + n/2} = -\omega_n^k$.}
+  {Soma de subconjuntos/knapsack de contagem, matching de strings com coringas, convolução de somas de pares.}
+  {Em \texttt{double} (mantissa de 53 bits), resultados exatos só são garantidos até coeficientes $\approx 10^{15}$; acima disso ou com módulo arbitrário, usar NTT ou dividir em base $2^{15}$.}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 using cd = complex<double>;
@@ -311,7 +347,17 @@ vll poly_multiply_fft(const vll& a, const vll& b) {
   rep(i, 0, s) res[i] = llround(fa[i].real());
   return res;
 }
+\end{lstlisting}
 
+\algobox
+  {Multiplicar polinômios exatamente módulo $998244353$ via Number Theoretic Transform (NTT).}
+  {Substitui as raízes complexas por $w_{\text{len}} = G^{(M-1)/\text{len}} \bmod M$ (com $M = 998244353 = 119 \cdot 2^{23} + 1$, raiz primitiva $G = 3$), executando as mesmas borboletas iterativas e escalando por $n^{-1} \bmod M$ na inversa.}
+  {Como $2^{23} \mid (M - 1)$, o corpo finito $\ZZ_M$ possui raízes primitivas de ordem $2^k$ para todo $k \le 23$, permitindo convolução exata sem erro de ponto flutuante.}
+  {Combinatória com polinômios/OGF/EGF módulo $998244353$, DP otimizada por divisão e conquista + NTT.}
+  {Exige tamanho transformado $n \le 2^{23}$ e coeficientes normalizados em $[0, M)$ antes de chamar \texttt{poly\_multiply\_ntt}.}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 void ntt(vi& a, bool invert) {
   static constexpr int MOD = 998244353, G = 3;
   auto modpow = [](ll b, ll e) -> int {
@@ -357,7 +403,17 @@ vi poly_multiply_ntt(vi a, vi b) {
   a.resize(s);
   return a;
 }
+\end{lstlisting}
 
+\algobox
+  {Para todo $k \in [1, N]$, calcular o maior produto escalar escolhendo $k$ elementos distintos de $F$ e $k$ de $C$ (negar $C$ para o menor).}
+  {Pareiam-se elementos de mesmo sinal em ordem decrescente de módulo (\texttt{same}). Para $m = k - |\texttt{same}| > 0$, os resíduos têm sinais opostos; ordenam-se em ordem crescente e calcula-se a perda mínima $\sum_{i=0}^{m-1} A_i B_{m-1-i}$ como o coeficiente $x^{m-1}$ de \texttt{poly\_multiply\_fft(remA, remB)}.}
+  {Pela desigualdade de rearranjo, produtos positivos maximizam-se pareando maiores com maiores, enquanto produtos negativos minimizam perda escolhendo os $m$ menores módulos e pareando menor com maior — cuja soma é exatamente uma convolução.}
+  {Otimização de produto escalar para todos os tamanhos $k$ simultaneamente via rearranjo + FFT.}
+  {Sujeito ao limite de precisão da FFT em \texttt{double} ($\approx 10^{15}$); garantir \texttt{sz(F) == sz(C)}.}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 vll max_subset_dot_products(const vll& F, const vll& C) {
   int n = sz(F);
   vll fp, fn, cp, cn;
@@ -395,12 +451,12 @@ vll max_subset_dot_products(const vll& F, const vll& C) {
 
 \subsubsection{Crivo Linear ($\phi, \mu$), Ordem Multiplicativa e Inversão de Möbius}
 \algobox
-  {Pré-processamento linear até $M$ de menor fator primo (\texttt{spf}), função totiente de Euler ($\phi$) e função de Möbius ($\mu$), cálculo da ordem multiplicativa $\text{ord}_m(a)$ e decomposição de expansão decimal de frações irredutíveis.}
-  {$\bullet$ \textbf{Ordem Multiplicativa:} para $\gcd(a, m) = 1$, $\text{ord}_m(a)$ divide $\phi(m)$. Fatorando $\phi(m)$ via \texttt{spf}, divide-se o candidato por cada primo $p$ enquanto $a^{\text{ord}/p} \equiv 1 \pmod m$.
-  $\bullet$ \textbf{Expansão Decimal:} para fração irredutível $p/q$ com $q = 2^a 5^b m$ ($\gcd(m, 10) = 1$), o pré-período possui $\max(a, b)$ dígitos e o período possui $0$ dígitos se $m = 1$ ou $\text{ord}_m(10)$ dígitos se $m > 1$.
-  $\bullet$ \textbf{Inversão de Möbius:} a identidade $[\gcd(u, v) = 1] = \sum_{d \mid \gcd(u, v)} \mu(d)$ desacopla somas sobre pares coprimos em somas independentes sobre múltiplos de $d$ em $\Ocomp{M \log M}$.}
-  {Em \texttt{mult\_order(a, m)}, exige-se $\gcd(a, m) = 1$ e $1 \le m \le M$; para $m = 1$, a ordem é $1$ (ou $0$ dígitos periódicos na expansão decimal).}
-  {Crivo: $\Ocomp{M}$ $\mid$ \texttt{mult\_order}: $\Ocomp{\log^2 m}$ $\mid$ Espaço: $\Ocomp{M}$}
+  {Pré-computar \texttt{spf}, $\phi(n)$ e $\mu(n)$ até $M$ em tempo linear, calcular $\text{ord}_m(a)$ e o pré-período/período decimal de $p/q$.}
+  {O crivo visita cada composto $i \cdot p$ uma única vez pelo seu menor fator primo $p \le \texttt{spf}[i]$, atualizando $\phi$ e $\mu$. Para $\text{ord}_m(a)$, parte-se de $\phi(m)$ e divide-se por cada primo $p \mid \phi(m)$ enquanto $a^{\text{ord}/p} \equiv 1 \pmod m$. Para $q = 2^a 5^b m$ ($\gcd(m, 10) = 1$), o pré-período é $\max(a, b)$ e o período é $\text{ord}_m(10)$.}
+  {Como cada composto tem fatoração única $p \cdot i$ com $p = \text{spf}(p \cdot i)$, o crivo é $\Ocomp{M}$; pelo Teorema de Euler, $\text{ord}_m(a) \mid \phi(m)$, e a identidade $[\gcd(u,v)=1] = \sum_{d \mid \gcd(u,v)} \mu(d)$ desacopla somas sobre pares coprimos.}
+  {Fatoração rápida até $10^7$, Inversão de Möbius em somas de $\gcd$, dízimas periódicas, ordem multiplicativa e raízes primitivas.}
+  {\texttt{mult\_order(a, m)} exige $\gcd(a, m) = 1$ e $1 \le m \le M$; para $m \le 1$, retorna $0$ (sem período decimal).}
+  {Build $\Ocomp{M}$, \texttt{mult\_order} $\Ocomp{\log^2 m}$, Espaço $\Ocomp{M}$}
 
 \begin{lstlisting}
 struct SieveAndOrder {
@@ -448,10 +504,12 @@ struct SieveAndOrder {
 
 \subsubsection{Miller-Rabin 64-bit e Pollard's Rho}
 \algobox
-  {(1) Teste determinístico de primalidade para inteiros sem sinal de 64 bits ($n < 2^{64}$); (2) Fatoração prima completa de qualquer inteiro de 64 bits via Pollard's Rho com acumulação de produtos em blocos.}
-  {O conjunto de 7 bases $\{2, 325, 9375, 28178, 450775, 9780504, 1795265022\}$ é determinístico para todo $n < 2^{64}$ no teste forte de Miller-Rabin. Na fatoração, fatores pares são extraídos diretamente; para $n$ ímpar composto, Pollard's Rho itera $f(x) = (x^2 + c) \bmod n$ agrupando diferenças em produtos módulo $n$ a cada 40 passos para amortizar chamadas a $\gcd$. Caso o divisor encontrado seja trivial ($d = n$), incrementa-se a constante $c$ até obter um fator próprio $1 < d < n$.}
-  {Usar \texttt{u128} em \texttt{modmul64} para evitar overflow em $n < 2^{64}$. Tratar $n \le 1$ e fatores pares explicitamente para impedir recursão infinita em compostos pequenos como $n = 4$.}
-  {Miller-Rabin: $\Ocomp{k \log^3 n}$ $\mid$ Pollard's Rho: $\Ocomp{n^{1/4}}$ esperado}
+  {Testar primalidade deterministicamente para qualquer inteiro sem sinal de 64 bits ($n < 2^{64}$).}
+  {Escreve-se $n - 1 = d \cdot 2^s$ ($d$ ímpar) e testa-se para as 7 bases fixas $\{2, 325, 9375, 28178, 450775, 9780504, 1795265022\}$ se $a^d \equiv 1$ ou $a^{d \cdot 2^r} \equiv -1 \pmod n$ para algum $0 \le r < s$, usando \texttt{u128} em \texttt{modmul64}.}
+  {Se $n$ é primo, as únicas raízes quadradas de $1 \pmod n$ são $\pm 1$, então a sequência de quadrados de $a^d$ precisa passar por $-1$ antes de atingir $1$; esse conjunto de 7 bases foi verificado exaustivamente sem pseudoprimos fortes abaixo de $2^{64}$.}
+  {Primalidade de números até $10^{18}$, base para fatoração rápida, busca de próximo primo grande.}
+  {Usar \texttt{u128} em \texttt{modmul64} para evitar overflow em $n < 2^{64}$. Tratar $n < 2$ e múltiplos de $2$ ou $3$ antes do laço.}
+  {$\Ocomp{k \log^2 n}$ tempo ($k = 7$), $\Ocomp{1}$ espaço}
 
 \begin{lstlisting}
 ull modmul64(ull a, ull b, ull m) { return (ull)((u128)a * b % m); }
@@ -475,7 +533,17 @@ bool is_prime64(ull n) {
   }
   return true;
 }
+\end{lstlisting}
 
+\algobox
+  {Obter a fatoração prima completa de qualquer inteiro de 64 bits ($n < 2^{64}$) via Pollard's Rho.}
+  {Extrai fatores $2$ diretamente; para $n$ ímpar composto, itera $f(x) = (x^2 + c) \bmod n$ (Floyd) acumulando produtos de $|x - y|$ em blocos de 40 passos antes de chamar $\gcd(\text{prd}, n)$. Se falhar ($d = n$), incrementa $c$ e repete; divide recursivamente até atingir primos.}
+  {Pelo Paradoxo do Aniversário, para um fator primo $p \le \sqrt{n}$, a órbita módulo $p$ colide em $\Ocomp{\sqrt{p}} = \Ocomp{n^{1/4}}$ passos esperados, momento em que $p \mid (x - y)$ mas $n \nmid (x - y)$.}
+  {Fatoração até $10^{18}$, enumeração de todos os divisores, cálculo de $\phi(n)$, $\sigma_0(n)$, ordem multiplicativa para $n$ grande.}
+  {Tratar $n \le 1$ e fatores pares antes de chamar \texttt{pollard\_rho} (senão entra em loop em compostos pequenos como $n = 4$).}
+  {$\Ocomp{n^{1/4}}$ esperado tempo, $\Ocomp{\log n}$ espaço}
+
+\begin{lstlisting}
 ull pollard_rho(ull n) {
   if ((n & 1) == 0) return 2;
   for (ull c = 1;; ++c) {

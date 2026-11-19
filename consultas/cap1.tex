@@ -10,10 +10,12 @@
 
 \subsubsection{Segmentos Adjacentes e Leitura em Ponto Fixo (Sem Float)}
 \algobox
-  {Varredura de subsegmentos contíguos satisfazendo $A_i - A_{i-1} \le X$ e conversão exata de representações decimais para inteiros escalados por $10^d$.}
-  {Em janelas cuja validade depende apenas de pares adjacentes, o comprimento corrente é reiniciado em cada violação. Para decimais com $d$ casas, o texto é convertido diretamente em inteiro de 64 bits multiplicado por $10^d$, eliminando erros de arredondamento IEEE-754.}
-  {Operações em \texttt{double} introduzem erro binário (ex.: $0.29 \times 100 < 29$). Funções de \texttt{<cctype>} exigem conversão para \texttt{unsigned char} para evitar comportamento indefinido.}
-  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{1}$}
+  {Maior subsegmento contíguo com $A_i - A_{i-1} \le X$ em todo par adjacente.}
+  {Percorre-se o vetor mantendo o comprimento corrente: estende-se em $+1$ se o par $(i-1, i)$ é válido, ou reinicia-se em $1$ caso contrário.}
+  {Quando a validade de um bloco depende apenas de pares vizinhos, uma violação quebra o bloco definitivamente — nada antes dela ajuda um segmento futuro.}
+  {Máxima subida/descida contínua, intervalos de tempo sem lacuna $> X$.}
+  {Vetor vazio deve retornar $0$ (inicializar \texttt{ans = cur = (n > 0)}).}
+  {$\Ocomp{N}$ tempo, $\Ocomp{1}$ espaço}
 
 \begin{lstlisting}
 int max_valid_run(const vi& a, int X) {
@@ -24,7 +26,17 @@ int max_valid_run(const vi& a, int X) {
   }
   return ans;
 }
+\end{lstlisting}
 
+\algobox
+  {Converter decimal com $d$ casas em inteiro exato $v \cdot 10^d$ sem ponto flutuante.}
+  {Lê-se parte inteira e exatamente $d$ dígitos fracionários diretamente da string, compondo $\text{inteiro} \cdot 10^d + \text{fração}$ em \texttt{ll}.}
+  {Elimina erros de representação binária IEEE-754 antes de qualquer soma ou comparação.}
+  {Valores monetários, taxas percentuais, coordenadas decimais com precisão fixa.}
+  {\texttt{double} erra casos simples ($0.29 \cdot 100 < 29$). Converter para \texttt{unsigned char} antes de \texttt{isdigit}.}
+  {$\Ocomp{|s|}$ tempo, $\Ocomp{1}$ espaço}
+
+\begin{lstlisting}
 ll parse_fixed_point(const string& s, int dec_places = 2) {
   auto is_dig = [](char c) { return isdigit(static_cast<unsigned char>(c)) != 0; };
   ll sign = 1, whole = 0, frac = 0;
@@ -42,10 +54,12 @@ ll parse_fixed_point(const string& s, int dec_places = 2) {
 
 \subsubsection{Aceleração de Ciclos em Grafos Funcionais com Pesos}
 \algobox
-  {Simulação de transições determinísticas $s \mapsto f(s)$ sobre $M$ estados com pesos positivos $w(s) \ge 1$ sob orçamento acumulado $D \le 10^{18}$.}
-  {Pelo Princípio da Casa dos Pombos, algum estado repete em no máximo $M$ transições. Armazena-se a distância acumulada até cada estado visitado; ao detectar a primeira repetição, o peso total do ciclo é $W_c = \text{acc} - \text{dist}[s]$, reduzindo-se o orçamento restante por $D \leftarrow D \bmod W_c$ e finalizando em menos de $M$ passos.}
-  {Exige $w(s) \ge 1$ para garantir $W_c > 0$. O estado retornado $\{s, r\}$ satisfaz $0 \le r < w(s)$, sendo $w(s) - r$ o custo restante para concluir a transição corrente.}
-  {Tempo: $\Ocomp{M}$ $\mid$ Espaço: $\Ocomp{M}$}
+  {Simular transições determinísticas $s \mapsto f(s)$ em $M$ estados com pesos $w(s) \ge 1$ sob orçamento $D \le 10^{18}$.}
+  {Registra-se \texttt{dist[s]} (peso acumulado ao visitar $s$). Na primeira repetição, o peso do ciclo é $W_c = \text{acc} - \text{dist}[s]$; reduz-se $D \leftarrow D \bmod W_c$ e finaliza-se em $< M$ passos.}
+  {Pela Casa dos Pombos, com $M$ estados algum repete em $\le M$ passos; a partir daí o processo é periódico e voltas inteiras só descontam múltiplos de $W_c$.}
+  {Robô em grid finito, autômato com custo por passo, simulação de $10^{18}$ rodadas em estado pequeno.}
+  {Exige $w(s) \ge 1$ (garante $W_c > 0$). O retorno $\{s, r\}$ satisfaz $0 \le r < w(s)$, faltando $w(s) - r$ para concluir a aresta.}
+  {$\Ocomp{M}$ tempo, $\Ocomp{M}$ espaço}
 
 \begin{lstlisting}
 pair<int, ll> advance_weighted_cycle(
@@ -72,10 +86,12 @@ pair<int, ll> advance_weighted_cycle(
 
 \subsubsection{Conflitos Periódicos em Intervalos ($\bmod X$)}
 \algobox
-  {Contagem de interseções entre progressões aritméticas $t + kX$ ($k \ge 0$) e intervalos fechados $[L_i, R_i]$, ou cobertura por classe de resto $r \in [0, X-1]$.}
-  {\textbf{1. Direta:} Para $t$ fixo e $L = \max(t, L_i) \le R_i$, a contagem em $[L, R_i]$ é $\lfloor \frac{R_i - t}{X} \rfloor - \lceil \frac{L - t}{X} \rceil + 1$. \textbf{2. Diferenças Circulares:} Cada intervalo de comprimento $len = R_i - L_i + 1$ soma $\lfloor len / X \rfloor$ a todos os restos e $+1$ ao arco circular $[L_i \bmod X, R_i \bmod X]$.}
-  {Ignorar intervalos com $R_i < t$ na abordagem direta. Normalizar restos negativos via \texttt{((L \% X) + X) \% X}.}
-  {Tempo: $\Ocomp{N \cdot T_{\max}}$ ou $\Ocomp{N + X}$ $\mid$ Espaço: $\Ocomp{X}$}
+  {Encontrar $t \in [0, T_{\max}]$ que minimiza interseções entre a PA $t + kX$ ($k \ge 0$) e intervalos $[L_i, R_i]$.}
+  {Para $t$ fixo e $L = \max(t, L_i) \le R_i$, a contagem em $[L, R_i]$ é $\lfloor \frac{R_i - t}{X} \rfloor - \lceil \frac{L - t}{X} \rceil + 1$.}
+  {Deslocar o intervalo por $-t$ reduz o problema a contar múltiplos de $X$ em $[L - t, R_i - t]$.}
+  {Escolher instante inicial de rotina periódica com menos conflitos em janelas bloqueadas.}
+  {Ignorar intervalos com $R_i < t$.}
+  {$\Ocomp{N \cdot T_{\max}}$ tempo, $\Ocomp{1}$ espaço}
 
 \begin{lstlisting}
 pll min_periodic_intersections(const vector<pll>& segs, ll X, ll max_t) {
@@ -90,7 +106,17 @@ pll min_periodic_intersections(const vector<pll>& segs, ll X, ll max_t) {
   }
   return {best_t, min_cnt};
 }
+\end{lstlisting}
 
+\algobox
+  {Contar, para cada resto $r \in [0, X-1]$, quantos inteiros $y \equiv r \pmod X$ pertencem aos intervalos $[L_i, R_i]$.}
+  {Cada intervalo de tamanho $\ell = R_i - L_i + 1$ soma $\lfloor \ell / X \rfloor$ a todos os restos e $+1$ ao arco circular $[L_i \bmod X, (L_i + \ell - 1) \bmod X]$ via array de diferenças.}
+  {Cada bloco completo de $X$ inteiros consecutivos visita cada resto exatamente uma vez; só a sobra $\ell \bmod X$ cria um arco parcial.}
+  {Cobertura modular em relógio/calendário cíclico de período $X$ quando $T_{\max}$ é grande.}
+  {Normalizar restos negativos com \texttt{((L \% X) + X) \% X}.}
+  {$\Ocomp{N + X}$ tempo, $\Ocomp{X}$ espaço}
+
+\begin{lstlisting}
 vll periodic_coverage_mod(const vector<pll>& segs, int X) {
   vll diff(X + 1, 0);
   for (auto [L, R] : segs) {
@@ -113,10 +139,12 @@ vll periodic_coverage_mod(const vector<pll>& segs, int X) {
 
 \subsubsection{Manutenção de Paridade Global (Lazy Flip e Invariante de Contagem)}
 \algobox
-  {Vetor binário $b \in \{0, 1\}^N$ sob inversão pontual, inversão complementar global e inversão complementar global com exceção pontual.}
-  {Mantêm-se um bit de paridade global $f \in \{0, 1\}$, o vetor bruto $a$ e a contagem bruta de uns $c$. O valor efetivo é $b_i = a_i \oplus f$ e a quantidade efetiva de uns é $N - c$ se $f = 1$, ou $c$ caso contrário. A inversão global com exceção em $p$ decompõe-se em $f \leftarrow f \oplus 1$ seguida da inversão pontual em $a_p$.}
-  {Ao consultar o estado final de todos os elementos, aplicar $a_i \oplus f$ em vez de ler $a_i$ diretamente.}
-  {Update/Query: $\Ocomp{1}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Vetor binário $b \in \{0, 1\}^N$ sob inversão pontual, inversão global e inversão global com exceção em $p$.}
+  {Mantêm-se bit global $f$, vetor bruto $a$ e contagem bruta $c$. O valor real é $b_i = a_i \oplus f$ e a contagem real de uns é $f ? N - c : c$. Inverter tudo exceto $p$ é $f \leftarrow f \oplus 1$ seguido de \texttt{flip\_point(p)}.}
+  {Aplicar a mesma involução ($x \oplus 1$) globalmente evita tocar os $N$ elementos; inverter um ponto duas vezes cancela o efeito nele.}
+  {Lâmpadas com botão geral, queries de "somar/inverter todos exceto $i$".}
+  {Na leitura final do vetor inteiro, consultar \texttt{get(i)} ($a_i \oplus f$) em vez de \texttt{a[i]}.}
+  {$\Ocomp{1}$ por operação, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 struct LazyParityArray {
@@ -139,10 +167,12 @@ struct LazyParityArray {
 
 \subsubsection{Compressão de Blocos (RLE) e Delta de Transições por Remoção}
 \algobox
-  {Dada uma sequência $A[0..N-1]$, computar para cada valor distinto $v \in A$ o número de transições adjacentes ($A_i \neq A_{i+1}$) remanescentes após remover todas as ocorrências de $v$.}
-  {Comprimem-se elementos consecutivos idênticos em blocos $B[0..M-1]$ ($B_i \neq B_{i+1}$), totalizando $T_0 = M - 1$ transições. Como ocorrências de $v$ nunca são adjacentes em $B$, suas contribuições são independentes: um bloco de borda ($i = 0$ ou $i = M-1$) reduz $T_0$ em $1$; um bloco interno reduz em $2$ se $B_{i-1} = B_{i+1}$ (fusão dos vizinhos) e em $1$ caso contrário.}
-  {Tratar $M \le 1$ separadamente (remoção resulta em sequência vazia com $0$ transições). Valores ausentes de $A$ mantêm $T_0$.}
-  {Tempo: $\Ocomp{N}$ esperado $\mid$ Espaço: $\Ocomp{N}$}
+  {Para cada valor distinto $v \in A$, contar transições adjacentes ($A_i \neq A_{i+1}$) após remover todas as ocorrências de $v$.}
+  {Comprime-se $A$ em blocos $B[0..M-1]$ ($B_i \neq B_{i+1}$), com $T_0 = M - 1$ transições. Cada bloco $B_i = v$ contribui com $-1$ se for borda, $-2$ se $B_{i-1} = B_{i+1}$ (fusão) e $-1$ caso contrário.}
+  {Após RLE, blocos iguais nunca são vizinhos; logo, as remoções de cada ocorrência de $v$ não interferem entre si e seus deltas somam-se independentemente.}
+  {Minimizar/maximizar trocas de cor ou número de componentes contíguos após deletar um valor.}
+  {Tratar $M \le 1$ separadamente ($0$ transições). Valores ausentes de $A$ mantêm $T_0$.}
+  {$\Ocomp{N}$ esperado tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 unordered_map<int, int, CustomHash> rle_removal_transitions(const vi& a) {
@@ -166,10 +196,12 @@ unordered_map<int, int, CustomHash> rle_removal_transitions(const vi& a) {
 
 \subsubsection{Indexação de Sub-Multiconjuntos Pequenos}
 \algobox
-  {Coleção dinâmica de multiconjuntos sobre $K$ tipos com multiplicidades limitadas por $B - 1$, consultando quantos multiconjuntos ativos contêm um multiconjunto $q$.}
-  {Cada vetor de frequências $f \in [0, B-1]^K$ é codificado em base $B$ em um inteiro de 64 bits. Na inserção ou remoção ($\delta \in \{+1, -1\}$), enumeram-se todos os $\prod_{i=0}^{K-1}(f_i + 1)$ sub-multiconjuntos $g \le f$, atualizando a tabela hash. A consulta reduz-se a uma única busca pela codificação de $q$.}
-  {Garantir que $B^K < 2^{64}$ para injetividade da codificação. Adequado quando $\prod (f_i + 1)$ é pequeno (ex.: $\sum f_i \le 8 \implies \prod (f_i + 1) \le 3^4$).}
-  {Update: $\Ocomp{\prod (f_i + 1)}$ $\mid$ Query: $\Ocomp{K}$}
+  {Coleção dinâmica de multiconjuntos sobre $K$ tipos (multiplicidades $< B$), consultando quantos ativos contêm $q$.}
+  {Codifica-se o vetor de frequências $f \in [0, B-1]^K$ em base $B$ num \texttt{ull}. No update ($\delta = \pm 1$), enumeram-se todos os $\prod (f_i + 1)$ sub-multiconjuntos $g \le f$ somando $\delta$ no hash; a query é uma única busca por \texttt{encode(q)}.}
+  {Troca trabalho na consulta por enumeração no update: pré-acumular todos os sub-multiconjuntos reduz a busca de superconjuntos a acesso $\Ocomp{1}$.}
+  {Contagem dinâmica de receitas/cartas/recursos que satisfazem um requisito mínimo quando $\sum f_i$ é pequeno.}
+  {Exige $B^K < 2^{64}$ para evitar colisão. Só viável quando $\prod (f_i + 1)$ é pequeno (ex.: $\sum f_i \le 8 \implies \le 3^4$).}
+  {Update $\Ocomp{\prod (f_i + 1)}$, Query $\Ocomp{K}$}
 
 \begin{lstlisting}
 struct SubMultisetIndex {
@@ -201,10 +233,12 @@ struct SubMultisetIndex {
 
 \subsubsection{Soma de Prefixos 2D e Array de Diferenças 2D}
 \algobox
-  {Consultas de soma em submatrizes $[r_1, r_2] \times [c_1, c_2]$ em $\Ocomp{1}$ e adições estáticas de constantes em retângulos em $\Ocomp{1}$ por atualização.}
-  {Inclusão-Exclusão bidimensional. No modo de diferenças, acumula-se com \texttt{build()} uma vez para materializar os valores e uma segunda vez se forem necessárias consultas de soma de submatrizes.}
-  {A matriz interna é 1-indexed com dimensão $(N+2) \times (M+2)$ para eliminar verificações de borda.}
-  {Build: $\Ocomp{NM}$ $\mid$ Update/Query: $\Ocomp{1}$}
+  {Soma em submatriz $[r_1, r_2] \times [c_1, c_2]$ e adições estáticas em retângulos, ambos em $\Ocomp{1}$.}
+  {Inclusão-Exclusão 2D: \texttt{add\_rect} marca 4 cantos com $+v, -v, -v, +v$. Chamar \texttt{build()} uma vez materializa os valores da matriz; chamar uma segunda vez permite consultas de soma via \texttt{query()}.}
+  {Somar $+v$ em $(r_1, c_1)$ propaga para todo o quadrante sudeste; os $-v$ cancelam fora do retângulo e o $+v$ em $(r_2+1, c_2+1)$ corrige a subtração dupla.}
+  {Cobertura de retângulos em grid, soma de pesos em janelas 2D fixas.}
+  {Matriz interna 1-indexed com dimensão $(N+2) \times (M+2)$ para evitar checagem de borda.}
+  {Build $\Ocomp{NM}$, Update/Query $\Ocomp{1}$, Espaço $\Ocomp{NM}$}
 
 \begin{lstlisting}
 struct PrefixDiff2D {
@@ -229,10 +263,12 @@ struct PrefixDiff2D {
 
 \subsubsection{Vetores Circulares: Janelas com Alvo e Balanceamento em Anel}
 \algobox
-  {Problemas em ciclo $C_N$: (1) contagem de subsegmentos circulares de tamanho $\le S$ contendo um valor alvo; (2) transporte unidirecional de carga até a média; (3) transporte bidirecional até a média.}
-  {Duplicar o vetor ($A[i+N] = A[i]$) lineariza janelas de tamanho $\le N$. No balanceamento unidirecional ($\sum A_i = N \cdot \mu$), duas passagens garantem que o excedente carregado na segunda volta é o fluxo mínimo por aresta (testam-se ambos os sentidos). No bidirecional, o fluxo $x_0$ na aresta $N \to 1$ que minimiza $\sum |x_0 + \text{pref}_i|$ é $x_0 = -\text{mediana}(\text{pref})$.}
-  {Se o alvo não ocorre no vetor, a distância até a próxima ocorrência permanece $2N$. Em balanceamento, assume-se $N \mid \sum A_i$.}
-  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Contar subsegmentos circulares de tamanho $\le S$ em $C_N$ que contêm um valor \texttt{target}.}
+  {Varre-se de $2N - 1$ até $0$ mantendo \texttt{nxt} (próxima ocorrência de \texttt{target}); cada início $i < N$ com $\text{nxt} - i < S$ contribui com $S - (\text{nxt} - i)$ janelas válidas.}
+  {Duplicar o vetor ($A[i+N] = A[i]$) lineariza qualquer janela circular de tamanho $\le N$ sem tratar wrap-around.}
+  {Subarrays circulares que contêm ao menos um elemento proibido/especial.}
+  {Se \texttt{target} não ocorre no vetor, \texttt{nxt} permanece $2N$ e nada é somado.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{1}$ espaço}
 
 \begin{lstlisting}
 ll circular_windows_with_val(const auto& a, int S, auto target) {
@@ -244,7 +280,17 @@ ll circular_windows_with_val(const auto& a, int S, auto target) {
   }
   return ans;
 }
+\end{lstlisting}
 
+\algobox
+  {Custo mínimo para igualar cargas em anel $C_N$ ($\sum A_i = N \cdot \mu$) com transporte unidirecional.}
+  {Simulam-se duas voltas acumulando o excedente $\text{cur} = \max(0, \text{cur} + v_i - \mu)$ e somando $\text{cur}$ apenas na segunda volta; testa-se também o vetor invertido.}
+  {Em toda solução ótima há ao menos uma aresta com fluxo $0$; a primeira volta encontra esse ponto de fluxo nulo, e a segunda mede o fluxo exato em cada aresta.}
+  {Equalizar fichas/combustível em mesa circular movendo só no sentido horário ou anti-horário.}
+  {Assume $N \mid \sum A_i$.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 ll ring_balance_unidirectional(vll a) {
   int n = sz(a);
   ll avg = accumulate(all(a), 0LL) / n;
@@ -260,7 +306,17 @@ ll ring_balance_unidirectional(vll a) {
   reverse(all(a));
   return min(ans, eval(a));
 }
+\end{lstlisting}
 
+\algobox
+  {Custo mínimo para igualar cargas em anel $C_N$ ($\sum A_i = N \cdot \mu$) com transporte bidirecional.}
+  {Se $x_0$ é o fluxo na aresta $N \to 1$, o fluxo na aresta $i$ é $x_0 + \text{pref}_i$, onde $\text{pref}_i = \sum_{j \le i}(A_j - \mu)$. O custo $\sum |x_0 + \text{pref}_i|$ é mínimo em $x_0 = -\text{mediana}(\text{pref})$.}
+  {Fixado o fluxo em uma aresta, a conservação de carga determina todos os demais linearmente; minimizar soma de distâncias $L_1$ é sempre a mediana.}
+  {Dividir moedas entre pessoas sentadas em círculo passando para vizinhos à esquerda ou direita.}
+  {Assume $N \mid \sum A_i$. \texttt{nth\_element} encontra a mediana em $\Ocomp{N}$ médio.}
+  {$\Ocomp{N}$ médio tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 ll ring_balance_bidirectional(const vll& a) {
   int n = sz(a);
   ll avg = accumulate(all(a), 0LL) / n;
@@ -275,10 +331,12 @@ ll ring_balance_bidirectional(const vll& a) {
 
 \subsubsection{Two Pointers para Reconstrução de Permutação Unimodal}
 \algobox
-  {Preencher posições nulas ($A_i = 0$) de uma permutação parcial de $\{1, \dots, N\}$ de forma a obter uma sequência unimodal (estritamente crescente seguida de estritamente decrescente).}
-  {O menor elemento remanescente $v \in \{1, \dots, N\}$ deve ocupar uma das extremidades ativas $L$ ou $R$. Se $v$ já estiver fixado, deve coincidir com $A[L]$ ou $A[R]$; caso contrário, se ambas as extremidades estiverem livres, escolhe-se aquela cujo próximo valor fixo interno é menor, preservando a viabilidade para valores maiores.}
-  {Retorna vetor vazio se algum valor fixo não estiver na extremidade no seu turno ou se nenhuma extremidade estiver livre.}
-  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{N}$}
+  {Preencher zeros de uma permutação parcial de $\{1, \dots, N\}$ obtendo sequência unimodal (sobe e depois desce).}
+  {Processa-se $v = 1 \dots N$: o menor restante deve ir para uma extremidade ativa $L$ ou $R$. Se $v$ já está fixado, tem de estar em $L$ ou $R$; se ambas estão livres, coloca-se $v$ no lado cujo próximo valor fixo interno é menor.}
+  {Todo elemento menor fica mais perto das bordas que qualquer elemento maior. Se ambas as bordas estão livres, liberar o lado que esconde o menor valor fixo evita bloqueá-lo quando chegar a vez dele.}
+  {Reconstrução de permutações bitônicas / piramidais com posições parcialmente fixadas.}
+  {Retorna vetor vazio se um valor fixo não estiver em $L$ nem em $R$ no seu turno.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 vi reconstruct_unimodal(vi a) {
@@ -314,10 +372,12 @@ vi reconstruct_unimodal(vi a) {
 
 \subsubsection{Frações Exatas e Sweep Line sobre Razões Racionais}
 \algobox
-  {Otimização sobre razão comum $r \in \mathbb{Q}_{>0}$ onde cada item $i$ permanece ativo em $[L_i / w_i, U_i / w_i]$ com capacidade $c_i$ e peso inteiro $w_i \in [1, W_{\max}]$, minimizando $r \sum x_i w_i$ sujeito a $\sum x_i \ge S$ e $0 \le x_i \le c_i$.}
-  {Como o custo é linear e crescente em $r$, o ótimo ocorre necessariamente em um ponto extremo de entrada de algum intervalo. Para um conjunto ativo fixo em $r$, minimiza-se $\sum x_i w_i$ escolhendo gulosamente os itens de menor peso $w_i$. Mantém-se a capacidade agregada por peso durante a varredura de eventos racionais exatos em \texttt{\_\_int128}.}
-  {Processar eventos de entrada antes de saída para o mesmo $r$. Ignorar itens com $c_i \le 0$.}
-  {Tempo: $\Ocomp{N \log N + N \cdot W_{\max}}$ $\mid$ Espaço: $\Ocomp{N + W_{\max}}$}
+  {Minimizar $r \sum x_i w_i$ sobre $r \in \mathbb{Q}_{>0}$ com itens ativos em $[L_i/w_i, U_i/w_i]$, $0 \le x_i \le c_i$, $\sum x_i \ge S$ e $w_i \in [1, W_{\max}]$.}
+  {O custo é crescente em $r$, logo o ótimo ocorre em algum ponto de entrada $L_i/w_i$. Varrem-se os eventos racionais exatos (\texttt{Frac} em \texttt{i128}) mantendo a capacidade por peso; para $r$ fixo, pegam-se gulosamente os itens de menor $w_i$.}
+  {Entre dois eventos o conjunto ativo não muda, então aumentar $r$ só encarece a solução; basta avaliar logo após cada entrada.}
+  {Alocação de recursos com razão/taxa comum exata, sweep line sobre inclinações sem erro de float.}
+  {Processar eventos de entrada (\texttt{type=0}) antes dos de saída (\texttt{type=1}) no mesmo $r$. Ignorar itens com $c_i \le 0$.}
+  {$\Ocomp{N \log N + N \cdot W_{\max}}$ tempo, $\Ocomp{N + W_{\max}}$ espaço}
 
 \begin{lstlisting}
 struct Frac {
@@ -384,10 +444,12 @@ optional<Frac> min_rational_linear_cover(
 
 \subsubsection{Normalização por Carry em Base 2 e Bipartição}
 \algobox
-  {Reduzir somas $\sum_{i=1}^{N} 2^{A_i}$ para representação binária canônica e decidir se o multiconjunto admite partição em dois subconjuntos não-vazios cujas somas sejam potências de $2$.}
-  {Propaga-se o transporte $2^b + 2^b = 2^{b+1}$ do menor ao maior expoente. Como cada parcela original é potência de $2$, qualquer potência de $2$ menor ou igual à soma pode ser formada exatamente por um subconjunto guloso de parcelas. Logo, a bipartição existe sse $N \ge 2$ e a soma total possui $1$ ou $2$ bits ativos.}
-  {Dimensionar o vetor de frequências para $\max(A_i) + \lceil \log_2 N \rceil + 2$ para evitar estouro de índice no transporte final.}
-  {Tempo: $\Ocomp{N + \max A_i}$ $\mid$ Espaço: $\Ocomp{\max A_i + \log N}$}
+  {Decidir se $\sum_{i=1}^N 2^{A_i}$ pode ser particionada em dois subconjuntos não-vazios cujas somas são potências de $2$.}
+  {Propaga-se o carry $2^b + 2^b = 2^{b+1}$ do menor ao maior expoente; a partição existe sse $N \ge 2$ e a soma total tem $1$ ou $2$ bits ativos.}
+  {Como todas as parcelas são potências de $2$, qualquer potência $2^k$ menor ou igual à soma pode ser montada exatamente de forma gulosa, sobrando o complemento.}
+  {Particionar pesos em potências de $2$, comparar somas gigantes de potências de $2$ sem BigInt.}
+  {Alocar tamanho $\max(A_i) + \lceil \log_2 N \rceil + 2$ para o carry final não estourar o vetor.}
+  {$\Ocomp{N + \max A_i}$ tempo, $\Ocomp{\max A_i + \log N}$ espaço}
 
 \begin{lstlisting}
 bool can_partition_two_pow2(const vi& exps) {
@@ -407,10 +469,12 @@ bool can_partition_two_pow2(const vi& exps) {
 
 \subsubsection{Expansão de Bounding Box 2D sob Métrica $L_\infty$}
 \algobox
-  {Dados $N$ pontos $(x_i, y_i) \in \ZZ^2$ e um orçamento de $K$ deslocamentos unitários na métrica $L_\infty$ ($|\Delta x|, |\Delta y| \le 1$ por passo), maximizar a área discreta $(\Delta x + 1)(\Delta y + 1)$ da caixa delimitadora.}
-  {Há duas classes ótimas: (1) expandir largura e altura independentemente somando $K$ ao semiperímetro e equilibrando as dimensões; (2) levar um ponto $i$ até um dos 4 cantos da caixa inicial gastando $d_x + d_y$ passos unidimensionais (enquanto $|d_x - d_y|$ passos adicionais expandem um dos eixos) e usar os $K - (d_x + d_y)$ passos restantes em diagonal para incrementar ambas as dimensões simultaneamente.}
-  {Para $N \le 1$, a área permanece constante igual a $N$. Verificar risco de overflow no produto $H \cdot W$ quando $K$ e coordenadas atingem $10^9$ (usar \texttt{i128} se necessário).}
-  {Tempo: $\Ocomp{N}$ $\mid$ Espaço: $\Ocomp{1}$}
+  {Maximizar a área discreta $(\Delta x + 1)(\Delta y + 1)$ da caixa delimitadora de $N$ pontos após $K$ passos em $L_\infty$ ($|\Delta x|, |\Delta y| \le 1$).}
+  {Testam-se dois casos: (1) somar $K$ ao semiperímetro equilibrando $H$ e $W$; (2) levar um ponto $i$ a um dos 4 cantos em $d_x + d_y$ passos (sobrando $|d_x - d_y|$ passos 1D) e usar $K - (d_x + d_y)$ passos diagonais para aumentar $H$ e $W$ juntos.}
+  {Um passo diagonal só aumenta ambos os eixos simultaneamente quando o ponto já está num canto extremo da caixa; caso contrário, só vale equilibrar os lados (AM-GM).}
+  {Maximizar retângulo envolvente com movimentos de rei no xadrez ($L_\infty$).}
+  {Para $N \le 1$, a área é $N$. Usar \texttt{i128} no produto $H \cdot W$ se $K$ e coordenadas forem $\sim 10^9$.}
+  {$\Ocomp{N}$ tempo, $\Ocomp{1}$ espaço}
 
 \begin{lstlisting}
 ll max_linf_bounding_box(const vector<pll>& pts, ll K) {
@@ -447,10 +511,12 @@ ll max_linf_bounding_box(const vector<pll>& pts, ll K) {
 
 \subsubsection{Escalonamento em Máquina Única: EDD, Moore-Hodgson e Ordem Lexicográfica}
 \algobox
-  {Tarefas com duração $T_i$ e prazo $D_i$: (1) viabilidade total via EDD; (2) subconjunto de cardinalidade máxima no prazo; (3) permutação lexicograficamente mínima (índices 0-based) que conclui todas no prazo.}
-  {\textbf{1. EDD:} Ordenar por $D_i$ crescente minimiza o atraso máximo. \textbf{2. Moore-Hodgson:} Percorrer em ordem de $D_i$; ao violar $\sum T > D_i$, descartar a tarefa ativa de maior $T_j$. \textbf{3. Lexicográfico:} Mantendo as tarefas restantes em ordem de $D_j$, uma tarefa na posição $p$ pode ser antecipada para o início sse $T_{\text{ord}[p]} \le \min_{k < p} (D_{\text{ord}[k]} - \text{pref}_k)$.}
-  {Validar viabilidade inicial via EDD antes da reconstrução lexicográfica; se alguma folga for negativa, retornar vetor vazio.}
-  {Moore-Hodgson: $\Ocomp{N \log N}$ $\mid$ Lexicográfico: $\Ocomp{N^2}$}
+  {Selecionar o máximo número de tarefas $(T_i, D_i)$ concluíveis no prazo (Moore-Hodgson).}
+  {Ordenam-se por prazo $D_i$ crescente (EDD). Insere-se $T_i$ num max-heap; se o tempo acumulado exceder $D_i$, remove-se a tarefa de maior duração $T_j$ já inserida.}
+  {Em troca gulosa (exchange argument), manter o mesmo número de tarefas com o menor tempo total gasto nunca piora a viabilidade futura; descartar a mais longa maximiza a folga.}
+  {Escolher máximo de cursos/trabalhos/poções com prazo e duração, sem penalidade por descarte.}
+  {Reordenar o resultado final por $D_i$ crescente para obter uma agenda válida.}
+  {$\Ocomp{N \log N}$ tempo, $\Ocomp{N}$ espaço}
 
 \begin{lstlisting}
 vi moore_hodgson(const vll& T, const vll& D) {
@@ -469,7 +535,17 @@ vi moore_hodgson(const vll& T, const vll& D) {
   sort(all(res), [&](int i, int j) { return D[i] < D[j]; });
   return res;
 }
+\end{lstlisting}
 
+\algobox
+  {Menor permutação lexicográfica (0-based) que conclui todas as tarefas $(T_i, D_i)$ no prazo.}
+  {Mantendo as tarefas restantes em ordem EDD, uma tarefa na posição $p$ pode ser antecipada para agora sse $T_{\text{ord}[p]} \le \min_{k < p} (D_{\text{ord}[k]} - \text{pref}_k)$. Escolhe-se a válida de menor índice.}
+  {Antecipar a tarefa $p$ atrasa em $+T_p$ todas as tarefas anteriores a ela na ordem EDD; isso é seguro sse nenhuma delas perde sua folga mínima.}
+  {Agenda válida com desempate lexicográfico por índice da tarefa.}
+  {Validar viabilidade inicial via EDD antes do laço; se falhar, retornar vetor vazio.}
+  {$\Ocomp{N^2}$ tempo, $\Ocomp{N}$ espaço}
+
+\begin{lstlisting}
 vi lex_smallest_schedule(const vll& T, const vll& D) {
   int n = sz(T);
   vi ord(n); iota(all(ord), 0);
@@ -509,10 +585,12 @@ vi lex_smallest_schedule(const vll& T, const vll& D) {
 
 \subsubsection{Conjunto Independente Maximal de Tamanho $K$ em Caminho $P_N$}
 \algobox
-  {Selecionar $K$ vértices em $P_N$ ($0 \dots N-1$) sem vértices adjacentes de modo que nenhum vértice adicional possa ser incluído (lacunas internas de tamanho $\le 2$ e de borda $\le 1$).}
-  {Existe solução sse $2K - 1 \le N \le 3K$ ($\lceil N/3 \rceil \le K \le \lceil (N+1)/2 \rceil$). Para $N = 2K - 1$, escolhem-se todos os índices pares. Para $2K \le N \le 3K$, particiona-se $N$ em $n_3 = N - 2K$ blocos de tamanho $3$ (escolhendo a posição central) seguidos de $n_2 = K - n_3$ blocos de tamanho $2$ (escolhendo a primeira posição).}
-  {Retorna vetor vazio quando $K$ viola os limites de existência.}
-  {Tempo: $\Ocomp{K}$ $\mid$ Espaço: $\Ocomp{K}$}
+  {Escolher $K$ vértices não adjacentes em $P_N$ sem que nenhum outro possa ser adicionado.}
+  {Existe solução sse $2K - 1 \le N \le 3K$. Para $N = 2K - 1$, tomam-se os índices pares; caso contrário, divide-se $N$ em $n_3 = N - 2K$ blocos de $3$ (posição central) e $n_2 = K - n_3$ blocos de $2$ (primeira posição).}
+  {Ser independente exige distância $\ge 2$; ser maximal exige lacunas internas $\le 2$ e de borda $\le 1$. Cada escolhido cobre 2 ou 3 vértices (ele + vizinhos).}
+  {Posicionar $K$ torres/cadeiras/sensores em linha cobrindo todos os espaços sem adjacência.}
+  {Retorna vetor vazio quando $K \le 0$ ou $N \notin [2K-1, 3K]$.}
+  {$\Ocomp{K}$ tempo, $\Ocomp{K}$ espaço}
 
 \begin{lstlisting}
 vi maximal_independent_path(int K, int N) {
@@ -531,10 +609,12 @@ vi maximal_independent_path(int K, int N) {
 
 \subsubsection{Cobertura por Camadas 4-Conexas em Grid (Pente / Comb Layout)}
 \algobox
-  {Construir $T = \lceil \log_2 K \rceil$ subconjuntos 4-conexos em um grid $H \times W$ (0-indexed) induzindo exatamente $K$ assinaturas distintas de pertinência entre as células.}
-  {Para $K > 1$, todas as $T$ camadas compartilham uma espinha dorsal em pente (coluna $0$ nas linhas $0 \dots H-2$ e linhas pares $0, 2, \dots$ nas colunas $1 \dots W-2$), gerando a máscara cheia $2^T - 1$, enquanto $(H-1, W-1)$ permanece vazia (máscara $0$). Cada célula folha nas linhas ímpares $(2j+1, c)$ toca o pente em $(2j, c)$, permitindo atribuir independentemente as $K - 2$ máscaras restantes sem desconectar nenhuma camada.}
-  {Requer $H \ge 3$, $W \ge 3$ e capacidade de folhas $\lfloor (H-1)/2 \rfloor \cdot (W-2) \ge K - 2$.}
-  {Tempo: $\Ocomp{T \cdot (HW + K)}$ $\mid$ Espaço: $\Ocomp{T \cdot HW}$}
+  {Construir $T = \lceil \log_2 K \rceil$ regiões 4-conexas em grid $H \times W$ gerando exatamente $K$ assinaturas distintas de pertinência.}
+  {Todas as $T$ camadas compartilham um pente (coluna $0$ nas linhas $0..H-2$ e linhas pares nas colunas $1..W-2$, máscara $2^T - 1$), deixando $(H-1, W-1)$ vazia (máscara $0$). Células nas linhas ímpares $(2j+1, c)$ tocam o pente acima e recebem livremente as $K-2$ máscaras restantes.}
+  {O pente garante conectividade de todas as camadas ao mesmo tempo; cada folha adjacente ao pente pode entrar ou sair de qualquer camada sem desconectá-la.}
+  {Problemas construtivos de separar $K$ classes/países com mínimo número de regiões conexas em grid.}
+  {Exige $H \ge 3$, $W \ge 3$ e $\lfloor (H-1)/2 \rfloor \cdot (W-2) \ge K - 2$.}
+  {$\Ocomp{T \cdot (HW + K)}$ tempo, $\Ocomp{T \cdot HW}$ espaço}
 
 \begin{lstlisting}
 vector<vector<pii>> build_comb_layers(int H, int W, int K) {
@@ -560,10 +640,12 @@ vector<vector<pii>> build_comb_layers(int H, int W, int K) {
 
 \subsubsection{Teoria dos Jogos: Simetria de Multiplicidade e Sprague-Grundy (Mex)}
 \algobox
-  {Jogos imparciais em DAG resolvidos pelo Teorema de Sprague-Grundy e critérios de simetria por emparelhamento de multiplicidades.}
-  {\textbf{1. Sprague-Grundy:} $g(u) = \operatorname{mex}(\{g(v) : u \to v\})$. A soma disjunta de jogos independentes é vencedora para o primeiro jogador sse $\bigoplus_i g(u_i) \neq 0$. \textbf{2. Simetria:} Em jogos de partição/descarte em grupos de $m$ elementos com objetivo de igualdade, o segundo jogador possui estratégia espelho vencedora sse todas as multiplicidades são divisíveis por $m$.}
-  {Calcular \texttt{mex} de um vértice de grau $d$ em $\Ocomp{d}$ usando vetor de marcação por timestamp, evitando \texttt{std::set}. O valor de $g(u)$ nunca excede o grau de saída de $u$.}
-  {Grundy em DAG: $\Ocomp{V + E}$ $\mid$ Espaço: $\Ocomp{V}$}
+  {Resolver jogos imparciais em DAG pelo Teorema de Sprague-Grundy (soma disjunta de jogos independentes).}
+  {Define-se $g(u) = \operatorname{mex}(\{g(v) : u \to v\})$. O primeiro jogador vence a soma disjunta sse $\bigoplus_i g(u_i) \neq 0$. Em jogos de simetria por grupos de $m$, o segundo vence sse todas as multiplicidades são divisíveis por $m$.}
+  {Cada jogo imparcial equivale a uma pilha de Nim de tamanho $g(u)$: sempre é possível diminuir para qualquer valor $< g(u)$, e aumentos podem ser desfeitos pelo oponente.}
+  {Múltiplas peças/pilhas independentes com movimentos em DAG, jogos de corte em árvores/grades.}
+  {Calcular \texttt{mex} em $\Ocomp{\deg(u)}$ via array de timestamp (evita \texttt{std::set}). Sempre $g(u) \le \deg^+(u)$.}
+  {$\Ocomp{V + E}$ tempo, $\Ocomp{V}$ espaço}
 
 \begin{lstlisting}
 vi compute_grundy_dag(int n, const vector<vi>& adj) {
@@ -585,10 +667,12 @@ vi compute_grundy_dag(int n, const vector<vi>& adj) {
 
 \subsubsection{Problemas Interativos e Coloração Construtiva Periódica}
 \algobox
-  {Protocolo de comunicação em problemas interativos (juiz estático ou adaptativo) e coloração determinística mínima para reconstrução de direção ou posição em caminhos e ciclos.}
-  {\textbf{1. Protocolo:} Descarregar o buffer (\texttt{flush}) após cada consulta e encerrar imediatamente ao receber código de erro do juiz. Contra juízes adaptativos, consultas determinísticas devem reduzir o espaço de estados no pior caso. \textbf{2. Coloração Periódica:} Colorir $P_N$ com período $p = 3$ ($c(i) = i \bmod 3$) permite recuperar o sentido de qualquer passo adjacente via autômato $(c_{\text{cur}} - c_{\text{prev}} + 3) \bmod 3 \in \{1 \text{ (avanço)}, 2 \text{ (recuo)}\}$. Para localizar janelas de tamanho $n$ sobre alfabeto de tamanho $k$, utiliza-se uma sequência de de Bruijn cíclica de período $k^n$.}
-  {Nunca omitir \texttt{flush} (causa Idleness Limit Exceeded). Manter \texttt{cin.tie(nullptr)} exige \texttt{cout << flush} explícito antes de cada leitura.}
-  {de Bruijn: Tempo/Espaço $\Ocomp{k^n}$ $\mid$ Autômato: $\Ocomp{1}$}
+  {Comunicação segura em problemas interativos e detecção de direção em caminhos via coloração $\bmod 3$.}
+  {\texttt{ask\_query} imprime, dá \texttt{flush} e encerra ao receber \texttt{-1}/EOF. Colorir $P_N$ com $c(i) = i \bmod 3$ recupera o sentido de qualquer passo adjacente via $(c_{\text{cur}} - c_{\text{prev}} + 3) \bmod 3 \in \{1, 2\}$.}
+  {Dois tons não distinguem avanço de recuo; com $3$ cores, $+1 \not\equiv -1 \pmod 3$, quebrando a simetria com o mínimo de cores.}
+  {Interativos com busca binária/adaptativa; robô sem bússola andando em caminho ou árvore.}
+  {Com \texttt{cin.tie(nullptr)}, omitir \texttt{flush} gera Idleness Limit Exceeded (ILE).}
+  {$\Ocomp{1}$ por consulta/passo}
 
 \begin{lstlisting}
 int ask_query(int x) {
@@ -604,7 +688,17 @@ int step_dir_mod3(int prev_c, int cur_c) {
   int d = (cur_c - prev_c + 3) % 3;
   return d == 1 ? +1 : (d == 2 ? -1 : 0);
 }
+\end{lstlisting}
 
+\algobox
+  {Construir sequência cíclica de de Bruijn $B(k, n)$ de tamanho $k^n$ contendo toda janela de tamanho $n$ sobre $[0, k-1]$.}
+  {Ciclo Euleriano (Hierholzer) no grafo de $k^{n-1}$ vértices onde cada estado $u$ tem arestas $u \to (u \cdot k + d) \bmod k^{n-1}$ rotuladas por $d \in [0, k-1]$.}
+  {Cada vértice representa o sufixo dos últimos $n-1$ símbolos e cada aresta acrescenta o $n$-ésimo; percorrer todas as arestas exatamente uma vez visita todas as $k^n$ janelas sem repetir.}
+  {Localização por janela deslizante em disco/anel, menor senha cíclica que testa todas as combinações.}
+  {Tratar $n = 1$ separadamente (retorna $0, 1, \dots, k-1$).}
+  {$\Ocomp{k^n}$ tempo e espaço}
+
+\begin{lstlisting}
 vi debruijn(int k, int n) {
   if (n == 1) { vi res(k); iota(all(res), 0); return res; }
   int m = 1;

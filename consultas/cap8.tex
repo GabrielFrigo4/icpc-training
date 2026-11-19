@@ -10,10 +10,12 @@
 
 \subsubsection{Hopcroft-Karp $\Ocomp{E\sqrt{V}}$ e Teorema de König (MVC e MIS)}
 \algobox
-  {Calcular emparelhamento máximo em grafo bipartido $G = (U \cup V, E)$ e extrair a cobertura mínima por vértices (MVC) e o conjunto independente máximo (MIS).}
-  {Em cada fase, uma BFS particiona $U$ por camadas de distância mínima até vértices livres em $V$, e a DFS extrai um conjunto maximal de caminhos aumentantes mais curtos disjuntos por vértices; como o comprimento mínimo aumenta estritamente entre fases, há $\Ocomp{\sqrt{|U|+|V|}}$ fases. Pelo Teorema de König, $|\text{MVC}| = |M^*|$ e $|\text{MIS}| = |U| + |V| - |M^*|$: a busca alternante a partir dos vértices livres de $U$ (arestas $\notin M^*$ de $U \to V$ e arestas $\in M^*$ de $V \to U$) produz $\text{MVC} = (U \setminus \text{vis}_U) \cup (V \cap \text{vis}_V)$ e $\text{MIS} = (U \cap \text{vis}_U) \cup (V \setminus \text{vis}_V)$.}
-  {Invocar \texttt{min\_vertex\_cover()} somente após \texttt{max\_matching()}. A indexação é 0-based e independente entre partições ($0 \le u < n_L$, $0 \le v < n_R$).}
-  {Tempo: $\Ocomp{E\sqrt{V}}$ $\mid$ Espaço: $\Ocomp{V + E}$}
+  {Calcular emparelhamento máximo em grafo bipartido $G = (U \cup V, E)$ e extrair cobertura mínima por vértices (MVC) e conjunto independente máximo (MIS).}
+  {Em cada fase, uma BFS cria camadas em $U$ até vértices livres em $V$, e a DFS extrai caminhos aumentantes mais curtos disjuntos em vértices. Após o matching $M^*$, uma busca alternante a partir dos vértices livres de $U$ produz $\text{MVC} = (U \setminus \text{vis}_U) \cup (V \cap \text{vis}_V)$ e $\text{MIS} = V(G) \setminus \text{MVC}$.}
+  {O comprimento do menor caminho aumentante cresce estritamente a cada fase; após $\sqrt{V}$ fases restam no máximo $\sqrt{V}$ caminhos disjuntos, totalizando $\Ocomp{\sqrt{V}}$ fases. Pelo Teorema de König, toda aresta é coberta pela MVC porque nenhuma aresta sai de $U \cap \text{vis}_U$ para $V \setminus \text{vis}_V$.}
+  {Emparelhamento máximo bipartido, cobertura mínima de células em tabuleiro (linhas $\times$ colunas), maior conjunto independente em grafo bipartido.}
+  {Chamar \texttt{min\_vertex\_cover()} somente após \texttt{max\_matching()}. Indexação 0-based independente para cada partição ($0 \le u < n_L$, $0 \le v < n_R$).}
+  {$\Ocomp{E\sqrt{V}}$ tempo, $\Ocomp{V + E}$ espaço}
 
 \begin{lstlisting}
 struct HopcroftKarp {
@@ -85,10 +87,12 @@ struct HopcroftKarp {
 
 \subsubsection{Teorema de Dilworth (Partição em Cadeias e Anticadeia Máxima)}
 \algobox
-  {Determinar a anticadeia máxima e a cobertura mínima por cadeias disjuntas em um conjunto parcialmente ordenado (Poset) finito $(P, \prec)$ representado como um DAG.}
-  {Pelo Teorema de Dilworth, a cardinalidade da maior anticadeia iguala o número mínimo de cadeias que particionam $P$. Constrói-se o grafo bipartido de comparabilidade $B = (P_{\text{out}} \cup P_{\text{in}}, E^*)$ com $(u_{\text{out}}, v_{\text{in}}) \in E^* \iff u \prec v$ (via fechamento transitivo do DAG). Cada aresta do emparelhamento máximo $M^*$ une dois elementos na mesma cadeia, resultando em $|\text{Anticadeia}_{\max}| = |\text{Cadeias}_{\min}| = |P| - |M^*|$. A anticadeia máxima obtém-se diretamente da MVC de $B$: $A = \{u \in P : u_{\text{out}} \notin \text{MVC}_L \land u_{\text{in}} \notin \text{MVC}_R\}$.}
-  {Sem o fechamento transitivo, o emparelhamento resolve cobertura mínima por caminhos disjuntos em vértices no DAG, não em cadeias do Poset. A entrada deve ser acíclica.}
-  {Tempo: $\Ocomp{V(V + E) + E^*\sqrt{V}}$ $\mid$ Espaço: $\Ocomp{V^2}$}
+  {Encontrar a anticadeia máxima (e o tamanho da partição mínima em cadeias) de um Poset finito dado como DAG.}
+  {Calcula-se o fechamento transitivo do DAG para montar o grafo bipartido $(u_{\text{out}}, v_{\text{in}}) \in E^* \iff u \prec v$, executa-se Hopcroft-Karp e extrai-se a anticadeia máxima $A = \{u : u_{\text{out}} \notin \text{MVC}_L \land u_{\text{in}} \notin \text{MVC}_R\}$.}
+  {Cada aresta do matching $M^*$ encadeia dois elementos numa mesma cadeia, deixando $|P| - |M^*|$ cadeias; pela MVC de König, vértices fora de $\text{MVC}_L \cup \text{MVC}_R$ não possuem arestas entre si em $E^*$, formando uma anticadeia de tamanho $\ge |P| - |M^*|$ (igualdade pelo Teorema de Dilworth).}
+  {Maior subconjunto de elementos mutuamente incomparáveis em DAG/Poset, mínimo de cadeias cobrindo um DAG (com reutilização de vértices).}
+  {Omitir o fechamento transitivo resolve cobertura mínima por caminhos disjuntos em vértices, não por cadeias do Poset. A entrada deve ser acíclica.}
+  {$\Ocomp{V(V + E) + E^*\sqrt{V}}$ tempo, $\Ocomp{V^2}$ espaço}
 
 \begin{lstlisting}
 vi dilworth_max_antichain(int n, const vector<vi>& dag) {
@@ -117,10 +121,12 @@ vi dilworth_max_antichain(int n, const vector<vi>& dag) {
 
 \subsubsection{Isomorfismo de Subárvore via DP e Emparelhamento Bipartido}
 \algobox
-  {Dadas duas árvores não-enraizadas $T_1 = (V_1, E_1)$ e $T_2 = (V_2, E_2)$, decidir se existe uma subárvore conexa de $T_1$ isomorfa a $T_2$.}
-  {Se $|V_2| > |V_1|$, o resultado é falso; se $|V_2| \le 1$, é verdadeiro. Enraíza-se $T_2$ arbitrariamente em $0$, obtendo os filhos $C_2(v)$ para cada $v \in V_2$. Define-se $\text{can}((u, p), v)$ como verdadeiro se a subárvore de $u \in V_1$ (com pai $p$, ou $p = -1$ se raiz) contém uma subárvore enraizada em $u$ isomorfa à subárvore de $v \in V_2$. A transição exige $|C_1(u, p)| \ge |C_2(v)|$ e um emparelhamento bipartido de tamanho $|C_2(v)|$ associando cada $y \in C_2(v)$ a um filho distinto $x \in C_1(u, p)$ com $\text{can}((x, u), y)$ verdadeiro. A memoização sobre os $3|V_1| - 2$ estados direcionados de $T_1$ garante avaliação única por par de arestas.}
-  {Folhas de $T_2$ ($|C_2(v)| = 0$) casam com qualquer vértice de $T_1$. Verificar o caso base $|V_2| \le 1$ antes da DFS.}
-  {Tempo: $\Ocomp{|V_1| \cdot |V_2|^{2.5}}$ $\mid$ Espaço: $\Ocomp{|V_1| \cdot |V_2|}$}
+  {Decidir se uma árvore não-enraizada $T_1$ contém uma subárvore conexa isomorfa a outra árvore $T_2$.}
+  {Enraíza-se $T_2$ em $0$ e memoiza-se $\text{can}((u, p), v)$ indicando se a subárvore de $u \in T_1$ (com pai $p$, ou $-1$ se raiz) contém uma cópia da subárvore de $v \in T_2$. A transição exige um emparelhamento bipartido de tamanho $|C_2(v)|$ entre filhos de $v$ e filhos compatíveis de $u$.}
+  {Para $u$ casar com $v$, cada subárvore filha de $v$ precisa ser embutida em uma subárvore filha distinta de $u$; memoizar pelos $3|V_1| - 2$ estados direcionados $(u, p)$ evita recomputar a mesma aresta orientada para múltiplas raízes.}
+  {Detecção de padrão estrutural em árvores (subgraph isomorphism entre árvores).}
+  {Tratar $|V_2| > |V_1|$ (\texttt{false}) e $|V_2| \le 1$ (\texttt{true}) antes da DP; folhas de $T_2$ ($|C_2(v)| = 0$) casam com qualquer vértice de $T_1$.}
+  {$\Ocomp{|V_1| \cdot |V_2|^{2.5}}$ tempo, $\Ocomp{|V_1| \cdot |V_2|}$ espaço}
 
 \begin{lstlisting}
 bool has_isomorphic_subtree(int n1, const vector<vi>& g1, int n2, const vector<vi>& g2) {
@@ -174,10 +180,12 @@ bool has_isomorphic_subtree(int n1, const vector<vi>& g1, int n2, const vector<v
 
 \subsubsection{Reconstrução de Grafo de Linha Bipartido e Conjunto Independente}
 \algobox
-  {Dado um grafo simples $G = (V, E)$ que é grafo de linha $L(H)$ de um grafo bipartido $H = (L \cup R, E_H)$, reconstruir $H$ e calcular o conjunto independente máximo $\alpha(G) = \nu(H)$.}
-  {Como $H$ é bipartido (livre de $K_3$), cada vértice de $H$ induz uma clique maximal em $L(H)$ e cada vértice de $G$ pertence a exatamente duas cliques (seus extremos em $L$ e $R$). Toda aresta $\{i, j\} \in E(G)$ determina unicamente sua clique maximal $C(i, j) = \{i, j\} \cup (N(i) \cap N(j))$, computada via interseção de bitsets em palavras de 64 bits. Vértices em menos de duas cliques recebem cliques unitárias até atingir grau $2$ no grafo de cliques. A 2-coloração desse grafo auxiliar biparticiona $L$ e $R$, reduzindo $\alpha(G)$ ao emparelhamento máximo em $H$.}
-  {Retorna $-1$ caso $G$ viole as condições estruturais de grafo de linha bipartido (vértice em mais de $2$ cliques ou grafo de cliques não-bipartido).}
-  {Tempo: $\Ocomp{N^3 / 64 + N\sqrt{N}}$ $\mid$ Espaço: $\Ocomp{N^2 / 64 + N}$}
+  {Reconstruir o grafo bipartido $H$ a partir de seu grafo de linha $G = L(H)$ e calcular $\alpha(G) = \nu(H)$ (MIS de $G$).}
+  {Para cada aresta ainda não coberta $\{i, j\}$, extrai-se a clique $C(i, j) = \{i, j\} \cup (N(i) \cap N(j))$ via bitsets de 64 bits. Completa-se cada vértice até pertencer a $2$ cliques, 2-colore-se o grafo de cliques para separar $L$ e $R$ em $H$ e roda-se Hopcroft-Karp.}
+  {Em $L(H)$ com $H$ bipartido (livre de $K_3$), toda clique maximal corresponde às arestas incidentes a um vértice de $H$, e cada vértice de $G$ (aresta de $H$) pertence a exatamente duas cliques; logo um conjunto independente em $L(H)$ é exatamente um emparelhamento em $H$.}
+  {Conjunto independente máximo em grafos de interseção de pares bipartidos ou grafos de linha $L(H)$ com $H$ bipartido.}
+  {Retorna $-1$ se algum vértice cair em $> 2$ cliques ou se o grafo de cliques não for bipartido (indicando que $G$ não é $L(H)$ de um grafo bipartido).}
+  {$\Ocomp{N^3 / 64 + N\sqrt{N}}$ tempo, $\Ocomp{N^2 / 64 + N}$ espaço}
 
 \begin{lstlisting}
 int bipartite_line_graph_mis(int n, const vector<vi>& g) {
@@ -237,10 +245,12 @@ int bipartite_line_graph_mis(int n, const vector<vi>& g) {
 
 \subsubsection{Algoritmo Húngaro em $\Ocomp{N^2 M}$ (Assignment Problem)}
 \algobox
-  {Encontrar um emparelhamento bipartido de custo mínimo saturando todas as $n$ linhas de uma matriz de custos $A \in \ZZ^{n \times m}$ ($n \le m$).}
-  {Mantêm-se potenciais duais $u_1, \dots, u_n$ e $v_1, \dots, v_m$ satisfazendo $u_i + v_j \le A_{i,j}$. A cada linha $i$, busca-se um caminho aumentante no subgrafo de igualdade em $\Ocomp{nm}$, atualizando os potenciais pela folga mínima $\delta = \min_{j \notin S}(A_{i_0,j} - u_{i_0} - v_j)$ até alcançar uma coluna livre. Ao final, $-v_0$ iguala o custo ótimo primal-dual e \texttt{match\_col[i]} indica a coluna atribuída à linha $i$.}
-  {Exige $n \le m$; para $n > m$, transpor a matriz. Aceita custos negativos diretamente; para maximização, negar todas as entradas.}
-  {Tempo: $\Ocomp{n^2 m}$ $\mid$ Espaço: $\Ocomp{nm}$}
+  {Encontrar emparelhamento bipartido de custo mínimo saturando todas as $n$ linhas de uma matriz $A \in \ZZ^{n \times m}$ ($n \le m$).}
+  {Mantêm-se potenciais duais $u_i + v_j \le A_{i,j}$. A cada linha $i$, busca-se um caminho aumentante no subgrafo de igualdade em $\Ocomp{nm}$, ajustando $u, v$ pela folga mínima $\delta = \min_{j \notin S}(A_{i_0,j} - u_{i_0} - v_j)$ até atingir uma coluna livre; ao final $-v_0$ é o custo mínimo.}
+  {Pela dualidade de programação linear (folga complementar), qualquer emparelhamento perfeito formado só por arestas justas ($u_i + v_j = A_{i,j}$) atinge o limite inferior dual $\sum u_i + \sum v_j$ e é portanto ótimo.}
+  {Problema de atribuição (\emph{assignment}), emparelhamento perfeito de peso mínimo/máximo em grafo bipartido denso ($n \le 500$).}
+  {Exige $n \le m$ (se $n > m$, transpor a matriz). Aceita custos negativos; para maximização, negar todas as entradas.}
+  {$\Ocomp{n^2 m}$ tempo, $\Ocomp{nm}$ espaço}
 
 \begin{lstlisting}
 pair<ll, vi> hungarian_min_cost(const vector<vll>& cost) {
@@ -290,10 +300,12 @@ pair<ll, vi> hungarian_min_cost(const vector<vll>& cost) {
 
 \subsubsection{Algoritmo de Dinic e Corte Mínimo $s$-$t$}
 \algobox
-  {Calcular fluxo máximo e corte mínimo $s$-$t$ em redes direcionadas $G = (V, E, c)$ com capacidades não-negativas, incluindo modelagens de fechamento máximo e alcançabilidade com arestas de capacidade infinita.}
-  {Em cada fase, uma BFS constrói o grafo de níveis a partir de $s$ pelas arestas residuais com capacidade positiva, e uma DFS com ponteiro atual (\texttt{ptr}) encontra um fluxo bloqueante em $\Ocomp{VE}$. Como a distância de $s$ a $t$ cresce estritamente entre fases, há no máximo $|V| - 1$ fases. Pelo Teorema Fluxo Máximo–Corte Mínimo, o corte mínimo $(S, T)$ é induzido pelos vértices alcançáveis a partir de $s$ no grafo residual final (\texttt{lvl[u] != -1}).}
-  {Ao modelar restrições proibidas com capacidade infinita, escolher constante superior à soma das capacidades finitas evitando overflow em somas intermediárias.}
-  {Geral: $\Ocomp{V^2 E}$ $\mid$ Unitário: $\Ocomp{\min(V^{2/3}, E^{1/2})E}$ $\mid$ Bipartido: $\Ocomp{E\sqrt{V}}$}
+  {Calcular fluxo máximo e corte mínimo $s$-$t$ em rede direcionada $G = (V, E, c)$ com capacidades não-negativas.}
+  {Cada fase roda BFS a partir de $s$ para construir o grafo de níveis e DFS com ponteiro atual (\texttt{ptr}) para enviar um fluxo bloqueante. No residual final, \texttt{in\_source\_side(u)} (\texttt{lvl[u] != -1}) identifica o lado $S$ do corte mínimo.}
+  {Cada fluxo bloqueante satura ao menos uma aresta de todo caminho mínimo no grafo de níveis, aumentando estritamente $\text{dist}(s, t)$ entre fases ($\le V - 1$ fases); o ponteiro \texttt{ptr} descarta arestas mortas em $\Ocomp{1}$ amortizado.}
+  {Corte mínimo $s$-$t$, fechamento máximo (\emph{project selection}), caminhos aresta/vértice-disjuntos, matching bipartido com capacidades.}
+  {Em arestas de capacidade ``infinita'', usar valor maior que a soma das capacidades finitas sem estourar \texttt{LLONG\_MAX}. Não reutilizar a mesma instância sem restaurar capacidades.}
+  {$\Ocomp{V^2 E}$ geral ($\Ocomp{E\sqrt{V}}$ bipartido, $\Ocomp{\min(V^{2/3}, E^{1/2})E}$ unitário), $\Ocomp{V + E}$ espaço}
 
 \begin{lstlisting}
 struct Dinic {
@@ -348,10 +360,12 @@ struct Dinic {
 
 \subsubsection{Fluxo de Custo Mínimo (MCMF com Potenciais de Johnson)}
 \algobox
-  {Calcular fluxo de custo mínimo de $s$ até $t$ (até um teto \texttt{max\_f} ou até o fluxo máximo) em redes sem ciclos negativos acessíveis a partir de $s$.}
-  {Potenciais $\pi(u)$ mantêm o custo reduzido $w'(u, v) = w(u, v) + \pi(u) - \pi(v) \ge 0$ em todas as arestas residuais ativas, permitindo obter cada caminho aumentante mínimo via Dijkstra. Após cada execução, atualiza-se $\pi(u) \leftarrow \pi(u) + d(u)$ para todo vértice alcançável. Havendo arestas iniciais de custo negativo, \texttt{init\_potentials(s)} inicializa $\pi$ via SPFA com controle de profundidade de caminho ($< |V|$ arestas) para detectar ciclos negativos.}
-  {Com custos iniciais negativos, é obrigatório chamar \texttt{init\_potentials(s)} antes de \texttt{min\_cost\_max\_flow(s, t)} e validar o retorno \texttt{true} (ausência de ciclo negativo alcançável a partir de $s$).}
-  {Tempo: $\Ocomp{F \cdot E \log V}$ (+ $\Ocomp{VE}$ se SPFA) $\mid$ Espaço: $\Ocomp{V + E}$}
+  {Calcular fluxo de custo mínimo de $s$ até $t$ (até \texttt{max\_f} ou fluxo máximo) em redes sem ciclos negativos alcançáveis.}
+  {Potenciais $\pi(u)$ garantem custo reduzido $w'(u, v) = w(u, v) + \pi(u) - \pi(v) \ge 0$, permitindo achar cada caminho aumentante mínimo via Dijkstra e atualizar $\pi(u) \leftarrow \pi(u) + d(u)$. Se houver custos iniciais negativos, \texttt{init\_potentials(s)} inicializa $\pi$ via SPFA detectando ciclos negativos.}
+  {Aumentar fluxo ao longo de um caminho mínimo não cria ciclos negativos e preserva $w'(u, v) \ge 0$ mesmo nas novas arestas reversas (pois $w' = 0$ no caminho mínimo), mantendo Dijkstra válido em todas as iterações.}
+  {Transporte/atribuição com capacidades, caminhos disjuntos de custo mínimo, alocação com custos convexos (arestas paralelas).}
+  {Com custos iniciais negativos, chamar \texttt{init\_potentials(s)} antes de \texttt{min\_cost\_max\_flow} e checar retorno \texttt{true}. Se \texttt{pot[t]} ficar positivo e quiser menor custo sem forçar fluxo máximo, interromper quando \texttt{pot[t] >= 0}.}
+  {$\Ocomp{F \cdot E \log V}$ (+ $\Ocomp{VE}$ se SPFA) tempo, $\Ocomp{V + E}$ espaço}
 
 \begin{lstlisting}
 struct MCMF {
@@ -425,10 +439,12 @@ struct MCMF {
 
 \subsubsection{Fluxo com Demandas Mínimas (Lower Bounds e Circulação Viável)}
 \algobox
-  {Verificar a existência de circulação viável ou calcular fluxo máximo $s$-$t$ em rede onde cada aresta $e = (u, v)$ exige fluxo $f_e \in [l_e, r_e]$ ($0 \le l_e \le r_e$).}
-  {Fixa-se o fluxo base $l_e$ em cada aresta, restando capacidade residual $r_e - l_e$ e balanço líquido $B[v] \mathrel{+}= l_e$, $B[u] \mathrel{-}= l_e$. Conecta-se uma super-fonte $S^*$ a cada $v$ com $B[v] > 0$ (capacidade $B[v]$) e cada $u$ com $B[u] < 0$ a um super-sorvedouro $T^*$ (capacidade $-B[u]$). Para fluxo $s$-$t$, insere-se a aresta de retorno $(t \to s, \infty)$: existe solução viável sse o fluxo máximo $S^* \to T^*$ satura $\sum_{B[v]>0} B[v]$. Para maximizar o fluxo $s$-$t$, lê-se o fluxo base $f_0$ em $(t \to s)$, anula-se sua capacidade e soma-se o fluxo máximo $s \to t$ no grafo residual.}
-  {Garantir $l_e \le r_e$ em toda aresta. Para fluxo mínimo $s$-$t$, após anular $(t \to s)$, subtrair \texttt{dinic.max\_flow(t, s)} do fluxo base $f_0$.}
-  {Tempo: $\Ocomp{V^2 E}$ $\mid$ Espaço: $\Ocomp{V + E}$}
+  {Decidir viabilidade de circulação ou calcular fluxo máximo $s$-$t$ com limites inferiores e superiores $f_e \in [l_e, r_e]$ por aresta.}
+  {Fixa-se fluxo obrigatório $l_e$ com capacidade livre $r_e - l_e$ e balanço $B[v] \mathrel{+}= l_e$, $B[u] \mathrel{-}= l_e$. Conecta-se $S^* \to v$ ($B[v] > 0$) e $u \to T^*$ ($B[u] < 0$). Para fluxo $s$-$t$, adiciona-se $(t \to s, \infty)$, verifica-se saturação de $S^* \to T^*$, anula-se $(t \to s)$ e soma-se \texttt{dinic.max\_flow(s, t)} ao fluxo base $f_0$.}
+  {Transferir o excesso/déficit gerado pelos fluxos fixos $l_e$ para $S^*$ e $T^*$ reduz a conservação de fluxo à saturação completa das demandas; a aresta $(t \to s, \infty)$ fecha o circuito $s$-$t$ em uma circulação, e o residual já embute um fluxo viável $f_0$.}
+  {Circulação viável com piso/teto em arestas, matriz com somas de linhas/colunas em intervalos, fluxo máximo/mínimo com demanda obrigatória.}
+  {Garantir $0 \le l_e \le r_e$ em todas as arestas. Para fluxo mínimo $s$-$t$, após anular $(t \to s)$, retornar $f_0 - \texttt{dinic.max\_flow(t, s)}$.}
+  {$\Ocomp{V^2 E}$ tempo, $\Ocomp{V + E}$ espaço}
 
 \begin{lstlisting}
 struct LowerBoundFlow {
@@ -464,10 +480,12 @@ struct LowerBoundFlow {
 
 \subsubsection{Dualidade Planar: Corte Mínimo $s$-$t$ via Caminho Mínimo no Dual}
 \algobox
-  {Calcular o corte mínimo de vértices entre $(0,0)$ e $(N-1,M-1)$ em uma grade planar $N \times M$ com pesos não-negativos $w_{r,c}$ e otimizar cortes sob pesos afins paramétricos $w_{r,c}(t) = a_{r,c} + b_{r,c} t \ge 0$ ($t \in [L, R]$).}
-  {Em grafos planares com $s$ e $t$ na face externa, o corte mínimo $s$-$t$ primal equivale ao caminho mínimo no grafo dual entre os dois arcos da face externa separados por $(s, t)$. No dual célula-canto da grade, cada célula $(r, c)$ conecta-se aos seus $4$ cantos (custo $w_{r,c}$ na entrada, $0$ na saída) e toda fronteira sem aresta primal entre células adjacentes conecta seus $2$ cantos com custo $0$; Dijkstra da borda Norte–Leste à borda Sul–Oeste calcula o corte mínimo. Para pesos afins em $t$, $F(t) = \min_S \sum_{v \in S} w_v(t)$ é mínimo de funções afins, portanto côncava, maximizável por busca ternária inteira.}
-  {Exige $w_{r,c} \ge 0$ para validade de Dijkstra e $s, t$ na face externa. Em \texttt{open\_h[r][c]} ($1 \le r < N$) registra-se aresta entre $(r-1,c)$ e $(r,c)$; em \texttt{open\_v[r][c]} ($1 \le c < M$), entre $(r,c-1)$ e $(r,c)$.}
-  {Avaliação: $\Ocomp{NM \log(NM)}$ $\mid$ Paramétrica: $\Ocomp{NM \log(NM) \log(R - L)}$}
+  {Calcular o corte mínimo de vértices entre $(0,0)$ e $(N-1,M-1)$ em uma grade planar $N \times M$ com pesos não-negativos $w_{r,c}$.}
+  {Constrói-se o grafo dual célula-canto: cada célula $(r, c)$ liga-se aos seus $4$ cantos (custo $w_{r,c}$ na entrada, $0$ na saída) e paredes sem aresta primal ligam seus $2$ cantos com custo $0$. Dijkstra da borda Norte–Leste até a borda Sul–Oeste retorna o corte mínimo.}
+  {Em grafos planares com $s$ e $t$ na face externa, qualquer corte $s$-$t$ primal corresponde a um caminho no dual separando os dois arcos da face externa entre $s$ e $t$, trocando fluxo $\Ocomp{V^2 E}$ por Dijkstra $\Ocomp{NM \log(NM)}$.}
+  {Bloquear passagem em grade grande ($NM \le 2 \cdot 10^5$) onde Dinic daria TLE, corte mínimo em grafos planares.}
+  {Exige $w_{r,c} \ge 0$ (Dijkstra) e $s, t$ na face externa. \texttt{open\_h[r][c]} ($1 \le r < N$) indica aresta entre $(r-1,c)$ e $(r,c)$; \texttt{open\_v[r][c]} ($1 \le c < M$) entre $(r,c-1)$ e $(r,c)$.}
+  {$\Ocomp{NM \log(NM)}$ tempo, $\Ocomp{NM}$ espaço}
 
 \begin{lstlisting}
 ll planar_grid_vertex_min_cut(int n, int m, const vector<vll>& w,
@@ -522,7 +540,17 @@ ll planar_grid_vertex_min_cut(int n, int m, const vector<vll>& w,
   }
   return 0;
 }
+\end{lstlisting}
 
+\algobox
+  {Maximizar uma função inteira unimodal/côncava $f(t)$ no domínio discreto $t \in [\texttt{lo}, \texttt{hi}]$.}
+  {Enquanto $\texttt{hi} - \texttt{lo} > 3$, avalia-se $f(m_1)$ e $f(m_2)$ nos terços do intervalo, descartando o terço estritamente inferior; ao restarem $\le 4$ pontos, testa-se todos linearmente.}
+  {Em uma função unimodal (como $F(t) = \min_S \sum_{v \in S} (a_v + b_v t)$, mínimo de afins, logo côncava), se $f(m_1) < f(m_2)$ o máximo não pode estar em $[\texttt{lo}, m_1]$, reduzindo o espaço de busca em $1/3$ por iteração.}
+  {Corte mínimo/caminho mínimo paramétrico com pesos afins em $t$, otimização de funções convexas/côncavas em inteiros.}
+  {Falha em platôs horizontais longos fora do ótimo (onde $f(m_1) = f(m_2)$). Finalizar com varredura linear quando $\texttt{hi} - \texttt{lo} \le 3$ evita loop infinito por arredondamento inteiro.}
+  {$\Ocomp{\log(\texttt{hi} - \texttt{lo}) \cdot T_f}$ tempo, $\Ocomp{1}$ espaço}
+
+\begin{lstlisting}
 ll ternary_search_max(ll lo, ll hi, auto&& f) {
   while (hi - lo > 3) {
     ll m1 = lo + (hi - lo) / 3, m2 = hi - (hi - lo) / 3;
